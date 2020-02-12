@@ -1,7 +1,7 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
 if (NOT TARGET tweedledum)
   add_library(tweedledum INTERFACE)
-  target_include_directories(tweedledum INTERFACE ${CMAKE_SOURCE_DIR}/tweedledum)
+  target_include_directories(tweedledum INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum)
 endif()
 
 if (NOT TARGET bill)
