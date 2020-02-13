@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream>
 
-namespace tweedledum
+namespace angel
 {
 
 inline constexpr std::uint32_t ilog2( std::uint32_t const n )
@@ -202,4 +202,4 @@ std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
   return rows;
 }
 
-} // namespace tweedledum
+} // namespace angel

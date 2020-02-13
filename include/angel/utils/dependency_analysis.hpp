@@ -4,7 +4,7 @@
 #include <percy/percy.hpp>
 #include <fmt/format.h>
 
-namespace tweedledum
+namespace angel
 {
 using dependencies_t = std::map<uint32_t , std::vector<std::pair<std::string, std::vector<uint32_t>>>>;
 
@@ -43,13 +43,10 @@ bool check_not_exist_dependencies( std::vector<partial_truth_table> minterms, ui
 {
     uint32_t const num_minterms = minterms.size();
 
-    //std::cout<<"target: "<<target<<std::endl;
-
     for ( auto i = 0 ; i < int32_t( minterms.size() ) ; i++ )
     {
         for(int32_t j =target-1 ; j>=0 ; j--)
         {
-            //std::cout<<"j clear: "<<j<<std::endl;
             minterms[i].clear_bit(j);
         }
     }
@@ -58,20 +55,7 @@ bool check_not_exist_dependencies( std::vector<partial_truth_table> minterms, ui
     {
         auto row1 = minterms[k];
         auto row2 = minterms[k+1];
-
-        // std::cout<<"row 1: ";
-        // print_binary(row1);
-        // std::cout<<std::endl;
-
-        // std::cout<<"row 2: ";
-        // print_binary(row2);
-        // std::cout<<std::endl;
-
         auto check = row1^row2;
-
-        // std::cout<<"check: ";
-        // print_binary(check);
-        // std::cout<<std::endl;
 
         if ( check.count_ones()==1 && check.get_bit( target ) )
         {
@@ -166,11 +150,11 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
       continue;
 
  
-    //-----xor---------
-    //----first input
+    /*-----xor---------*/
+    /*----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
-      //-----second input
+      /*-----second input */
       for ( auto k = j - 1; k > i; --k )
       {
         if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ) )
@@ -186,7 +170,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           break;
         }
 
-        //-----3rd input
+        /*-----3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
           if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l)) )
@@ -201,7 +185,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
             dependencies[i] = std::vector{ std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ uint32_t( j*2+0 ), uint32_t( k*2+0 ), uint32_t( l*2+0 ) } } };
             break;
           }
-          //---- 4th input
+          /*---- 4th input */
           for(auto m = j-3 ; m>i ; --m)
           {
             if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m)) )
@@ -217,7 +201,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
               break;
             }
 
-            //---- 5th input
+            /*---- 5th input */
             for(auto i5 = j-4 ; i5>i ; --i5)
             {
               if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m) ^ columns.at(i5)) )
@@ -249,8 +233,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
     if ( found )
       continue;
 
-    //-----and---------
-    //-----first input
+    /*-----and---------*/
+    /*-----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
       //----second input
@@ -287,7 +271,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           break;
         }
 
-        //----3rd input
+        /*----3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
           if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l)) )
@@ -345,7 +329,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
             break;
           }
 
-          //---- 4th input
+          /*---- 4th input */
           for(auto m = j-3 ; m>i ; --m)
           {
             if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m)) )
@@ -451,7 +435,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
               break;
             }
 
-            //---- 5th input
+            /*---- 5th input */
             for(auto i5 = j-4 ; i5>i ; --i5)
             {
               if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m) & columns.at(i5)) )
@@ -669,11 +653,11 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
     if ( found )
       continue;
 
-    //-----or---------
-    //-----first input
+    /*-----or---------*/
+    /*-----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
-      //-----second input
+      /*-----second input */
       for ( auto k = j - 1; k > i; --k )
       {
         if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) ) )
@@ -707,7 +691,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           break;
         }
 
-        //------3rd input
+        /*------3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
           if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l)) )
@@ -765,7 +749,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
             break;
           }
 
-          //---- 4th input
+          /*---- 4th input */
           for(auto m = j-3 ; m>i ; --m)
           {
             if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m)) )
@@ -872,7 +856,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
               break;
             }
 
-            //---- 5th input
+            /*---- 5th input */
             for(auto i5 = j-4 ; i5>i ; --i5)
             {
               if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m) | columns.at(i5)) )
@@ -1091,14 +1075,14 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
     if ( found )
       continue;
 
-    //-----and xor---------
-    //-----first input
+    /*-----and xor---------*/
+    /*-----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
-      //-----second input
+      /*-----second input */
       for ( auto k = j - 1; k > i; --k )
       {
-        //------3rd input
+        /*------3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
           auto in1 = j;
@@ -1213,14 +1197,14 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
     if (found)
         continue;
 
-    //-----or xor---------
-    //-----first input
+    /*-----or xor---------*/
+    /*-----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
-      //-----second input
+      /*-----second input */
       for ( auto k = j - 1; k > i; --k )
       {
-        //------3rd input
+        /*------3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
           auto in1 = j;
@@ -1419,14 +1403,12 @@ dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, function
       }
     }
 
-    //----first input
+    /*----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
-      //-----second input
+      /*-----second input */
       for ( auto k = j - 1; k > i; --k )
       {
-        // std::cout << i << ' ' << j << ' ' << k << std::endl;
-
         auto const isop_i = columns.at( i ).to_isop();
         auto const isop_j = columns.at( j ).to_isop();
         auto const isop_k = columns.at( k ).to_isop();
@@ -1623,4 +1605,4 @@ void print_dependencies( dependencies_t const& dependencies, std::ostream& os = 
 }
 
 
-}// end namespace tweedledum
+}// end namespace angel

@@ -1,28 +1,25 @@
 /* Author: Fereshte */
 #pragma once
-#include "../../gates/gate_lib.hpp"
-#include "../../gates/gate_base.hpp"
-#include "../../gates/mcmt_gate.hpp"
-#include "../../gates/mcmt_gate.hpp"
-#include "../../networks/io_id.hpp"
-#include "../generic/rewrite.hpp"
-#include "linear_synth.hpp"
-#include "tbs.hpp"
+#include <tweedledum/gates/gate_lib.hpp>
+// #include "../../gates/gate_base.hpp"
+// #include "../../gates/mcmt_gate.hpp"
+// #include "../../gates/mcmt_gate.hpp"
+// #include "../../networks/io_id.hpp"
+// #include "../generic/rewrite.hpp"
+// #include "linear_synth.hpp"
+// #include "tbs.hpp"
 #include <array>
 #include <iostream>
 #include <vector>
 #include <map>
-#include <kitty/constructors.hpp>
+// #include <kitty/constructors.hpp>
 #include <kitty/dynamic_truth_table.hpp>
-#include <kitty/esop.hpp>
-#include <kitty/operations.hpp>
-#include <kitty/print.hpp>
-#include <kitty/kitty.hpp>
-#include <vector>
+// #include <kitty/esop.hpp>
+// #include <kitty/operations.hpp>
+// #include <kitty/print.hpp>
+// #include <kitty/kitty.hpp>
+// #include <vector>
 #include <math.h>
-#include <cudd/cudd.h>
-#include <cudd/cuddInt.h>
-#include <cplusplus/cuddObj.hh>
 #include <tweedledum/utils/stopwatch.hpp>
 #include <typeinfo>
 
@@ -34,15 +31,14 @@ struct qsp_tt_statistics
   
 }; /* qsp_tt_statistics */
 
-namespace tweedledum {
+namespace angel {
 
 namespace detail {
 
 template<class Network>
-inline void decomposition_mcz(Network& net,  std::vector<io_id> const& q_map, kitty::dynamic_truth_table tt)//changed by fereshte
+inline void decomposition_mcz(Network& net,  std::vector<tweedledum::io_id> const& q_map, kitty::dynamic_truth_table tt)//changed by fereshte
 {
     const auto num_controls = tt.num_vars();
-    //assert(qubit_map.size() == num_controls + 1);
     
     auto g = kitty::extend_to(tt, num_controls + 1);
     auto xt = g.construct();
@@ -51,8 +47,10 @@ inline void decomposition_mcz(Network& net,  std::vector<io_id> const& q_map, ki
     parity_terms parities;
     const float nom = M_PI / (1 << g.num_vars());
     const auto spectrum = kitty::rademacher_walsh_spectrum(g);
-    for (auto i = 1u; i < spectrum.size(); ++i) {
-        if (spectrum[i] == 0) {
+    for (auto i = 1u; i < spectrum.size(); ++i) 
+    {
+        if (spectrum[i] == 0) 
+        {
             continue;
         }
         parities.add_term(i, nom * spectrum[i]);
@@ -66,44 +64,55 @@ inline std::vector<double> gauss(std::vector< std::vector<double> > A)
 {
     auto n = A.size();
     std::cout<<"m size: "<<n<<std::endl;
-    for (auto i=0u; i<n; i++) {
-        // Search for maximum in this column
+    for (auto i=0u; i<n; i++) 
+    {
+        /* Search for maximum in this column */
         double maxEl = abs(A[i][i]);
         auto maxRow = i;
-        for (auto k=i+1; k<n; k++) {
-            if (abs(A[k][i]) > maxEl) {
+        for (auto k=i+1; k<n; k++) 
+        {
+            if (abs(A[k][i]) > maxEl) 
+            {
                 maxEl = abs(A[k][i]);
                 maxRow = k;
             }
         }
 
-        // Swap maximum row with current row (column by column)
-        for (auto k=i; k<n+1;k++) {
+        /* Swap maximum row with current row (column by column) */
+        for (auto k=i; k<n+1;k++) 
+        {
             double tmp = A[maxRow][k];
             A[maxRow][k] = A[i][k];
             A[i][k] = tmp;
         }
 
-        // Make all rows below this one 0 in current column
-        for (auto k=i+1; k<n; k++) {
+        /* Make all rows below this one 0 in current column */
+        for (auto k=i+1; k<n; k++) 
+        {
             double c = -A[k][i]/A[i][i];
-            for (int j=i; j<n+1; j++) {
-                if (i==j) {
+            for (int j=i; j<n+1; j++) 
+            {
+                if (i==j) 
+                {
                     A[k][j] = 0;
-                } else {
+                } 
+                else 
+                {
                     A[k][j] += c * A[i][j];
                 }
             }
         }
     }
     std::cout<<"after m manipulation\n";
-    // Solve equation Ax=b for an upper triangular matrix A
+    /* Solve equation Ax=b for an upper triangular matrix A */
     std::vector<double> x(n,0);
-    for (int32_t i=n-1; i>=0; i--) {
+    for (int32_t i=n-1; i>=0; i--) 
+    {
         std::cout<<"i: "<<i<<std::endl;
         x[i] = A[i][n]/A[i][i];
         std::cout<<"x[i]: "<<x[i]<<"\n";
-        for (int32_t k=i-1;k>=0; k--) {
+        for (int32_t k=i-1;k>=0; k--) 
+        {
             std::cout<<"k: "<<k<<std::endl;
             A[k][n] -= A[k][i] * x[i];
             std::cout<<"A[k][n]: "<<A[k][n]<<"\n";
@@ -118,24 +127,28 @@ inline void multiplex_decomposition(Network& net, std::vector<double> mux_angles
 {
     uint32_t n = mux_angles.size();
     auto binarytogray = [](uint32_t num) { return (num>>1) ^ num;};
-    //create M matrix
+    /* create M matrix */
     std::vector<double> line(n+1,0);
     std::vector< std::vector<double> > M(n,line);
-    for (auto i=0u; i<n; i++) {
-        for (auto j=0u; j<n; j++) {
+    for (auto i=0u; i<n; i++) 
+    {
+        for (auto j=0u; j<n; j++) 
+        {
             M[i][j] = pow(-1, __builtin_popcount(i & (binarytogray(j)) ));
         }
     }
-    //solving n equations n unknowns
-    for (int i=0; i<n; i++) {
+    /* solving n equations n unknowns */
+    for (int i=0; i<n; i++) 
+    {
         M[i][n] = mux_angles[i];
     }
     std::cout<<"after M\n";
     std::vector<double> angs(n);
     angs = gauss(M);
     std::cout<<"after gauss\n";
-    //add gates to network
-    for(auto i=0; i<n;i++){
+    /* add gates to network */
+    for(auto i=0; i<n;i++)
+    {
         net.add_gate(gate_base(gate_lib::ry, angs[i]), target_id);
         uint32_t ctrl = log2(binarytogray(i) ^  ( (i==n-1) ? 0 : binarytogray(i+1) )) +1;
         ctrl += target_id;
@@ -217,25 +230,29 @@ inline void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std
     
 }
 
-/*std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>*/ 
 inline void control_line_cancelling
 (std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>& in_gates, uint32_t nqubits)
 {
-    //std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>> out_gates;
+    
     std::vector<uint32_t> line_values (nqubits, 0);
     uint32_t idx=0;
-    for(auto & [name,angle,target_id,controls]: in_gates){
-        if(angle==0){
+    for(auto & [name,angle,target_id,controls]: in_gates)
+    {
+        if(angle==0)
+        {
             in_gates.erase(in_gates.begin()+idx);
             continue;
         }
         idx++;
-        //check controls
-        if (controls.size()>0){
-            for(auto i=0u;i<controls.size();){
+        /* check controls */
+        if (controls.size()>0)
+        {
+            for(auto i=0u;i<controls.size();)
+            {
                 auto l = controls[i] / 2;
                 auto c_val = (controls[i] % 2); // 0:pos 1:neg
-                if(line_values[l]==c_val){
+                if(line_values[l]==c_val)
+                {
                     std::cout<<"erase control\n";
                     controls.erase(controls.begin()+i);
                     continue;
@@ -243,14 +260,13 @@ inline void control_line_cancelling
                 i++;
             }
         }
-        //update line values
+        /* update line values */
         if(angle = M_PI)
             line_values[target_id] = 1;
         else 
             line_values[target_id] = 2;
     }
 
-    return ;//out_gates;
 }
 
 inline std::vector<uint32_t> initialize_orders (uint32_t n)
@@ -267,22 +283,22 @@ inline void general_qg_generation(std::map <uint32_t , std::vector < std::pair <
     auto var_index = orders[var_index_pure];
     if(var_index==-1)
         return;
-    //-----co factors-------
+    /*-----co factors-------*/
     kitty::dynamic_truth_table tt0(var_index);
     kitty::dynamic_truth_table tt1(var_index);
     tt0 = kitty::shrink_to(kitty::cofactor0(tt,var_index), tt.num_vars() - 1);
     tt1 = kitty::shrink_to(kitty::cofactor1(tt,var_index), tt.num_vars() - 1);
-    //--computing probability gate---
+    /*--computing probability gate---*/
     auto c0_ones = kitty::count_ones(tt0);
     auto c1_ones = kitty::count_ones(tt1);
     auto tt_ones = kitty::count_ones(tt);
     if (c0_ones!=tt_ones)
-    { // == --> identity and ignore
+    { /* == --> identity and ignore */
         double angle = 2*acos(sqrt(static_cast<double> (c0_ones)/tt_ones));
         gates[var_index].emplace_back(std::pair{angle,controls});    
     }
-    //-----qc of cofactors-------
-    //---check state--- 
+    /*-----qc of cofactors-------*/
+    /*---check state--- */
     auto c0_allone = (c0_ones==pow(2, tt0.num_vars())) ? true : false ;
     auto c0_allzero = (c0_ones==0) ? true : false ;
     auto c1_allone = (c1_ones==pow(2, tt1.num_vars())) ? true : false ;
@@ -290,68 +306,75 @@ inline void general_qg_generation(std::map <uint32_t , std::vector < std::pair <
 
     std::vector<uint32_t> controls_new0;
     std::copy(controls.begin(), controls.end(), back_inserter(controls_new0)); 
-    auto ctrl0 = var_index*2 + 1; //negetive control: /2 ---> index %2 ---> sign
+    auto ctrl0 = var_index*2 + 1; /*negetive control: /2 ---> index %2 ---> sign */
     controls_new0.emplace_back(ctrl0);
-    if (c0_allone){
+    if (c0_allone)
+    {
         
-        //---add H gates---
+        /*---add H gates---*/
         for(auto i=0u;i<var_index_pure;i++)
             gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new0});
-        //--check one cofactor----
+        /*--check one cofactor----*/
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
-        auto ctrl1 = var_index*2 + 0; //positive control: /2 ---> index %2 ---> sign
+        auto ctrl1 = var_index*2 + 0; /*positive control: /2 ---> index %2 ---> sign */
         controls_new1.emplace_back(ctrl1);
-        if(c1_allone){
-            //---add H gates---
+        if(c1_allone)
+        {
+            /*---add H gates---*/
             for(auto i=0u;i<var_index_pure;i++)
                 gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new1});
-
         }
-        else if(c1_allzero){
+        else if(c1_allzero)
+        {
             return;
         }
-        else{//some 1 some 0
+        else
+        {/* some 1 some 0 */
             general_qg_generation(gates,tt1,var_index_pure-1,controls_new1, orders);
         }
     }
-    else if(c0_allzero){
-        //--check one cofactor----
+    else if(c0_allzero)
+    {
+        /*--check one cofactor----*/
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
-        auto ctrl1 = var_index*2 + 0; //positive control: /2 ---> index %2 ---> sign
+        auto ctrl1 = var_index*2 + 0; /* positive control: /2 ---> index %2 ---> sign */
         controls_new1.emplace_back(ctrl1);
-        if(c1_allone){
-            //---add H gates---
+        if(c1_allone)
+        {
+            /*---add H gates---*/
             for(auto i=0u;i<var_index_pure;i++)
                 gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new1});
-
         }
-        else if(c1_allzero){
+        else if(c1_allzero)
+        {
             return;
         }
-        else{//some 1 some 0
+        else
+        {/* some 1 some 0 */
             general_qg_generation(gates,tt1,var_index_pure-1,controls_new1, orders);
         }
     }
-    else{//some 0 some 1 for c0
-        
+    else
+    {/* some 0 some 1 for c0  */
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
-        auto ctrl1 = var_index*2 + 0; //positive control: /2 ---> index %2 ---> sign
+        auto ctrl1 = var_index*2 + 0; /* positive control: /2 ---> index %2 ---> sign */
         controls_new1.emplace_back(ctrl1);
-        if(c1_allone){
+        if(c1_allone)
+        {
             general_qg_generation(gates,tt0,var_index_pure-1,controls_new0, orders);
-            //---add H gates---
+            /*---add H gates---*/
             for(auto i=0u;i<var_index_pure;i++)
-                
                 gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new1});
-
         }
-        else if(c1_allzero){
+        else if(c1_allzero)
+        {
             general_qg_generation(gates,tt0,var_index_pure-1,controls_new0, orders);
         }
-        else{//some 1 some 0
+        else
+        {/* some 1 some 0 */
             general_qg_generation(gates,tt0,var_index_pure-1,controls_new0, orders);
             general_qg_generation(gates,tt1,var_index_pure-1,controls_new1, orders);
         }
@@ -379,7 +402,7 @@ std::map <uint32_t, std::vector < std::pair < double,std::vector<uint32_t> > > >
                 //net.add_gate(gate::cx,controls,i);     
             }
             else 
-            {//we have multi control probability gate
+            {/* we have multi control probability gate */
                 unsigned nlines = controls.size()+1;
                 auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
                 uint32_t tt_idx_set=0;
@@ -388,8 +411,10 @@ std::map <uint32_t, std::vector < std::pair < double,std::vector<uint32_t> > > >
                 std::vector<io_id> q_map;
                 net.add_gate(gate_base(gate_lib::ry, angle/2), i);
                 auto idx=0;
-                for(const auto ctrl:controls){
-                    if(ctrl%2 == 1){//negative control
+                for(const auto ctrl:controls)
+                {
+                    if(ctrl%2 == 1)
+                    {//negative control
                         //net.add_gate(gate::pauli_x, ctrl/2)
                         tt_idx_set += pow(2,idx);
                     }
@@ -428,7 +453,7 @@ qsp_tt_statistics& stats , std::vector<uint32_t> const& orders)
     auto total_rys = 0;
     auto total_cnots = 0;
 
-    auto n_reduc = 0; // lines that always are zero or one and so we dont need to prepare them
+    auto n_reduc = 0; /* lines that always are zero or one and so we dont need to prepare them */
 
     std::vector< std::pair<uint32_t,uint32_t> > gates_num(tt.num_vars()); //rys,cnots
     for(int32_t i=gates.size()-1; i>=0;i--)
@@ -445,7 +470,7 @@ qsp_tt_statistics& stats , std::vector<uint32_t> const& orders)
         for(auto j=0u; j< gates[ orders[i] ].size(); j++)
         {
            
-            if( i==(tt.num_vars()-1-n_reduc) ) // first line for preparation
+            if( i==(tt.num_vars()-1-n_reduc) ) /* first line for preparation */
             {
                 cnots = 0;
                 rys = 1;
@@ -560,4 +585,4 @@ qsp_tt_statistics & stats, qsp_params params = {} )
     qsp_tt(network, tt, detail::initialize_orders(tt.num_vars()), stats, params);
 }
 
-} // namespace tweedledum end
+} // end namespace angel 
