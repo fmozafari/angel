@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.8)
-project(starter LANGUAGES CXX)
+project(ANGEL LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Options
-option(STARTER_EXAMPLES "Build examples" ON)
-option(STARTER_TEST "Build tests" OFF)
-option(STARTER_EXPERIMENTS "Build experiments" OFF)
+option(ANGEL_EXAMPLES "Build examples" ON)
+option(ANGEL_TEST "Build tests" OFF)
+option(ANGEL_EXPERIMENTS "Build experiments" OFF)
 
 if(UNIX)
   # show quite some warnings (but remove some intentionally)
@@ -24,14 +24,14 @@ endif()
 add_subdirectory(include)
 add_subdirectory(lib)
 
-if(STARTER_EXAMPLES)
+if(ANGEL_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
-if(STARTER_TEST)
+if(ANGEL_TEST)
   add_subdirectory(test)
 endif()
 
-if(STARTER_EXPERIMENTS)
+if(ANGEL_EXPERIMENTS)
   add_subdirectory(experiments)
 endif()
