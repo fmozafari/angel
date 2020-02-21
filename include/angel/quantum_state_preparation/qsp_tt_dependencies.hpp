@@ -455,9 +455,9 @@ std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>> c
       network.add_qubit();
     }
 	
-    // stopwatch<>::duration time_traversal{0};
+    // tweedledum::stopwatch<>::duration time_traversal{0};
     // {
-    //     stopwatch t( time_traversal );
+    //     tweedledum::stopwatch t( time_traversal );
         switch (params.strategy) 
         {
             case qsp_params::strategy::allone_first:
