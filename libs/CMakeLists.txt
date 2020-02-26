@@ -143,6 +143,3 @@ if (NOT TARGET cudd)
   add_subdirectory(cudd)
 endif()
 
-#target_link_libraries(angel INTERFACE obj)
-
-
