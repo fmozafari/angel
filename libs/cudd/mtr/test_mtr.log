@@ -1,0 +1,11 @@
+TAP version 13
+1..1
+sed: illegal option -- r
+usage: sed script [-Ealn] [-i extension] [file ...]
+       sed [-Ealn] [-i extension] [-e script] ... [-f script_file] ... [file ...]
+sed: illegal option -- r
+usage: sed script [-Ealn] [-i extension] [file ...]
+       sed [-Ealn] [-i extension] [-e script] ... [-f script_file] ... [file ...]
+# comparing ./mtr/test.tst to ./mtr/test.out
+ok 1
+PASS: mtr/test_mtr.test 1

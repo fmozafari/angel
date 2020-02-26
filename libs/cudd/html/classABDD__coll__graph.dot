@@ -1,0 +1,41 @@
+digraph "ABDD"
+{
+ // LATEX_PDF_SIZE
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node4 [label="ABDD",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black",tooltip="Class for ADDs and BDDs."];
+  Node5 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="DD",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classDD.html",tooltip="Base class for all decision diagrams in CUDD."];
+  Node6 -> Node5 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" p" ,fontname="Helvetica"];
+  Node6 [label="Capsule",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classCapsule.html",tooltip="Class for reference counting of CUDD managers."];
+  Node7 -> Node6 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" manager" ,fontname="Helvetica"];
+  Node7 [label="DdManager",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structDdManager.html",tooltip="Specialized DD symbol table."];
+  Node7 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" timeoutHandler" ,fontname="Helvetica"];
+  Node8 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" localCaches" ,fontname="Helvetica"];
+  Node8 [label="DdLocalCache",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structDdLocalCache.html",tooltip="Local cache."];
+  Node8 -> Node8 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" next" ,fontname="Helvetica"];
+  Node7 -> Node8 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" manager" ,fontname="Helvetica"];
+  Node9 -> Node8 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" item" ,fontname="Helvetica"];
+  Node9 [label="DdLocalCacheItem",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structDdLocalCacheItem.html",tooltip="Generic local cache item."];
+  Node10 -> Node9 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" key\nvalue" ,fontname="Helvetica"];
+  Node10 [label="DdNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structDdNode.html",tooltip="Decision diagram node."];
+  Node11 -> Node10 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" kids" ,fontname="Helvetica"];
+  Node11 [label="DdChildren",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structDdChildren.html",tooltip="The two children of a non-terminal node."];
+  Node10 -> Node11 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" E\nT" ,fontname="Helvetica"];
+  Node10 -> Node10 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" next" ,fontname="Helvetica"];
+  Node12 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" subtableZ\nconstants\nsubtables" ,fontname="Helvetica"];
+  Node12 [label="DdSubtable",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structDdSubtable.html",tooltip="Subtable for one index."];
+  Node10 -> Node12 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" nodelist" ,fontname="Helvetica"];
+  Node13 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" treeZ\ntree" ,fontname="Helvetica"];
+  Node13 [label="MtrNode_",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structMtrNode__.html",tooltip="multi-way tree node."];
+  Node13 -> Node13 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" elder\nchild\nparent\nyounger" ,fontname="Helvetica"];
+  Node14 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" acache\ncache" ,fontname="Helvetica"];
+  Node14 [label="DdCache",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structDdCache.html",tooltip="Computed table."];
+  Node10 -> Node14 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" f\ng\ndata" ,fontname="Helvetica"];
+  Node10 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" one\nstack\nplusinfinity\nuniv\nminusinfinity\nmemoryList\nbackground\ndeathRow\nzero\nnextFree\n..." ,fontname="Helvetica"];
+  Node15 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" preReorderingHook\npostGCHook\npostReorderingHook\npreGCHook" ,fontname="Helvetica"];
+  Node15 [label="DdHook",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structDdHook.html",tooltip="CUDD hook."];
+  Node7 -> Node15 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" f" ,fontname="Helvetica"];
+  Node15 -> Node15 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" next" ,fontname="Helvetica"];
+  Node10 -> Node5 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" node" ,fontname="Helvetica"];
+}

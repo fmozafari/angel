@@ -1,0 +1,41 @@
+sudo: required
+dist: trusty
+
+language: cpp
+
+os:
+    - linux
+    - osx
+
+compiler:
+    - gcc
+    - clang
+
+env:
+    global:
+        # Intel Parallel Studio
+        - secure: "JvvHOMqRRW3xx3FQ5PwPb91TF4SJelyZMujyi7S/41GEMxi1RV5/NV9ebHp1zlftgqWr4lqusvc5YdPuH7Nk6aZc25Fm00FWkiaqXnL+ollzGYm1SjYxNwp7wD/LV0lKXbhh5iUFNwxahDVdbIIU0EqAUwbwNETvx2HhfLIFSgIanHRFoJqjq+eFyMTjnyXbUiDWnApSSDfMfoDuESB5wDz9pVaUzN8ZraTtffr/HogFe0CXuOYu3Fyrbt6giyssAgv96lG21uZKAemhZK5pS6ZRptofGVP4h6+VILjPlWzVVWQnG2fgO168/pv9lmkTu4og0wf6thI7FydZ0pgyoZL/5VpIiRfYfj5toi6owhCKZNt8cGJ+4NKhgD/+vNBNzx5XluACzyHliBFk6EZG9B63yZA8o+4ab0jYmiFEH2msn8Mne9L1FenxpLbtLBA++Db+BvrXuJO9J2kD+c2/s1Y4+5LJNJnC2wjH5vZnXu/odqQhgHNUhq6+ZPC/7NiXirkhhsuI4TexxR3CjCROHcNbkQuKFqQj+25ZOfvCaHMTo7lxpay5VqhKAtZL0EMkqFwoFIzMuWLNT3K/8ekb2UbYC6ymHMmdTSVJqZFqzWmUcgprIyE6KLY09D7H8ZugV+IcSH7/PF6y1zr1++7hEHXnBSToSSBcptw91AC7PZQ="
+
+matrix:
+    exclude:
+        - os: osx
+          compiler: gcc
+    include:
+        - os: linux
+          compiler: icc
+          env: INTEL_COMPILER=true
+          if: NOT type IN (pull_request)
+
+install:
+    - if [[ -n "${INTEL_COMPILER}" ]]; then git clone https://github.com/nemequ/icc-travis.git; ./icc-travis/install-icc.sh; fi
+
+before_script:
+    - if [[ -n "${INTEL_COMPILER}" ]]; then export CC=icc; export CXX=icpc; source ~/.bashrc; fi
+    - mkdir build
+    - cd build
+
+script:
+    - cmake ..
+    - cat config.h
+    - make -j 2
+    # - make check
