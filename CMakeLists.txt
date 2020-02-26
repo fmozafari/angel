@@ -22,16 +22,23 @@ if(UNIX)
 endif()
 
 add_subdirectory(include)
-add_subdirectory(lib)
+add_subdirectory(libs)
 
 if(ANGEL_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
 if(ANGEL_TEST)
-  add_subdirectory(test)
+  add_subdirectory(tests)
 endif()
 
 if(ANGEL_EXPERIMENTS)
   add_subdirectory(experiments)
 endif()
+
+target_include_directories(angel INTERFACE libs/cudd)
+target_include_directories(angel INTERFACE libs/cudd/epd)
+target_include_directories(angel INTERFACE libs/cudd/mtr)
+target_include_directories(angel INTERFACE libs/cudd/st)
+target_include_directories(angel INTERFACE libs/cudd/cudd)
+target_include_directories(angel INTERFACE ${CMAKE_BINARY_DIR}/libs/cudd)

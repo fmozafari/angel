@@ -1,25 +1,19 @@
 /* Author: Fereshte */
-#pragma once
-//#include <tweedledum/gates/gate_lib.hpp>
-//#include <tweedledum/gates/gate_base.hpp>
-// #include "../../gates/mcmt_gate.hpp"
-// #include "../../gates/mcmt_gate.hpp"
+#pragma once\
 #include <tweedledum/networks/io_id.hpp>
-// #include "../generic/rewrite.hpp"
+#include <tweedledum/gates/io3_gate.hpp>
+#include <tweedledum/gates/gate_base.hpp>
+#include <tweedledum/gates/gate_lib.hpp>
+#include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/algorithms/synthesis/linear_synth.hpp>
-//#include <tweedledum/algorithms/synthesis/gray_synth.hpp>
-// #include "tbs.hpp"
 #include <array>
 #include <iostream>
 #include <kitty/constructors.hpp>
 #include <kitty/dynamic_truth_table.hpp>
 #include <map>
 #include <vector>
-
 #include <kitty/operations.hpp>
-// #include <kitty/print.hpp>
 #include <kitty/kitty.hpp>
-// #include <vector>
 #include <math.h>
 #include <tweedledum/utils/stopwatch.hpp>
 #include <typeinfo>
@@ -29,7 +23,7 @@ struct qsp_tt_statistics
     double time{0};
     uint32_t total_cnots{0};
     uint32_t total_rys{0};
-    std::pair<uint32_t,uint32_t> gates_num= std::make_pair(0,0);
+    std::pair<uint32_t, uint32_t> gates_num = std::make_pair(0, 0);
 }; /* qsp_tt_statistics */
 
 namespace angel
@@ -37,6 +31,25 @@ namespace angel
 
 namespace detail
 {
+
+inline void print_gates (std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates)
+{
+    std::cout<<"++++++++++++ gates in QC +++++++++++++\n";
+    for(int32_t i=gates.size()-1; i>=0; i--)
+    {
+        std::cout<<"line: "<<i<<std::endl;
+        for(const auto & g: gates[i])
+        {
+            std::cout<<"angle: "<<g.first<<" controls: ";
+            for(const auto & c:g.second)
+            {
+                std::cout<<c<<" ";
+            }
+            std::cout<<"\n";
+        }
+        std::cout<<"\n ----------------------\n";
+    }
+}
 
 inline std::vector<uint32_t> initialize_orders(uint32_t n)
 {
@@ -46,9 +59,9 @@ inline std::vector<uint32_t> initialize_orders(uint32_t n)
     return orders_init;
 }
 
-void gates_count_analysis(std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > > gates, 
- std::vector<uint32_t> const & orders, 
- uint32_t num_vars, qsp_tt_statistics& stats)
+void gates_count_analysis(std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates,
+                          std::vector<uint32_t> const &orders,
+                          uint32_t num_vars, qsp_tt_statistics &stats)
 {
     auto total_rys = 0;
     auto total_cnots = 0;
@@ -56,7 +69,7 @@ void gates_count_analysis(std::map <uint32_t , std::vector < std::pair < double,
     bool sig;
     auto n_reduc = 0; /* lines that always are zero or one and so we dont need to prepare them */
 
-    for(int32_t i=num_vars-1; i>=0;i--)
+    for (int32_t i = num_vars - 1; i >= 0; i--)
     {
         if (gates.find(orders[i]) == gates.end())
         {
@@ -64,7 +77,7 @@ void gates_count_analysis(std::map <uint32_t , std::vector < std::pair < double,
             continue;
         }
 
-        if(gates[ orders[i] ].size()==0)
+        if (gates[orders[i]].size() == 0)
         {
             n_reduc++;
             continue;
@@ -74,55 +87,52 @@ void gates_count_analysis(std::map <uint32_t , std::vector < std::pair < double,
         auto cnots = 0;
         sig = 0;
 
-        for(auto j=0u; j< gates[ orders[i] ].size(); j++)
+        for (auto j = 0u; j < gates[orders[i]].size(); j++)
         {
-            if(gates[ orders[i] ][j].second.size()==((num_vars-i-1)-n_reduc) &&
-            gates[ orders[i] ][j].second.size()!=0) /* number of controls is max or not? */
+            if (gates[orders[i]][j].second.size() == ((num_vars - i - 1) - n_reduc) &&
+                gates[orders[i]][j].second.size() != 0) /* number of controls is max or not? */
             {
                 sig = 1;
                 break;
             }
-        
-            auto cs = gates[ orders[i] ][j].second.size();
-            if(cs==0)
+
+            auto cs = gates[orders[i]][j].second.size();
+            if (cs == 0)
                 rys += 1;
-            else if (cs==1 && (std::abs(gates[orders[i]][j].first-M_PI)<0.1))
+            else if (cs == 1 && (std::abs(gates[orders[i]][j].first - M_PI) < 0.1))
                 cnots += 1;
             else
             {
-                rys += pow(2,cs);
-                cnots += pow(2,cs);
+                rys += pow(2, cs);
+                cnots += pow(2, cs);
             }
-            
         }
-        if (sig || cnots>pow(2,((num_vars-i-1)-n_reduc))) /* we have max number of controls */
+        if (sig || cnots > pow(2, ((num_vars - i - 1) - n_reduc))) /* we have max number of controls */
         {
-            if(i==(num_vars-1-n_reduc)) /* first line for preparation */
+            if (i == (num_vars - 1 - n_reduc)) /* first line for preparation */
             {
                 cnots = 0;
                 rys = 1;
             }
-            else if(gates[orders[i]].size()==1 && (std::abs(gates[orders[i]][0].first-M_PI)<0.1) && gates[orders[i]][0].second.size()==1) // second line for preparation
-            {               
+            else if (gates[orders[i]].size() == 1 && (std::abs(gates[orders[i]][0].first - M_PI) < 0.1) && gates[orders[i]][0].second.size() == 1) // second line for preparation
+            {
                 cnots = 1;
                 rys = 0;
             }
             else /* other lines with more than one control */
             {
-                rys = pow(2,((num_vars-i-1)-n_reduc));
-                cnots = pow(2,((num_vars-i-1)-n_reduc)); 
-            }        
+                rys = pow(2, ((num_vars - i - 1) - n_reduc));
+                cnots = pow(2, ((num_vars - i - 1) - n_reduc));
+            }
         }
-        
+
         total_rys += rys;
-        total_cnots += cnots;  
-        
+        total_cnots += cnots;
     }
-    
+
     stats.total_cnots += total_cnots;
     stats.total_rys += total_rys;
-    stats.gates_num = std::make_pair(total_cnots,total_rys);
-
+    stats.gates_num = std::make_pair(total_cnots, total_rys);
 }
 
 inline void general_qg_generation(
@@ -242,36 +252,34 @@ inline void general_qg_generation(
 }
 // to do: need to complete and verify
 template <typename Network>
-void qc_generation(
-    Network &net,
-    std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>
-        gates)
+void qc_generation(Network & net,
+    std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates)
 {
     for (auto i = 0u; i < gates.size(); i++)
     {
-        for (const auto g : gates[i])
+        for (const auto & g : gates[i])
         {
             auto angle = g.first;
             auto controls = g.second;
             std::vector<tweedledum::io_id> qcontrols;
             /* convert controls to qubit controls */
-            for(auto i=0;i<controls.size();i++)
+            for (auto i = 0u; i < controls.size(); i++)
             {
-                auto c = (controls[i]%2) ? tweedledum::io_id(controls[i]/2,1,1) : tweedledum::io_id(controls[i]/2,1,0);
+                auto c = (controls[i] % 2) ? tweedledum::io_id(controls[i] / 2, 1, 1) : tweedledum::io_id(controls[i] / 2, 1, 0);
                 qcontrols.emplace_back(c);
             }
 
             if (controls.size() == 0)
             {
-                net.add_gate((tweedledum::gate_lib::ry, angle), tweedledum::io_id(i,1));
+                net.add_gate(tweedledum::gate_base(tweedledum::gate_lib::ry, angle), tweedledum::io_id(i, 1));
             }
             else if ((controls.size() == 1) && (std::abs(angle - M_PI) < 0.001))
             {
-                net.add_gate(tweedledum::gate_lib::cx,qcontrols[0],tweedledum::io_id(i,1));
+                net.add_gate(tweedledum::gate_lib::cx, qcontrols[0], tweedledum::io_id(i, 1));
             }
             else
             { /* we have multi control probability gate */
-                net.add_gate((tweedledum::gate_lib::mcry, angle), qcontrols, tweedledum::io_id(i,1));
+                net.add_gate(tweedledum::gate_base(tweedledum::gate_lib::mcry, angle), qcontrols, std::vector<tweedledum::io_id>{tweedledum::io_id(i, 1)});
             } // end multi control
 
         } // end loop for gates on a line
@@ -359,15 +367,15 @@ void qsp_tt(Network &network, const kitty::dynamic_truth_table tt,
     // stopwatch<>::duration time_traversal{0};
     // {
     //     stopwatch t(time_traversal);
-        switch (params.strategy)
-        {
-        case qsp_params::strategy::allone_first:
-            detail::qsp_allone_first(network, tt, stats, orders);
-            break;
-        case qsp_params::strategy::ownfunction:
-            detail::qsp_ownfunction(network, tt, stats, orders);
-            break;
-        }
+    switch (params.strategy)
+    {
+    case qsp_params::strategy::allone_first:
+        detail::qsp_allone_first(network, tt, stats, orders);
+        break;
+    case qsp_params::strategy::ownfunction:
+        detail::qsp_ownfunction(network, tt, stats, orders);
+        break;
+    }
     // }
 
     // std::cout << "time = " << to_seconds(time_traversal) << "s" << std::endl;
