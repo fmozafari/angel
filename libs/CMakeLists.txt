@@ -134,8 +134,15 @@ if (NOT TARGET tweedledee)
 endif()
 
 if (NOT TARGET cudd)
-  add_library(cudd INTERFACE)
-  target_include_directories(cudd INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cudd)
+  add_library(cudd_includes INTERFACE)
+  target_include_directories(cudd_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cudd)
+  target_include_directories(cudd_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cudd/epd)
+  target_include_directories(cudd_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cudd/mtr)
+  target_include_directories(cudd_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cudd/st)
+  target_include_directories(cudd_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cudd/cudd)
+  add_subdirectory(cudd)
 endif()
+
+#target_link_libraries(angel INTERFACE obj)
 
 
