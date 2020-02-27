@@ -1,5 +1,5 @@
 /* Author: Fereshte */
-#pragma once\
+#pragma once
 #include <tweedledum/networks/io_id.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/gates/gate_base.hpp>
@@ -24,7 +24,7 @@ struct qsp_tt_statistics
     uint32_t total_cnots{0};
     uint32_t total_rys{0};
     std::pair<uint32_t, uint32_t> gates_num = std::make_pair(0, 0);
-}; /* qsp_tt_statistics */
+}; 
 
 namespace angel
 {
