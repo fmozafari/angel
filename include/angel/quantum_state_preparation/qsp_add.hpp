@@ -6,20 +6,10 @@
 #include <tweedledum/gates/gate_lib.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/algorithms/synthesis/linear_synth.hpp>
-
-// #include <kitty/constructors.hpp>
-// #include <kitty/dynamic_truth_table.hpp>
-// #include <kitty/esop.hpp>
-// #include <kitty/operations.hpp>
-// #include <kitty/print.hpp>
-// #include <kitty/kitty.hpp>
-
 #include <cudd/cudd.h>
 #include <cudd/cuddInt.h>
 #include <cplusplus/cuddObj.hh>
-
 #include <angel/utils/stopwatch.hpp>
-
 #include <map>
 #include <fstream>
 #include <unordered_set>
@@ -31,6 +21,7 @@ struct qsp_add_statistics
     uint32_t sqgs{0};
     uint32_t nodes{0};
     uint32_t MC_gates{0};
+    uint32_t ancillaes{0};
     void report(std::ostream& os = std::cout) const
     {
         os << "[i] time: "<<time<<std::endl;
@@ -38,6 +29,7 @@ struct qsp_add_statistics
         os << "[i] MC_gates: "<<MC_gates<<std::endl;
         os << "[i] cnots: "<<cnots<<std::endl;
         os << "[i] sqgs: "<<sqgs<<std::endl;
+        os << "[i] ancillaes: "<<ancillaes<<std::endl;
     }
 };
 
@@ -362,33 +354,58 @@ void extract_statistics(Cudd cudd, DdNode *f_add,
                         qsp_add_statistics &stats)
 {
     auto total_MC_gates = 0u;
-    auto CNOTs = 0u;
-    auto Ancillaes = 0u;
-    auto sqgs = 0u;
-    sqgs += 1;
-    for (auto i = 1u; i < cudd.ReadSize(); i++)
+    auto Rxs = 0;
+    auto Rys = 0;
+    auto Ts = 0;
+    auto CNOTs = 0;
+    auto Ancillaes = 0;
+
+    for(auto i=1u ; i<cudd.ReadSize() ; i++)
     {
         total_MC_gates += gates[f_add][i].size();
-        auto max_clines = 0u;
-        for (auto j = 0u; j < gates[f_add][i].size(); j++)
+
+        if(gates[f_add][i].size() < (pow(2,i)/(6*(i+1)-12)) )
         {
-            auto cs = gates[f_add][i][j].second.size();
-            if(cs>max_clines)
-                max_clines = cs;
-        }
-        if(max_clines>0)
-        {
-            CNOTs += pow(2, max_clines);
-            sqgs += pow(2, max_clines);
+            for(auto j=0u ; j<gates[f_add][i].size() ; j++)
+            {
+                auto cs = gates[f_add][i][j].second.size();
+
+                if(cs==1)
+                {
+                    CNOTs += 1;
+                }
+                else if(cs==2)
+                {
+                    CNOTs += 6;
+                    Ts += 7;
+                }
+                else if(cs==3)
+                {
+                    CNOTs += 12;
+                    Ts += 15;
+                    Ancillaes += 1;
+                }
+                else
+                {
+                    cs += 1;
+                    CNOTs += (6*cs-12);
+                    Ts += (8*cs-17);
+                    Ancillaes += (floor((cs-3)/2));
+                }  
+            }
+            Rxs += gates[f_add][i].size()+1;
         }
         else
         {
-            sqgs +=1;
+                CNOTs += pow(2,i);
+                Rys += pow(2,i);
         }
     }
+
     stats.MC_gates += total_MC_gates;
     stats.cnots += CNOTs;
-    stats.sqgs += sqgs;
+    stats.sqgs += (Rxs+Rys+Ts);
+    stats.ancillaes += Ancillaes;
 }
 
 } // namespace detail

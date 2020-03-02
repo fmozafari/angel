@@ -3,6 +3,7 @@
 #include <kitty/kitty.hpp>
 #include <percy/percy.hpp>
 #include <fmt/format.h>
+#include "partial_truth_table.hpp"
 
 namespace angel
 {

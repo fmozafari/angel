@@ -22,6 +22,8 @@
 #include <angel/utils/stopwatch.hpp>
 #include <typeinfo>
 #include "qsp_tt.hpp"
+#include <angel/utils/dependency_analysis.hpp>
+#include <angel/utils/debug_facility.hpp>
 
 struct qsp_tt_deps_statistics
 {
@@ -47,7 +49,8 @@ void gates_count_analysis(std::map<uint32_t, std::vector<std::pair<double, std::
 {
     auto total_rys = 0;
     auto total_cnots = 0;
-
+    //if(gates.size() != 4)
+        //debug_print("gates size",gates.size());
     bool sig;
     auto n_reduc = 0; /* lines that always are zero or one and so we dont need to prepare them */
 
@@ -55,14 +58,14 @@ void gates_count_analysis(std::map<uint32_t, std::vector<std::pair<double, std::
     {
         if (gates.find(orders[i]) == gates.end())
         {
-            n_reduc++;
-            continue;
+            // n_reduc++;
+            // continue;
         }
 
         if (gates[orders[i]].size() == 0)
         {
-            n_reduc++;
-            continue;
+            // n_reduc++;
+            // continue;
         }
 
         auto rys = 0;
@@ -172,10 +175,16 @@ void gates_count_analysis(std::map<uint32_t, std::vector<std::pair<double, std::
         if (total_cnots < (pow(2, num_vars - n_reduc) - 2))
         {
             ++stats.funcdep_bench_useful;
+            // std::cout<<"useful: ";
+            // print_dependencies(dependencies);
+            // debug_print("n reduce",n_reduc);
         }
         else
         {
             ++stats.funcdep_bench_notuseful;
+            //std::cout<<"not useful: ";
+            //print_dependencies(dependencies);
+            //std::cout<<"n reduce: "<<n_reduc<<std::endl;
         }
     }
 
