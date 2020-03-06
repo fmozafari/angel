@@ -15,8 +15,9 @@
 #include <kitty/operations.hpp>
 #include <kitty/kitty.hpp>
 #include <math.h>
-#include <tweedledum/utils/stopwatch.hpp>
+#include <angel/utils/stopwatch.hpp>
 #include <typeinfo>
+#include <angel/utils/partial_truth_table.hpp>
 
 struct qsp_tt_statistics
 {
@@ -51,15 +52,68 @@ inline void print_gates (std::map<uint32_t, std::vector<std::pair<double, std::v
     }
 }
 
+inline void extract_independent_vars (std::vector<uint32_t> &zero_lines, std::vector<uint32_t> &one_lines, 
+kitty::dynamic_truth_table const& tt, std::vector<uint32_t> const& orders)
+{       
+    /* extract minterms */
+    std::vector<partial_truth_table> minterms = on_set( tt );
+
+    /* convert minterms to column vectors */
+    uint32_t const minterm_length = minterms[0u].num_bits();
+    uint32_t const num_minterms = minterms.size();
+
+    std::vector<partial_truth_table> columns( minterm_length, partial_truth_table( num_minterms ) );
+    for ( auto i = 0u; i < minterm_length; ++i )
+    {
+        for ( auto j = 0u; j < num_minterms; ++j )
+        {
+            if ( minterms.at( j ).get_bit( orders[i] ) )
+            {
+                columns[minterm_length-i-1].set_bit( j );
+            }
+        }
+    }
+
+    for(int32_t i=minterm_length-1; i>=0; i--)
+    {
+        if(columns.at(i).is_const0())
+        {
+            zero_lines.emplace_back(i);
+        }
+            
+        else if(columns.at(i).is_const1())
+        {
+            one_lines.emplace_back(i);
+        }
+    }
+}
+
 inline std::vector<uint32_t> initialize_orders(uint32_t n)
 {
     std::vector<uint32_t> orders_init;
-    for (auto i = 0u; i < n; i++)
+    for (int32_t i = n-1; i >= 0; i--)
         orders_init.emplace_back(i);
     return orders_init;
 }
 
-void gates_count_analysis(std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates,
+inline void reordering_on_tt (kitty::dynamic_truth_table &tt, std::vector<uint32_t> orders)
+{
+    auto var_num = orders.size();
+    
+    for(auto i=0; i<var_num; i++)
+    {
+        if(i != orders[i])
+        {
+            for(auto j=i+1; orders[j]!=i; j++)
+            {
+                std::swap(orders[i], orders[j]);
+                kitty::swap_inplace(tt, i, j);
+            }
+        }
+    }
+}
+
+void gates_count_statistics(std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates,
                           std::vector<uint32_t> const &orders,
                           uint32_t num_vars, qsp_tt_statistics &stats)
 {
@@ -299,7 +353,7 @@ void qsp_ownfunction(Network &net, const kitty::dynamic_truth_table tt,
     std::vector<uint32_t> cs;
     general_qg_generation(gates, tt, var_idx, cs, orders);
     qc_generation(net, gates);
-    gates_count_analysis(gates, orders, tt.num_vars(), stats);
+    gates_count_statistics(gates, orders, tt.num_vars(), stats);
 
     // detail::control_line_cancelling(gates,tt_vars);
     // detail::extract_multiplex_gates(net,tt_vars,gates);
