@@ -158,6 +158,24 @@ public:
     return {_bits, _mask};
   }
 
+  bool is_const() const
+  {
+      auto const tt = kitty::binary_and( _bits, _mask ); 
+      return ( kitty::is_const0( tt ) || kitty::is_const0( ~tt ) );
+  }
+
+  bool is_const0() const
+  {
+      auto const tt = kitty::binary_and( _bits, _mask ); 
+      return ( kitty::is_const0( tt ) );
+  }
+
+  bool is_const1() const
+  {
+      auto const tt = kitty::binary_and( _bits, _mask ); 
+      return ( kitty::is_const0( ~tt ) );
+  }
+
 public:
   uint32_t _num_bits;
   kitty::dynamic_truth_table _bits;
