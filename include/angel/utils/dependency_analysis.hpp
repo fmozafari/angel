@@ -19,6 +19,7 @@ struct functional_dependency_stats
   uint32_t funcdep_bench_notuseful{0};
   uint32_t total_cnots{0};
   uint32_t total_rys{0};
+  uint32_t total_nots{0};
   double total_time{0};
   std::vector< std::pair<uint32_t,uint32_t> > gates_count{(0,0)};
 
@@ -34,8 +35,8 @@ struct functional_dependency_stats
     os << fmt::format( "[i] total synthesis time (considering dependencies) = {:8.2f}s\n",
                        total_time );
 
-    os << fmt::format( "[i] synthesis result: CNOTs / RYs = {} / {}\n",
-                       total_cnots, total_rys );
+    os << fmt::format( "[i] synthesis result: CNOTs / RYs / NOTs= {} / {} / {} \n",
+                       total_cnots, total_rys, total_nots );
   }
 };
 
@@ -67,7 +68,7 @@ bool check_not_exist_dependencies( std::vector<partial_truth_table> minterms, ui
     return false;
 }
 
-dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const& tt, functional_dependency_stats& stats, std::vector<uint32_t> orders )
+dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const& tt, functional_dependency_stats& stats, std::vector<uint32_t> const& orders )
 {
   ++stats.num_analysis_calls;
 
@@ -89,6 +90,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
       }
     }
   }
+
+  
 
   /* resubstitution-style dependency analysis */
   dependencies_t dependencies;
@@ -120,10 +123,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
   for ( auto mirror_i = 0; mirror_i < int32_t( columns.size() ); ++mirror_i )
   {
     auto i = columns.size() - mirror_i - 1;
+    if ( columns.at( i ).is_const() ) continue;
 
     bool found = false;
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
+      if ( columns.at( j ).is_const() ) continue;
+
       if ( columns.at( i ) == columns.at( j ) )
       {
         found = true;
@@ -138,6 +144,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
 
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
+      if ( columns.at( j ).is_const() ) continue;
+    
       if ( columns.at( i ) == ~columns.at( j ) )
       {
         found = true;
@@ -155,9 +163,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
     /*----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
+      if ( columns.at( j ).is_const() ) continue;
+
       /*-----second input */
       for ( auto k = j - 1; k > i; --k )
       {
+        if ( columns.at( k ).is_const() ) continue;
+
         if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ) )
         {
           found = true;
@@ -174,6 +186,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
         /*-----3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
+          if ( columns.at( l ).is_const() ) continue;
+
           if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l)) )
           {
             found = true;
@@ -189,6 +203,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           /*---- 4th input */
           for(auto m = j-3 ; m>i ; --m)
           {
+            if ( columns.at( m ).is_const() ) continue;
+
             if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m)) )
             {
               found = true;
@@ -205,6 +221,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
             /*---- 5th input */
             for(auto i5 = j-4 ; i5>i ; --i5)
             {
+              if ( columns.at( i5 ).is_const() ) continue;
+
               if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m) ^ columns.at(i5)) )
               {
                 found = true;
@@ -238,9 +256,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
     /*-----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
+      if ( columns.at( j ).is_const() ) continue;
+
       //----second input
       for ( auto k = j - 1; k > i; --k )
       {
+        if ( columns.at( k ).is_const() ) continue;
+          
         if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) ) )
         {
           found = true;
@@ -248,7 +270,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           break;
         }
         else if ( columns.at( i ) == ( ~ (columns.at( j ) & columns.at( k )) ) )
-        {
+        {  
           found = true;
           dependencies[i] = std::vector{ std::pair{ std::string{"nand"}, std::vector<uint32_t>{ uint32_t( j*2+0 ), uint32_t( k*2+0 ) } } };
           break;
@@ -275,6 +297,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
         /*----3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
+          if ( columns.at( l ).is_const() ) continue;
+
           if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l)) )
           {
             found = true;
@@ -333,6 +357,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           /*---- 4th input */
           for(auto m = j-3 ; m>i ; --m)
           {
+            if ( columns.at( m ).is_const() ) continue;
+
             if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m)) )
             {
               found = true;
@@ -439,6 +465,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
             /*---- 5th input */
             for(auto i5 = j-4 ; i5>i ; --i5)
             {
+              if ( columns.at( i5 ).is_const() ) continue;
+
               if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m) & columns.at(i5)) )
               {
                 found = true;
@@ -658,9 +686,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
     /*-----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
+      if ( columns.at( j ).is_const() ) continue;
+        
       /*-----second input */
       for ( auto k = j - 1; k > i; --k )
       {
+        if ( columns.at( k ).is_const() ) continue;
+
         if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) ) )
         {
           found = true;
@@ -695,6 +727,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
         /*------3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
+          if ( columns.at( l ).is_const() ) continue;
+
           if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l)) )
           {
             found = true;
@@ -753,6 +787,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           /*---- 4th input */
           for(auto m = j-3 ; m>i ; --m)
           {
+            if ( columns.at( m ).is_const() ) continue;
+
             if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m)) )
             {
               found = true;
@@ -860,6 +896,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
             /*---- 5th input */
             for(auto i5 = j-4 ; i5>i ; --i5)
             {
+              if ( columns.at( i5 ).is_const() ) continue;
+
               if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m) | columns.at(i5)) )
               {
                 found = true;
@@ -1061,13 +1099,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
               }
             }
             if (found)
-                break;
+              break;
           }
           if (found)
-                break;
+            break;
         }
         if (found)
-                break;
+          break;
       }
 
       if ( found )
@@ -1080,12 +1118,18 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
     /*-----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
+      if ( columns.at( j ).is_const() ) continue;
+
       /*-----second input */
       for ( auto k = j - 1; k > i; --k )
       {
+        if ( columns.at( k ).is_const() ) continue;
+
         /*------3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
+          if ( columns.at( l ).is_const() ) continue;
+
           auto in1 = j;
           auto in2 = k;
           auto in3 = l;
@@ -1190,24 +1234,30 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           
         }
         if (found)
-                break;
+          break;
       }
       if(found)
         break;
     }
     if (found)
-        continue;
+      continue;
 
     /*-----or xor---------*/
     /*-----first input */
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
+      if ( columns.at( j ).is_const() ) continue;
+
       /*-----second input */
       for ( auto k = j - 1; k > i; --k )
       {
+        if ( columns.at( k ).is_const() ) continue;
+
         /*------3rd input */
         for(auto l = j-2 ; l>i ; --l)
         {
+          if ( columns.at( l ).is_const() ) continue;
+
           auto in1 = j;
           auto in2 = k;
           auto in3 = l;
@@ -1499,90 +1549,53 @@ dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, function
 
 std::vector<uint32_t> varaible_ordering_regarding_deps(dependencies_t deps , uint32_t num_vars)
 {
-    std::vector<uint32_t> orders;
+    std::vector<uint32_t> orders(num_vars,num_vars);
+    int32_t index = num_vars-1;
+
     for ( const auto& d : deps )
     {
-        if(d.second[0].first == "eq")
-            orders.emplace_back(d.first);
+        if(d.second[0].first == "or" && index>=0)
+        {
+            orders[index] = d.first;
+            index--;
+        }
     } 
     for ( const auto& d : deps )
     {
-        if(d.second[0].first == "not")
-            orders.emplace_back(d.first);
+        if(d.second[0].first == "nor" && index>=0)
+        {
+            orders[index] = d.first;
+            index--;
+        }
+    } 
+ 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "and" && index>=0)
+        {
+            orders[index] = d.first;
+            index--;
+        }
     } 
     for ( const auto& d : deps )
     {
-        if(d.second[0].first == "xor")
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "and" && d.second[0].second.size()<4)
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "nand" && d.second[0].second.size()<4)
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "or" && d.second[0].second.size()<4)
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "nor" && d.second[0].second.size()<4)
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "and_xor")
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "and_xnor")
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "or_xor")
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "or_xnor")
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "and" && d.second[0].second.size()<(num_vars-1) && d.second[0].second.size()>3)
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "nand" && d.second[0].second.size()<(num_vars-1) && d.second[0].second.size()>3)
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "or" && d.second[0].second.size()<(num_vars-1) && d.second[0].second.size()>3)
-            orders.emplace_back(d.first);
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "nor" && d.second[0].second.size()<(num_vars-1) && d.second[0].second.size()>3)
-            orders.emplace_back(d.first);
+        if(d.second[0].first == "nand" && index>=0)
+        {
+            orders[index] = d.first;
+            index--;
+        }
     } 
 
     for (auto i=0u ; i<num_vars; i++)
     {
         auto it = std::find(orders.begin(), orders.end(), i);
         if(it == orders.end())
-            orders.emplace_back(i);
+        {
+            orders[index] = i;
+            index--;
+        }
     }
-    std::reverse(orders.begin(),orders.end());
+    //std::reverse(orders.begin(),orders.end());
     return orders;
 }
 
