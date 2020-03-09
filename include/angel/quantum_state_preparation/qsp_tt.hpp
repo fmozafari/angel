@@ -96,23 +96,6 @@ inline std::vector<uint32_t> initialize_orders(uint32_t n)
     return orders_init;
 }
 
-inline void reordering_on_tt (kitty::dynamic_truth_table &tt, std::vector<uint32_t> orders)
-{
-    auto var_num = orders.size();
-    
-    for(auto i=0; i<var_num; i++)
-    {
-        if(i != orders[i])
-        {
-            for(auto j=i+1; orders[j]!=i; j++)
-            {
-                std::swap(orders[i], orders[j]);
-                kitty::swap_inplace(tt, i, j);
-            }
-        }
-    }
-}
-
 void gates_count_statistics(std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates,
                           std::vector<uint32_t> const &orders,
                           uint32_t num_vars, qsp_tt_statistics &stats)

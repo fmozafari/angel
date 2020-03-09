@@ -23,6 +23,7 @@
 #include <typeinfo>
 #include "qsp_tt.hpp"
 #include <angel/utils/dependency_analysis.hpp>
+#include <angel/utils/helper_functions.hpp>
 #include <angel/utils/debug_facility.hpp>
 
 struct qsp_tt_deps_statistics
@@ -211,13 +212,12 @@ void general_qg_generation(std::map<uint32_t, std::vector<std::pair<double, std:
 {
     /*-----co factors-------*/
     auto var_index = orders[var_idx_pure];
-    kitty::dynamic_truth_table tt0(var_idx_pure);
-    kitty::dynamic_truth_table tt1(var_idx_pure);
-    for(int32_t i= tt.num_vars()-1; i>=var_idx_pure; i--)
-    {
-        tt0 = kitty::shrink_to(kitty::cofactor0(tt, orders[i]), i);
-        tt1 = kitty::shrink_to(kitty::cofactor1(tt, orders[i]), i);
-    }
+    kitty::dynamic_truth_table tt0(var_index);
+    kitty::dynamic_truth_table tt1(var_index);
+    
+    tt0 = kitty::shrink_to(kitty::cofactor0(tt, var_index), var_index);
+    tt1 = kitty::shrink_to(kitty::cofactor1(tt, var_index), var_index);
+    
     
     /*--computing probability gate---*/
     auto c0_ones = kitty::count_ones(tt0);
@@ -428,14 +428,16 @@ template <typename Network>
 void qsp_ownfunction(Network &net,
                      kitty::dynamic_truth_table const& tt,
                      std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>> const& dependencies,
-                     qsp_tt_deps_statistics &stats, std::vector<uint32_t> orders)
+                      std::vector<uint32_t> orders, qsp_tt_deps_statistics &stats)
 {
+    //std::reverse(first_orders.begin(), first_orders.end());
+    //angel::reordering_on_tt_inplace(tt, first_orders);
+    //auto orders = angel::initialize_orders(first_orders.size());
     std::vector<uint32_t> zero_lines; 
     std::vector<uint32_t> one_lines;
     detail::extract_independent_vars (zero_lines, one_lines, tt, orders);
 
     std::reverse(orders.begin(), orders.end()); /* because of the qsp algorithm */
-
     std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates;
     auto tt_vars = tt.num_vars();
     auto var_idx = tt_vars - 1;
@@ -454,14 +456,12 @@ template <typename Network>
 void qsp_allone_first(Network &net,
                       kitty::dynamic_truth_table const& tt,
                       std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>> const& dependencies,
-                      qsp_tt_deps_statistics &stats, std::vector<uint32_t> const& orders)
+                      std::vector<uint32_t> & orders, qsp_tt_deps_statistics &stats)
 {
     std::vector<uint32_t> zero_lines; 
     std::vector<uint32_t> one_lines;
     detail::extract_independent_vars (zero_lines, one_lines, tt, orders);
-    for(auto i=0; i<one_lines.size(); i++)
-        debug_print("one",one_lines[i]);
-
+    
     std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates;
     auto tt_vars = tt.num_vars();
     auto ones = kitty::count_ones(tt);
@@ -508,10 +508,10 @@ void qsp_tt_dependencies(Network &network, kitty::dynamic_truth_table const& tt,
     switch (params.strategy)
     {
     case qsp_params::strategy::allone_first:
-        detail::qsp_allone_first(network, tt, dependencies, stats, orders);
+        detail::qsp_allone_first(network, tt, dependencies, orders, stats);
         break;
     case qsp_params::strategy::ownfunction:
-        detail::qsp_ownfunction(network, tt, dependencies, stats, orders);
+        detail::qsp_ownfunction(network, tt, dependencies, orders, stats);
         break;
     }
 }
@@ -521,7 +521,7 @@ void qsp_tt_dependencies(Network &network, kitty::dynamic_truth_table const& tt,
                          std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>> const& dependencies,
                          qsp_tt_deps_statistics &stats, qsp_params params = {})
 {
-    qsp_tt_dependencies(network, tt, dependencies, detail::initialize_orders(tt.num_vars()), stats, params);
+    qsp_tt_dependencies(network, tt, dependencies, angel::initialize_orders(tt.num_vars()), stats, params);
 }
 
 } // end namespace angel

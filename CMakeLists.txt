@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Options
 option(ANGEL_EXAMPLES "Build examples" ON)
-option(ANGEL_TEST "Build tests" OFF)
+option(ANGEL_TESTS "Build tests" OFF)
 option(ANGEL_EXPERIMENTS "Build experiments" OFF)
 
 if(UNIX)
@@ -28,7 +28,7 @@ if(ANGEL_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
-if(ANGEL_TEST)
+if(ANGEL_TESTS)
   add_subdirectory(tests)
 endif()
 

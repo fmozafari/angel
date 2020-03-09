@@ -189,7 +189,7 @@ inline void print_binary( partial_truth_table const& tt, std::ostream& os = std:
   os << tt._num_bits;
 }
 
-std::vector<partial_truth_table> read_minterms_from_file( std::string const& filename )
+inline std::vector<partial_truth_table> read_minterms_from_file( std::string const& filename )
 {
   std::vector<partial_truth_table> minterms;
 
@@ -204,7 +204,7 @@ std::vector<partial_truth_table> read_minterms_from_file( std::string const& fil
   return minterms;
 }
 
-std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
+inline std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
 {
   // TODO: integer_dual_logarithm( get_next_power_of_two( tt.num_vars ) ), e.g., tt.num_vars() == 3u: integer_dual_logarithm( 4 ) == 2u
   std::vector<partial_truth_table> rows;
@@ -219,5 +219,6 @@ std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
   }
   return rows;
 }
+
 
 } // namespace angel
