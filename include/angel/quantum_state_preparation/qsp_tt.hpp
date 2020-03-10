@@ -18,6 +18,7 @@
 #include <angel/utils/stopwatch.hpp>
 #include <typeinfo>
 #include <angel/utils/partial_truth_table.hpp>
+#include <angel/utils/helper_functions.hpp>
 
 struct qsp_tt_statistics
 {
@@ -86,14 +87,6 @@ kitty::dynamic_truth_table const& tt, std::vector<uint32_t> const& orders)
             one_lines.emplace_back(i);
         }
     }
-}
-
-inline std::vector<uint32_t> initialize_orders(uint32_t n)
-{
-    std::vector<uint32_t> orders_init;
-    for (int32_t i = n-1; i >= 0; i--)
-        orders_init.emplace_back(i);
-    return orders_init;
 }
 
 void gates_count_statistics(std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates,
@@ -422,7 +415,7 @@ template <class Network>
 void qsp_tt(Network &network, const kitty::dynamic_truth_table tt,
             qsp_tt_statistics &stats, qsp_params params = {})
 {
-    qsp_tt(network, tt, detail::initialize_orders(tt.num_vars()), stats, params);
+    qsp_tt(network, tt, angel::initialize_orders(tt.num_vars()), stats, params);
 }
 
 } // end namespace angel

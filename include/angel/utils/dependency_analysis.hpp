@@ -1552,41 +1552,92 @@ std::vector<uint32_t> varaible_ordering_regarding_deps(dependencies_t deps , uin
     std::vector<uint32_t> orders(num_vars,num_vars);
     int32_t index = num_vars-1;
 
-    for ( const auto& d : deps )
+    for(int32_t i=num_vars-1; i>=0; i--)
     {
-        if(d.second[0].first == "or" && index>=0)
+        auto it = deps.find(i);
+        if(it != deps.end())
         {
-            orders[index] = d.first;
-            index--;
+            if( deps[i][0].second.size()<(i-1) )
+            {
+                orders[index] = i;
+                index--;
+            }
+                
         }
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "nor" && index>=0)
-        {
-            orders[index] = d.first;
-            index--;
-        }
-    } 
- 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "and" && index>=0)
-        {
-            orders[index] = d.first;
-            index--;
-        }
-    } 
-    for ( const auto& d : deps )
-    {
-        if(d.second[0].first == "nand" && index>=0)
-        {
-            orders[index] = d.first;
-            index--;
-        }
-    } 
+    }
 
-    for (auto i=0u ; i<num_vars; i++)
+    // for ( const auto& d : deps )
+    // {
+    //     if(d.second[0].first == "or" && index>=0)
+    //     {
+    //         orders[index] = d.first;
+    //         index--;
+    //     }
+    // } 
+    // for ( const auto& d : deps )
+    // {
+    //     if(d.second[0].first == "nor" && index>=0)
+    //     {
+    //         orders[index] = d.first;
+    //         index--;
+    //     }
+    // } 
+ 
+    // for ( const auto& d : deps )
+    // {
+    //     if(d.second[0].first == "and" && index>=0)
+    //     {
+    //         orders[index] = d.first;
+    //         index--;
+    //     }
+    // } 
+    // for ( const auto& d : deps )
+    // {
+    //     if(d.second[0].first == "nand" && index>=0)
+    //     {
+    //         orders[index] = d.first;
+    //         index--;
+    //     }
+    // } 
+
+    // for ( const auto& d : deps )
+    // {
+    //     if(d.second[0].first == "eq" && index>=0)
+    //     {
+    //         orders[index] = d.first;
+    //         index--;
+    //     }
+    // } 
+
+    // for ( const auto& d : deps )
+    // {
+    //     if(d.second[0].first == "not" && index>=0)
+    //     {
+    //         orders[index] = d.first;
+    //         index--;
+    //     }
+    // } 
+
+    // for ( const auto& d : deps )
+    // {
+    //     if(d.second[0].first == "xor" && index>=0)
+    //     {
+    //         orders[index] = d.first;
+    //         index--;
+    //     }
+    // } 
+
+    // for ( const auto& d : deps )
+    // {
+    //     if(d.second[0].first == "xnor" && index>=0)
+    //     {
+    //         orders[index] = d.first;
+    //         index--;
+    //     }
+    // } 
+
+    for (auto i=0u ; i<num_vars; i--)
+    //for(int32_t i=num_vars-1; i>=0; i--)
     {
         auto it = std::find(orders.begin(), orders.end(), i);
         if(it == orders.end())

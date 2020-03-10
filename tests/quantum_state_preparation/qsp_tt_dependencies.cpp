@@ -41,7 +41,7 @@ TEST_CASE("Prepare w(3) state with qsp_tt_dependencies method", "[qsp_tt_depende
 	CHECK(stats.total_cnots == 4u);
 }
 
-TEST_CASE("Prepare ""1000" "0010" "0001" "0010"" state and utilize reordering", "[qsp_tt_dependencies]")
+TEST_CASE("Prepare ""1100" "0010" "0010" "0001"" state and utilize reordering", "[qsp_tt_dependencies]")
 {
     kitty::dynamic_truth_table tt(4);
     std::string tt_str = "1100" "0010" "0010" "0001";
