@@ -24,7 +24,7 @@
 #include "qsp_tt.hpp"
 #include <angel/utils/dependency_analysis.hpp>
 #include <angel/utils/helper_functions.hpp>
-#include <angel/utils/debug_facility.hpp>
+// #include <angel/utils/debug_facility.hpp>
 
 struct qsp_tt_deps_statistics
 {
