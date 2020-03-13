@@ -89,7 +89,7 @@ kitty::dynamic_truth_table const& tt, std::vector<uint32_t> const& orders)
     }
 }
 
-void gates_count_statistics(std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates,
+inline void gates_count_statistics(std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> gates,
                           std::vector<uint32_t> const &orders,
                           uint32_t num_vars, qsp_tt_statistics &stats)
 {

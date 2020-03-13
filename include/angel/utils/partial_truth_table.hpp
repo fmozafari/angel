@@ -7,6 +7,7 @@
 #include <kitty/print.hpp>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 namespace angel
 {
