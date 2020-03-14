@@ -1,30 +1,15 @@
 #pragma once
 
-// #include "../../gates/gate_lib.hpp"
-// #include "../../gates/gate_base.hpp"
-// #include "../../gates/mcmt_gate.hpp"
-// #include "../../gates/mcmt_gate.hpp"
-// #include "../../networks/io_id.hpp"
-// #include "../generic/rewrite.hpp"
 #include <tweedledum/io/write_unicode.hpp>
 #include <array>
 #include <iostream>
 #include <vector>
 #include <map>
-// #include <kitty/constructors.hpp>
-// #include <kitty/dynamic_truth_table.hpp>
-// #include <kitty/esop.hpp>
-// #include <kitty/operations.hpp>
-// #include <kitty/print.hpp>
-// #include <kitty/kitty.hpp>
-// #include <vector>
-// #include <math.h>
 #include <angel/utils/stopwatch.hpp>
 #include <typeinfo>
 #include "qsp_tt.hpp"
 #include <angel/utils/dependency_analysis.hpp>
 #include <angel/utils/helper_functions.hpp>
-// #include <angel/utils/debug_facility.hpp>
 
 struct qsp_tt_deps_statistics
 {
