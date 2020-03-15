@@ -16,7 +16,6 @@ public:
     : seed( std::chrono::system_clock::now().time_since_epoch().count() )
     , num_orders( num_orders )
   {
-    std::cout << seed << std::endl;
   }
 
   explicit RandomOrdering( uint64_t seed, uint32_t num_orders )
