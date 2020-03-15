@@ -14,7 +14,7 @@ using gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uin
 
 struct qsp_general_stats
 {
-    double total_time{0};
+    stopwatch<>::duration_type total_time{};
     uint32_t total_bench{0};
     uint32_t has_no_dependencies{0};
     uint32_t no_dependencies_computed{0};
@@ -37,7 +37,7 @@ struct qsp_general_stats
         os << fmt::format("[i] total deps = dep useful + dep not useful ::: {} = {} + {}\n",
                           funcdep_bench_useful + funcdep_bench_notuseful, funcdep_bench_useful, funcdep_bench_notuseful);
         os << fmt::format("[i] total synthesis time (considering dependencies) = {:8.2f}s\n",
-                          total_time);
+                          to_seconds( total_time ));
 
         os << fmt::format("[i] synthesis result: CNOTs / RYs / NOTs = {} / {} / {} \n",
                           total_cnots, total_rys, total_nots);
@@ -671,7 +671,7 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
         net.add_qubit();
 
     auto orders = orders_alg.run(qubits_count);
-    std::cout<<"num orders: "<<orders.size()<<std::endl;
+    // std::cout<<"num orders: "<<orders.size()<<std::endl;
     // std::cout<<"qubit size: "<<qubits_count<<std::endl;
     // std::cout<<"order size: "<<orders.size()<<std::endl;
     // for(auto const& o: orders)
@@ -723,17 +723,17 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
     }
 
     final_qsp_stats = best_stats;
-    final_qsp_stats.total_time += to_seconds(time_traversal);
+    final_qsp_stats.total_time += time_traversal;
 
     kitty::dynamic_truth_table tt_copy = tt;
     angel::reordering_on_tt_inplace(tt_copy, best_order);
-    kitty::print_binary(tt_copy);
-    std::cout << std::endl;
+    // kitty::print_binary(tt_copy);
+    // std::cout << std::endl;
 
     qsp_general_stats qsp_stats;
 
     dependencies_t deps = deps_alg.run(tt_copy, qsp_stats);
-    deps_alg.print_dependencies(deps);
+    // deps_alg.print_dependencies(deps);
 }
 
 } // namespace angel
