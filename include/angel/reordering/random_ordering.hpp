@@ -1,8 +1,7 @@
-#include <vector>
-#include <iostream>
 #include <algorithm>
-#include <ctime>
+#include <chrono>
 #include <random>
+#include <vector>
 
 namespace angel
 {
@@ -10,23 +9,44 @@ namespace angel
 class RandomOrdering
 {
 public:
-    explicit RandomOrdering() {}
+  using order = std::vector<uint32_t>;
 
-    std::vector<std::vector<uint32_t>> run(uint32_t var_count)
+public:
+  explicit RandomOrdering( uint32_t num_orders )
+    : seed( std::chrono::system_clock::now().time_since_epoch().count() )
+    , num_orders( num_orders )
+  {
+    std::cout << seed << std::endl;
+  }
+
+  explicit RandomOrdering( uint64_t seed, uint32_t num_orders )
+    : seed( seed )
+    , num_orders( num_orders )
+  {
+  }
+
+  std::vector<order> run( uint32_t num_vars ) const
+  {
+    order current_order;
+    for ( auto i = 0u; i < num_vars; ++i )
     {
-        std::vector<std::vector<uint32_t>> all_orders;
-        std::vector<uint32_t> orders_init;
-        for(auto i=0u; i<var_count; i++)
-            orders_init.emplace_back(i);
-
-        std::random_device rd;
-        std::mt19937 g(rd());
-        std::shuffle(orders_init.begin(), orders_init.end(), g);
-        all_orders.emplace_back(orders_init);
-
-        return all_orders;
+      current_order.emplace_back( i );
     }
 
+    std::default_random_engine random_engine( seed );
+
+    std::vector<order> orders;
+    for ( auto i = 0u; i < num_orders; ++i )
+    {
+      std::shuffle( current_order.begin(), current_order.end(), random_engine );
+      orders.emplace_back( current_order );
+    }
+    return orders;
+  }
+
+private:
+  uint64_t seed;
+  uint32_t num_orders;
 };
 
 } /// namespace angel end
