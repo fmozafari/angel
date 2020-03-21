@@ -19,7 +19,14 @@ inline void extract_independent_vars (std::vector<uint32_t> &zero_lines, std::ve
 kitty::dynamic_truth_table const& tt)
 {       
     /* extract minterms */
+    //print_binary(tt);
+    //std::cout<<std::endl;
+
     std::vector<partial_truth_table> minterms = on_set( tt );
+    // for(auto i=0u; i<minterms.size(); i++)
+    //     print_binary(minterms[i]);
+    // std::cout<<std::endl;
+    
 
     /* convert minterms to column vectors */
     uint32_t const minterm_length = minterms[0u].num_bits();
@@ -32,7 +39,7 @@ kitty::dynamic_truth_table const& tt)
         {
             if ( minterms.at( j ).get_bit( i ) )
             {
-                columns[minterm_length-i-1].set_bit( j );
+                columns[i/*minterm_length-i-1*/].set_bit( j );
             }
         }
     }
@@ -49,6 +56,12 @@ kitty::dynamic_truth_table const& tt)
             one_lines.emplace_back(i);
         }
     }
+
+    // for(auto i=0u; i<columns.size(); i++)
+    // {
+    //     print_binary(columns[i]);
+    //     std::cout<<std::endl;
+    // }
 }
 
 inline std::vector<uint32_t> reordering_on_tt_inplace (kitty::dynamic_truth_table &tt, std::vector<uint32_t> orders)

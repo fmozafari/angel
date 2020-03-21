@@ -173,7 +173,9 @@ public:
 
   bool is_const1() const
   {
-      auto const tt = kitty::binary_and( _bits, _mask ); 
+      //auto const tt = kitty::binary_and( _bits, _mask ); 
+      //return ( kitty::is_const0( ~tt ) );
+      auto const tt = kitty::binary_or( _bits, ~_mask );
       return ( kitty::is_const0( ~tt ) );
   }
 

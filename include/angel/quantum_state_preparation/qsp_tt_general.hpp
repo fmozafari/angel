@@ -2,7 +2,6 @@
 #include <kitty/dynamic_truth_table.hpp>
 #include <angel/utils/helper_functions.hpp>
 #include <angel/utils/stopwatch.hpp>
-//#include <angel/dependency_analysis/no_deps.hpp>
 #include <fmt/format.h>
 #include <iostream>
 #include <map>
@@ -14,7 +13,8 @@ using gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uin
 
 struct qsp_general_stats
 {
-    stopwatch<>::duration_type total_time{};
+    // stopwatch<>::duration_type 
+    double total_time{0};
     uint32_t total_bench{0};
     uint32_t has_no_dependencies{0};
     uint32_t no_dependencies_computed{0};
@@ -37,7 +37,7 @@ struct qsp_general_stats
         os << fmt::format("[i] total deps = dep useful + dep not useful ::: {} = {} + {}\n",
                           funcdep_bench_useful + funcdep_bench_notuseful, funcdep_bench_useful, funcdep_bench_notuseful);
         os << fmt::format("[i] total synthesis time (considering dependencies) = {:8.2f}s\n",
-                          to_seconds( total_time ));
+                          ( total_time ));
 
         os << fmt::format("[i] synthesis result: CNOTs / RYs / NOTs = {} / {} / {} \n",
                           total_cnots, total_rys, total_nots);
@@ -94,9 +94,12 @@ void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t va
     bool is_const = 0;
     auto it0 = std::find(zero_lines.begin(), zero_lines.end(), var_index);
     auto it1 = std::find(one_lines.begin(), one_lines.end(), var_index);
-    if (it1 != one_lines.end()) // insert not gate
+    if (it1 != one_lines.end() ) // insert not gate
     {
-        gates[var_index].emplace_back(std::pair{M_PI, std::vector<uint32_t>{}});
+        if( gates.find(var_index)==gates.end() )
+        {
+            gates[var_index].emplace_back(std::pair{M_PI, std::vector<uint32_t>{}});
+        }
         is_const = 1;
     }
     else if (it0 != zero_lines.end()) // inzert zero gate
@@ -310,9 +313,10 @@ void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t va
     bool is_const = 0;
     auto it0 = std::find(zero_lines.begin(), zero_lines.end(), var_index);
     auto it1 = std::find(one_lines.begin(), one_lines.end(), var_index);
-    if (it1 != one_lines.end()) // insert not gate
+    if ( it1 != one_lines.end() ) // insert not gate
     {
-        gates[var_index].emplace_back(std::pair{M_PI, std::vector<uint32_t>{}});
+        if( gates.find(var_index)==gates.end() )
+            gates[var_index].emplace_back(std::pair{M_PI, std::vector<uint32_t>{}});
         is_const = 1;
     }
     else if (it0 != zero_lines.end()) // inzert zero gate
@@ -439,7 +443,7 @@ void gates_statistics(gates_t gates, dependencies_t const &dependencies,
         }
         if (gates[i].size() == 1 && gates[i][0].first == M_PI && gates[i][0].second.size() == 0)
         {
-            nots++;
+            total_nots++;
             n_reduc++;
             continue;
         }
@@ -488,11 +492,7 @@ void gates_statistics(gates_t gates, dependencies_t const &dependencies,
                     rys = pow(2, ((num_vars - i - 1) - n_reduc));
                     cnots = pow(2, ((num_vars - i - 1) - n_reduc));
                 }
-            }
-
-            total_rys += rys;
-            total_cnots += cnots;
-            total_nots += nots;
+            }         
         }
         /* doesn't exist deps */
         else
@@ -537,11 +537,11 @@ void gates_statistics(gates_t gates, dependencies_t const &dependencies,
                     cnots = pow(2, ((num_vars - i - 1) - n_reduc));
                 }
             }
-
-            total_rys += rys;
-            total_cnots += cnots;
-            total_nots += nots;
         }
+
+        total_rys += rys;
+        total_cnots += cnots;
+        total_nots += nots;
     }
 
     stats.total_cnots += total_cnots;
@@ -666,6 +666,11 @@ template <class Network, class DependencyAnalysisAlgorithm, class ReorderingAlgo
 void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, ReorderingAlgorithm orders_alg,
                     kitty::dynamic_truth_table tt, qsp_general_stats &final_qsp_stats)
 {
+    if(kitty::is_const0(tt))
+    {
+        std::cout<<"The tt is zero, please enter another tt\n";
+        return;
+    }
     const uint32_t qubits_count = tt.num_vars();
     for (auto i = 0u; i < qubits_count; i++)
         net.add_qubit();
@@ -689,22 +694,31 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
         stopwatch t(time_traversal);
         for (auto const &order : orders)
         {
+            //std::cout<<"order: "<<order[0]<<" "<<order[1]<<" "<<order[2]<<" "<<order[3]<<std::endl;
             kitty::dynamic_truth_table tt_copy = tt;
             angel::reordering_on_tt_inplace(tt_copy, order);
-
+            
             std::vector<uint32_t> zero_lines;
             std::vector<uint32_t> one_lines;
             extract_independent_vars(zero_lines, one_lines, tt_copy);
+
+            //std::cout<<"zero size: "<<zero_lines.size()<<"lines: "<<zero_lines[0]<<"  "<<zero_lines[1]<<std::endl;
+            //std::cout<<"one size: "<<one_lines.size()<<"  "<<one_lines[0]<<std::endl;
+
             gates_t gates;
             auto var_idx = qubits_count - 1;
             std::vector<uint32_t> cs;
             qsp_general_stats qsp_stats;
 
             dependencies_t deps = deps_alg.run(tt_copy, qsp_stats);
+            //deps_alg.print_dependencies(deps);
 
             if (deps_alg.get_considering_deps())
             {
                 MC_qg_generation(gates, tt_copy, var_idx, cs, deps, zero_lines, one_lines);
+                //kitty::print_binary(tt_copy);
+                //std::cout<<std::endl;
+                //std::cout<<"gate size: "<<gates.size()<<std::endl;
                 gates_statistics(gates, deps, qubits_count, qsp_stats);
             }
             else
@@ -722,17 +736,30 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
         }
     }
 
-    final_qsp_stats = best_stats;
-    final_qsp_stats.total_time += time_traversal;
+    //final_qsp_stats += best_stats;
+    //std::cout<<"order: "<<best_order[0]<<" "<<best_order[1]<<" "<<best_order[2]<<" "<<best_order[3]<<std::endl;
+    final_qsp_stats.total_time += to_seconds(time_traversal);
+    final_qsp_stats.total_bench += best_stats.total_bench;
+    final_qsp_stats.has_no_dependencies += best_stats.has_no_dependencies;
+    final_qsp_stats.no_dependencies_computed += best_stats.no_dependencies_computed;
+    final_qsp_stats.has_dependencies += best_stats.has_dependencies;
+    final_qsp_stats.funcdep_bench_useful += best_stats.funcdep_bench_useful;
+    final_qsp_stats.funcdep_bench_notuseful += best_stats.funcdep_bench_notuseful;
+    final_qsp_stats.total_cnots += best_stats.total_cnots;
+    final_qsp_stats.total_rys += best_stats.total_rys;
+    final_qsp_stats.total_nots += best_stats.total_nots;
+    //auto temp = best_stats.gates_count.back();
+    //std::cout<<"yes: "<<final_qsp_stats.total_cnots<<std::endl;
+    final_qsp_stats.gates_count.emplace_back(best_stats.gates_count.back());
 
-    kitty::dynamic_truth_table tt_copy = tt;
-    angel::reordering_on_tt_inplace(tt_copy, best_order);
+    //kitty::dynamic_truth_table tt_copy = tt;
+    //angel::reordering_on_tt_inplace(tt_copy, best_order);
     // kitty::print_binary(tt_copy);
     // std::cout << std::endl;
 
-    qsp_general_stats qsp_stats;
+    //qsp_general_stats qsp_stats;
 
-    dependencies_t deps = deps_alg.run(tt_copy, qsp_stats);
+    //dependencies_t deps = deps_alg.run(tt_copy, qsp_stats);
     // deps_alg.print_dependencies(deps);
 }
 

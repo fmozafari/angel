@@ -60,7 +60,7 @@ public:
             {
                 if (minterms.at(j).get_bit(i))
                 {
-                    columns[minterm_length - i - 1].set_bit(j);
+                    columns[i/*minterm_length - i - 1*/].set_bit(j);
                 }
             }
         }
