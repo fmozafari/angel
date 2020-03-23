@@ -10,6 +10,7 @@ namespace angel
 {
 using dependencies_t = std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>>;
 using gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>;
+using order_t = std::vector<uint32_t>;
 
 struct qsp_general_stats
 {
@@ -687,38 +688,42 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
     // }
 
     auto max_cnots = pow(2, qubits_count + 1);
-    std::vector<uint32_t> best_order(qubits_count);
+    order_t best_order(qubits_count);
     qsp_general_stats best_stats;
     stopwatch<>::duration_type time_traversal{0};
     {
         stopwatch t(time_traversal);
-        for (auto const &order : orders)
+        for (auto order : orders)
         {
-            //std::cout<<"order: "<<order[0]<<" "<<order[1]<<" "<<order[2]<<" "<<order[3]<<std::endl;
+            order_t next_order; 
+            
+            kitty::dynamic_truth_table tt_temp = tt;
+            angel::reordering_on_tt_inplace(tt_temp, order);
+            qsp_general_stats qsp_stats_temp;
+            dependencies_t deps_temp = deps_alg.run(tt_temp, qsp_stats_temp);
+            if(orders_alg.compute_next_order(next_order, qubits_count, deps_temp))
+            {
+                //std::cout<<"before: "<<order[0]<<"  "<<order[1]<<"  "<<order[2]<<"  "<<order[3]<<std::endl;
+                std::copy(next_order.begin(), next_order.end(), order.begin());
+                //std::cout<<"next: "<<order[0]<<"  "<<order[1]<<"  "<<order[2]<<"  "<<order[3]<<std::endl;
+            }
+
             kitty::dynamic_truth_table tt_copy = tt;
             angel::reordering_on_tt_inplace(tt_copy, order);
+            qsp_general_stats qsp_stats;
+            dependencies_t deps = deps_alg.run(tt_copy, qsp_stats);
             
             std::vector<uint32_t> zero_lines;
             std::vector<uint32_t> one_lines;
             extract_independent_vars(zero_lines, one_lines, tt_copy);
 
-            //std::cout<<"zero size: "<<zero_lines.size()<<"lines: "<<zero_lines[0]<<"  "<<zero_lines[1]<<std::endl;
-            //std::cout<<"one size: "<<one_lines.size()<<"  "<<one_lines[0]<<std::endl;
-
             gates_t gates;
             auto var_idx = qubits_count - 1;
             std::vector<uint32_t> cs;
-            qsp_general_stats qsp_stats;
-
-            dependencies_t deps = deps_alg.run(tt_copy, qsp_stats);
-            //deps_alg.print_dependencies(deps);
 
             if (deps_alg.get_considering_deps())
             {
                 MC_qg_generation(gates, tt_copy, var_idx, cs, deps, zero_lines, one_lines);
-                //kitty::print_binary(tt_copy);
-                //std::cout<<std::endl;
-                //std::cout<<"gate size: "<<gates.size()<<std::endl;
                 gates_statistics(gates, deps, qubits_count, qsp_stats);
             }
             else

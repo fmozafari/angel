@@ -41,6 +41,12 @@ public:
         return orders;
     }
 
+    using dependencies_t = std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>>;
+    bool compute_next_order(order& current_order, uint32_t var_count, dependencies_t deps)
+    {
+        return false;
+    }
+
 private:
     uint64_t seed;
     uint32_t num_orders;

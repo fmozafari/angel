@@ -4,7 +4,7 @@
 namespace angel
 {
 
-class DistinguishingBitPowerordering
+class DistinguishingBitPowerReordering
 {
 public:
     using order_t = std::vector<uint32_t>;
@@ -17,7 +17,7 @@ public:
     };
 
 public:
-    explicit DistinguishingBitPowerordering() {}
+    explicit DistinguishingBitPowerReordering() {}
 
     std::vector<order_t> run(kitty::dynamic_truth_table const &function)
     {
