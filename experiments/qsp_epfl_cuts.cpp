@@ -14,6 +14,19 @@
 
 int main()
 {
+    angel::function_extractor_params ps;
+    ps.num_vars = 4;
+    ps.exact_size = true;
+    angel::function_extractor extractor{ps};
+
+    auto seed = 1;
+    auto idx = ps.num_vars;
+    while (idx>1)
+    {
+        seed *= idx;
+        idx--;
+    }
+
     experiments::experiment<std::string, uint32_t, 
                             uint32_t, double, uint32_t, double, double,
                             uint32_t, double, uint32_t, double, double,
@@ -22,22 +35,10 @@ int main()
                                                                                "totalC-2", "AvgC-2", "totalS-2", "AvgS-2", "time-2",
                                                                                "totalC-3", "AvgC-3", "totalS-3", "AvgS-3", "time-3", "imp-2", "imp-3");
 
-    for (const auto &benchmark : experiments::epfl_benchmarks(~experiments::hyp))
+    for ( const auto &benchmark : experiments::epfl_benchmarks( ~experiments::hyp ) )
     {
-        fmt::print("[i] processing {}\n", benchmark);
-        angel::function_extractor_params ps;
-        ps.num_vars = 4;
-        ps.exact_size = true;
-        auto seed = 1;
-        auto idx = ps.num_vars;
-        while (idx>1)
-        {
-            seed *= idx;
-            idx--;
-        }
-        angel::function_extractor extractor{experiments::benchmark_path(benchmark), ps};
-        auto const success = extractor.parse();
-        if (!success)
+        fmt::print( "[i] processing {}\n", benchmark );
+        if ( !extractor.parse( experiments::benchmark_path( benchmark ) ) )
             continue;
 
         // if(benchmark!="adder")
@@ -54,8 +55,8 @@ int main()
             auto n = tt.num_vars();
             ++function_counter;
 
-            if(function_counter<350)
-            {
+            //if(function_counter<350)
+            //{
                 {
                     tweedledum::netlist<tweedledum::mcmt_gate> ntk;
                     angel::NoDeps deps_alg1;
@@ -76,7 +77,7 @@ int main()
                     angel::RandomReordering orders3(seed,n*n);
                     angel::qsp_tt_general(ntk, deps_alg3, orders3, tt, qsp_stats3);
                 }   
-            }
+            //}
         });
 
         auto sum_f = 0; /// CNOTs: first
@@ -112,9 +113,9 @@ int main()
         auto imp1 = ((avg_f1 - avg_f2) / avg_f1) * 100;
         auto imp2 = ((avg_f1 - avg_f3) / avg_f1) * 100;
 
-        exp(benchmark, function_counter, qsp_stats1.total_cnots, avg_f1, qsp_stats1.total_rys+qsp_stats1.total_nots, avg_s1, qsp_stats1.total_time,
-            qsp_stats2.total_cnots, avg_f2, qsp_stats2.total_rys+qsp_stats2.total_nots, avg_s2, qsp_stats2.total_time,
-            qsp_stats3.total_cnots, avg_f3, qsp_stats3.total_rys+qsp_stats3.total_nots, avg_s3, qsp_stats3.total_time, imp1, imp2 );
+        exp(benchmark, function_counter, qsp_stats1.total_cnots, avg_f1, qsp_stats1.total_rys+qsp_stats1.total_nots, avg_s1, angel::to_seconds(qsp_stats1.total_time),
+            qsp_stats2.total_cnots, avg_f2, qsp_stats2.total_rys+qsp_stats2.total_nots, avg_s2, angel::to_seconds(qsp_stats2.total_time),
+            qsp_stats3.total_cnots, avg_f3, qsp_stats3.total_rys+qsp_stats3.total_nots, avg_s3, angel::to_seconds(qsp_stats3.total_time), imp1, imp2 );
     }
 
     exp.save();
