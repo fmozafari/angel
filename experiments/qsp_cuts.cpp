@@ -14,87 +14,58 @@
 
 int main()
 {
-    experiments::experiment<std::string, uint32_t, double, double, double, double> exp("qsp_cuts", "benchmark", "#functions",
-                                                                               "Avg-CNOTs-base", "Avg-CNOTs-deps-1randOrder", "Avg-CNOTs-deps-allOrders", "time-allOrders");
+  angel::function_extractor_params ps;
+  ps.num_vars = 4;
+  ps.exact_size = true;
+  angel::function_extractor extractor{ps};
 
-    for (const auto &benchmark : experiments::epfl_benchmarks(~experiments::hyp))
-    {
-        fmt::print("[i] processing {}\n", benchmark);
-        angel::function_extractor_params ps;
-        ps.num_vars = 6;
-        angel::function_extractor extractor{experiments::benchmark_path(benchmark), ps};
-        auto const success = extractor.parse();
-        if (!success)
-            continue;
+  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double>
+    exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "rnd: #cnots", "rnd: time", "dep: #cnots", "dep: time" );
 
-        //if(benchmark!="sin")
-            //continue;
+  angel::qsp_general_stats stats_baseline;
+  angel::qsp_general_stats stats_random_reorder;
+  angel::qsp_general_stats stats_deps_reorder;
 
-        uint32_t function_counter = 0u;
-        angel::qsp_general_stats qsp_stats1;
-        angel::qsp_general_stats qsp_stats2;
-        angel::qsp_general_stats qsp_stats3;
-        extractor.run([&](kitty::dynamic_truth_table const &tt) {
-            (void)tt;
-            if (tt.num_vars() == 6)
-            {
-                // if(benchmark=="log2")
-                // {
-                //     kitty::print_binary(tt);
-                //     std::cout<<std::endl;
-                // }
-                ++function_counter;
-                //std::cout << tt.num_vars() << ' '; kitty::print_hex( tt ); std::cout << std::endl;
+  for ( const auto &benchmark : experiments::epfl_benchmarks( ~experiments::hyp ) )
+  {
+    fmt::print( "[i] processing {}\n", benchmark );
+    if ( !extractor.parse( experiments::benchmark_path( benchmark ) ) )
+      continue;
 
-                if(function_counter<250)
-                {
-                    //kitty::print_binary(tt);
-                    //std::cout<<std::endl;
-                    tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-                    angel::NoDeps deps_alg1;
-                    angel::NoReordering orders1;
-                    angel::qsp_tt_general(ntk, deps_alg1, orders1, tt, qsp_stats1);
-                    angel::ResubSynthesisDeps deps_alg2;
-                    angel::RandomReordering orders2(5);
-                    angel::qsp_tt_general(ntk, deps_alg2, orders2, tt, qsp_stats2);
-                    angel::ResubSynthesisDeps deps_alg3;
-                    //angel::RandomReordering orders3(20);
-                    angel::ConsideringDepsReordering orders3(5);
-                    angel::qsp_tt_general(ntk, deps_alg3, orders3, tt, qsp_stats3);
-                }
-            }
-        });
-        //qsp_stats.report();
-
-        auto sum_f = 0; /// CNOTs: first
-        for (auto n = 0u; n < qsp_stats1.gates_count.size(); n++)
+    extractor.run( [&]( kitty::dynamic_truth_table const &tt ){
         {
-            sum_f += qsp_stats1.gates_count[n].first;
+          /* state preparation without reordering (baseline) */
+          tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+          angel::NoDeps deps_alg;
+          angel::NoReordering orders;
+          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_baseline );
         }
-        double avg_f1 = sum_f / double(qsp_stats1.gates_count.size());
 
-        sum_f = 0; /// CNOTs: first
-        for (auto n = 0u; n < qsp_stats2.gates_count.size(); n++)
         {
-            sum_f += qsp_stats2.gates_count[n].first;
+          /* state preparation with random reordering */
+          tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+          angel::ResubSynthesisDeps deps_alg;
+          angel::RandomReordering orders{5};
+          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_random_reorder );
         }
-        double avg_f2 = sum_f / double(qsp_stats2.gates_count.size());
 
-        sum_f = 0; /// CNOTs: first
-        for (auto n = 0u; n < qsp_stats3.gates_count.size(); n++)
         {
-            sum_f += qsp_stats3.gates_count[n].first;
+          /* state preparation with dependency-considered reordering */
+          tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+          angel::ResubSynthesisDeps deps_alg;
+          angel::ConsideringDepsReordering orders{5};
+          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_deps_reorder );
         }
-        double avg_f3 = sum_f / double(qsp_stats3.gates_count.size());
+      });
+  }
 
-        auto imp1 = ((avg_f1 - avg_f2) / avg_f1) * 100;
-        auto imp2 = ((avg_f1 - avg_f3) / avg_f1) * 100;
+  exp( "EPFL benchmarks", stats_baseline.total_bench,
+       stats_baseline.total_cnots, angel::to_seconds( stats_baseline.total_time ),
+       stats_random_reorder.total_cnots, angel::to_seconds( stats_random_reorder.total_time ),
+       stats_deps_reorder.total_cnots, angel::to_seconds( stats_deps_reorder.total_time ) );
 
-        exp(benchmark, function_counter, avg_f1, imp1, imp2, (qsp_stats3.total_time) );
-    }
+  exp.save();
+  exp.table();
 
-    exp.save();
-    exp.table();
-
-    return 0;
+  return 0;
 }
