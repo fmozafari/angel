@@ -14,8 +14,7 @@ using order_t = std::vector<uint32_t>;
 
 struct qsp_general_stats
 {
-    // stopwatch<>::duration_type 
-    double total_time{0};
+    stopwatch<>::duration_type total_time{0};
     uint32_t total_bench{0};
     uint32_t has_no_dependencies{0};
     uint32_t no_dependencies_computed{0};
@@ -38,7 +37,7 @@ struct qsp_general_stats
         os << fmt::format("[i] total deps = dep useful + dep not useful ::: {} = {} + {}\n",
                           funcdep_bench_useful + funcdep_bench_notuseful, funcdep_bench_useful, funcdep_bench_notuseful);
         os << fmt::format("[i] total synthesis time (considering dependencies) = {:8.2f}s\n",
-                          ( total_time ));
+                          to_seconds( total_time ));
 
         os << fmt::format("[i] synthesis result: CNOTs / RYs / NOTs = {} / {} / {} \n",
                           total_cnots, total_rys, total_nots);
@@ -743,7 +742,7 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
 
     //final_qsp_stats += best_stats;
     //std::cout<<"order: "<<best_order[0]<<" "<<best_order[1]<<" "<<best_order[2]<<" "<<best_order[3]<<std::endl;
-    final_qsp_stats.total_time += to_seconds(time_traversal);
+    final_qsp_stats.total_time += time_traversal;
     final_qsp_stats.total_bench += best_stats.total_bench;
     final_qsp_stats.has_no_dependencies += best_stats.has_no_dependencies;
     final_qsp_stats.no_dependencies_computed += best_stats.no_dependencies_computed;
@@ -755,7 +754,8 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
     final_qsp_stats.total_nots += best_stats.total_nots;
     //auto temp = best_stats.gates_count.back();
     //std::cout<<"yes: "<<final_qsp_stats.total_cnots<<std::endl;
-    final_qsp_stats.gates_count.emplace_back(best_stats.gates_count.back());
+    if ( best_stats.gates_count.size() > 0u )
+      final_qsp_stats.gates_count.emplace_back(best_stats.gates_count.back());
 
     //kitty::dynamic_truth_table tt_copy = tt;
     //angel::reordering_on_tt_inplace(tt_copy, best_order);

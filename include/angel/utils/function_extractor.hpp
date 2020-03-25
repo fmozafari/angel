@@ -42,18 +42,20 @@ namespace angel
 struct function_extractor_params
 {
   uint32_t num_vars = 6u;
+
+  /* skip cuts with less leaves than num_vars */
+  bool exact_size = true;
 }; /* function_extractor_params */
 
 class function_extractor
 {
 public:
-  explicit function_extractor( std::string const& filename, function_extractor_params ps = {} )
-    : filename( filename )
-    , ps( ps )
+  explicit function_extractor( function_extractor_params ps = {} )
+    : ps( ps )
   {
   }
 
-  bool parse()
+  bool parse( std::string const& filename )
   {
     lorina::diagnostic_engine diag;
     return ( lorina::read_aiger( filename, mockturtle::aiger_reader( aig ), &diag ) == lorina::return_code::success );
@@ -72,6 +74,9 @@ public:
         mockturtle::cut_view cut{fanout_aig, leaves, aig.make_signal( n )};
 
         mockturtle::default_simulator<kitty::dynamic_truth_table> sim( leaves.size() );
+        if ( ps.exact_size && leaves.size() != ps.num_vars )
+          return;
+
         auto const result = mockturtle::simulate_nodes<kitty::dynamic_truth_table>( cut, sim );
 
         cut.foreach_po( [&]( const auto& s ){
@@ -88,7 +93,6 @@ public:
   }
 
 protected:
-  std::string filename;
   function_extractor_params ps;
 
   mockturtle::aig_network aig;
