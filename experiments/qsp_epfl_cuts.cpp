@@ -15,7 +15,7 @@
 int main()
 {
     angel::function_extractor_params ps;
-    ps.num_vars = 4;
+    ps.num_vars = 6;
     ps.exact_size = true;
     angel::function_extractor extractor{ps};
 
@@ -68,6 +68,7 @@ int main()
                     tweedledum::netlist<tweedledum::mcmt_gate> ntk;
                     angel::ResubSynthesisDeps deps_alg2;
                     angel::RandomReordering orders2(seed, 1);
+                    //angel::RandomReordering orders2(seed,n*n);
                     angel::qsp_tt_general(ntk, deps_alg2, orders2, tt, qsp_stats2);
                 }
 
@@ -75,6 +76,7 @@ int main()
                     tweedledum::netlist<tweedledum::mcmt_gate> ntk;
                     angel::ResubSynthesisDeps deps_alg3;
                     angel::RandomReordering orders3(seed,n*n);
+                    //angel::AllReordering orders3;
                     angel::qsp_tt_general(ntk, deps_alg3, orders3, tt, qsp_stats3);
                 }   
             //}
