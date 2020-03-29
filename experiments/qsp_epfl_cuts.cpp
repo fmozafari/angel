@@ -35,7 +35,7 @@ int main()
                                                                                "totalC-2", "AvgC-2", "totalS-2", "AvgS-2", "time-2",
                                                                                "totalC-3", "AvgC-3", "totalS-3", "AvgS-3", "time-3", "imp-2", "imp-3");
 
-    for ( const auto &benchmark : experiments::epfl_benchmarks( ~experiments::hyp ) )
+    for ( const auto &benchmark : experiments::epfl_benchmarks( ~experiments::epfl::hyp ) )
     {
         fmt::print( "[i] processing {}\n", benchmark );
         if ( !extractor.parse( experiments::benchmark_path( benchmark ) ) )
