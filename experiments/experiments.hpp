@@ -361,43 +361,80 @@ private:
 };
 
 // clang-format off
-static constexpr uint32_t adder      = 0b00000000000000000001;
-static constexpr uint32_t bar        = 0b00000000000000000010;
-static constexpr uint32_t div        = 0b00000000000000000100;
-static constexpr uint32_t hyp        = 0b00000000000000001000;
-static constexpr uint32_t log2       = 0b00000000000000010000;
-static constexpr uint32_t max        = 0b00000000000000100000;
-static constexpr uint32_t multiplier = 0b00000000000001000000;
-static constexpr uint32_t sin        = 0b00000000000010000000;
-static constexpr uint32_t sqrt       = 0b00000000000100000000;
-static constexpr uint32_t square     = 0b00000000001000000000;
-static constexpr uint32_t arbiter    = 0b00000000010000000000;
-static constexpr uint32_t cavlc      = 0b00000000100000000000;
-static constexpr uint32_t ctrl       = 0b00000001000000000000;
-static constexpr uint32_t dec        = 0b00000010000000000000;
-static constexpr uint32_t i2c        = 0b00000100000000000000;
-static constexpr uint32_t int2float  = 0b00001000000000000000;
-static constexpr uint32_t mem_ctrl   = 0b00010000000000000000;
-static constexpr uint32_t priority   = 0b00100000000000000000;
-static constexpr uint32_t router     = 0b01000000000000000000;
-static constexpr uint32_t voter      = 0b10000000000000000000;
-static constexpr uint32_t arithmetic = 0b00000000001111111111;
-static constexpr uint32_t random     = 0b11111111110000000000;
-static constexpr uint32_t all        = 0b11111111111111111111;
-// clang-format on
+namespace epfl
+{
+  static constexpr uint32_t adder      = 0b00000000000000000001;
+  static constexpr uint32_t bar        = 0b00000000000000000010;
+  static constexpr uint32_t div        = 0b00000000000000000100;
+  static constexpr uint32_t hyp        = 0b00000000000000001000;
+  static constexpr uint32_t log2       = 0b00000000000000010000;
+  static constexpr uint32_t max        = 0b00000000000000100000;
+  static constexpr uint32_t multiplier = 0b00000000000001000000;
+  static constexpr uint32_t sin        = 0b00000000000010000000;
+  static constexpr uint32_t sqrt       = 0b00000000000100000000;
+  static constexpr uint32_t square     = 0b00000000001000000000;
+  static constexpr uint32_t arbiter    = 0b00000000010000000000;
+  static constexpr uint32_t cavlc      = 0b00000000100000000000;
+  static constexpr uint32_t ctrl       = 0b00000001000000000000;
+  static constexpr uint32_t dec        = 0b00000010000000000000;
+  static constexpr uint32_t i2c        = 0b00000100000000000000;
+  static constexpr uint32_t int2float  = 0b00001000000000000000;
+  static constexpr uint32_t mem_ctrl   = 0b00010000000000000000;
+  static constexpr uint32_t priority   = 0b00100000000000000000;
+  static constexpr uint32_t router     = 0b01000000000000000000;
+  static constexpr uint32_t voter      = 0b10000000000000000000;
+  static constexpr uint32_t arithmetic = 0b00000000001111111111;
+  static constexpr uint32_t random     = 0b11111111110000000000;
+  static constexpr uint32_t all        = 0b11111111111111111111;
 
-static const char* benchmarks[] = {
+  static const char* benchmarks[] = {
     "adder", "bar", "div", "hyp", "log2", "max", "multiplier", "sin", "sqrt", "square",
     "arbiter", "cavlc", "ctrl", "dec", "i2c", "int2float", "mem_ctrl", "priority", "router", "voter"};
+}
+// clang-format on
 
-std::vector<std::string> epfl_benchmarks( uint32_t selection = all )
+// clang-format off
+namespace iscas
+{
+  static constexpr uint32_t c17   = 0b00000000001;
+  static constexpr uint32_t c432  = 0b00000000010;
+  static constexpr uint32_t c499  = 0b00000000100;
+  static constexpr uint32_t c880  = 0b00000001000;
+  static constexpr uint32_t c1355 = 0b00000010000;
+  static constexpr uint32_t c1908 = 0b00000100000;
+  static constexpr uint32_t c2670 = 0b00001000000;
+  static constexpr uint32_t c3540 = 0b00010000000;
+  static constexpr uint32_t c5315 = 0b00100000000;
+  static constexpr uint32_t c6288 = 0b01000000000;
+  static constexpr uint32_t c7552 = 0b10000000000;
+  static constexpr uint32_t all   = 0b11111111111;
+
+  static const char* benchmarks[] = {
+    "c17", "c432", "c499", "c880", "c1355", "c1908", "c2670", "c3540", "c5315", "c6288", "c7552"};
+}
+// clang-format on
+
+std::vector<std::string> epfl_benchmarks( uint32_t selection = epfl::all )
 {
   std::vector<std::string> result;
   for ( uint32_t i = 0u; i < 20u; ++i )
   {
     if ( ( selection >> i ) & 1 )
     {
-      result.push_back( benchmarks[i] );
+      result.push_back( epfl::benchmarks[i] );
+    }
+  }
+  return result;
+}
+
+std::vector<std::string> iscas_benchmarks( uint32_t selection = iscas::all )
+{
+  std::vector<std::string> result;
+  for ( uint32_t i = 0u; i < 20u; ++i )
+  {
+    if ( ( selection >> i ) & 1 )
+    {
+      result.push_back( iscas::benchmarks[i] );
     }
   }
   return result;
