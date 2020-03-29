@@ -11,21 +11,16 @@
 
 #include "experiments.hpp"
 
-int main()
+template<class Exp>
+void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std::string const& name, angel::function_extractor_params ps = {} )
 {
-  angel::function_extractor_params ps;
-  ps.num_vars = 4;
-  ps.exact_size = true;
   angel::function_extractor extractor{ps};
-
-  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double>
-    exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "rnd: #cnots", "rnd: time", "dep: #cnots", "dep: time" );
 
   angel::qsp_general_stats stats_baseline;
   angel::qsp_general_stats stats_random_reorder;
   angel::qsp_general_stats stats_deps_reorder;
 
-  for ( const auto &benchmark : experiments::epfl_benchmarks( ~experiments::hyp ) )
+  for ( const auto &benchmark : benchmarks )
   {
     fmt::print( "[i] processing {}\n", benchmark );
     if ( !extractor.parse( experiments::benchmark_path( benchmark ) ) )
@@ -58,10 +53,25 @@ int main()
       });
   }
 
-  exp( "EPFL benchmarks", stats_baseline.total_bench,
+  exp( name, stats_baseline.total_bench,
        stats_baseline.total_cnots, angel::to_seconds( stats_baseline.total_time ),
        stats_random_reorder.total_cnots, angel::to_seconds( stats_random_reorder.total_time ),
        stats_deps_reorder.total_cnots, angel::to_seconds( stats_deps_reorder.total_time ) );
+}
+
+int main()
+{
+  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double>
+    exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "rnd: #cnots", "rnd: time", "dep: #cnots", "dep: time" );
+
+  for ( auto i = 4u; i <= 6u; ++i )
+  {
+    fmt::print( "[i] run experiments for {}input cut functions\n", i );
+    run_experiments( exp, experiments::epfl_benchmarks( ~experiments::epfl::hyp ), fmt::format( "EPFL benchmarks {}", i ),
+                     {.num_vars = i} );
+    run_experiments( exp, experiments::iscas_benchmarks(), fmt::format( "ISCAS benchmarks {}", i ),
+                     {.num_vars = i} );
+  }
 
   exp.save();
   exp.table();
