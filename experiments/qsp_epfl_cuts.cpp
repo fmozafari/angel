@@ -48,6 +48,9 @@ int main()
         angel::qsp_general_stats qsp_stats1;
         angel::qsp_general_stats qsp_stats2;
         angel::qsp_general_stats qsp_stats3;
+        angel::deps_operation_stats op_stats1;
+        angel::deps_operation_stats op_stats2;
+        angel::deps_operation_stats op_stats3;
         extractor.run([&](kitty::dynamic_truth_table const &tt) 
         {
             (void)tt;
@@ -61,7 +64,7 @@ int main()
                     tweedledum::netlist<tweedledum::mcmt_gate> ntk;
                     angel::NoDeps deps_alg1;
                     angel::NoReordering orders1;
-                    angel::qsp_tt_general(ntk, deps_alg1, orders1, tt, qsp_stats1);
+                    angel::qsp_tt_general(ntk, deps_alg1, orders1, tt, qsp_stats1, op_stats1);
                 }
 
                 {
@@ -69,7 +72,7 @@ int main()
                     angel::ResubSynthesisDeps deps_alg2;
                     angel::RandomReordering orders2(seed, 1);
                     //angel::RandomReordering orders2(seed,n*n);
-                    angel::qsp_tt_general(ntk, deps_alg2, orders2, tt, qsp_stats2);
+                    angel::qsp_tt_general(ntk, deps_alg2, orders2, tt, qsp_stats2, op_stats2);
                 }
 
                 {
@@ -77,7 +80,7 @@ int main()
                     angel::ResubSynthesisDeps deps_alg3;
                     angel::RandomReordering orders3(seed,n*n);
                     //angel::AllReordering orders3;
-                    angel::qsp_tt_general(ntk, deps_alg3, orders3, tt, qsp_stats3);
+                    angel::qsp_tt_general(ntk, deps_alg3, orders3, tt, qsp_stats3, op_stats3);
                 }   
             //}
         });

@@ -14,6 +14,11 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
   angel::qsp_general_stats stats_random_reorder;
   angel::qsp_general_stats stats_deps_reorder;
 
+  angel::deps_operation_stats op_stats_baseline;
+  angel::deps_operation_stats op_stats_default_order;
+  angel::deps_operation_stats op_stats_random_reorder;
+  angel::deps_operation_stats op_stats_deps_reorder;
+
   for ( const auto &benchmark : benchmarks )
   {
     fmt::print( "[i] processing {}\n", benchmark );
@@ -26,7 +31,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           angel::NoDeps deps_alg;
           angel::NoReordering orders;
-          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_baseline );
+          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_baseline, op_stats_baseline );
         }
 
         {
@@ -34,7 +39,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           angel::ResubSynthesisDeps deps_alg;
           angel::NoReordering orders;
-          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_default_order );
+          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_default_order, op_stats_default_order );
         }
 
         {
@@ -42,7 +47,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           angel::ResubSynthesisDeps deps_alg;
           angel::RandomReordering orders{5};
-          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_random_reorder );
+          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_random_reorder, op_stats_random_reorder );
         }
 
         {
@@ -50,10 +55,17 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           angel::ResubSynthesisDeps deps_alg;
           angel::ConsideringDepsReordering orders{5};
-          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_deps_reorder );
+          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_deps_reorder, op_stats_deps_reorder );
         }
       });
   }
+
+  std::cout<<"---default order ops----\n";
+  op_stats_default_order.report();
+  std::cout<<"---random order ops----\n";
+  op_stats_random_reorder.report();
+  std::cout<<"---deps order ops----\n";
+  op_stats_deps_reorder.report();
 
   exp( name, stats_baseline.total_bench,
        stats_baseline.total_cnots, angel::to_seconds( stats_baseline.total_time ),
@@ -67,7 +79,7 @@ int main()
   experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double, uint32_t, double>
     exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "no: #cnots", "no: time", "rnd: #cnots", "rnd: time", "dep: #cnots", "dep: time" );
 
-  for ( auto i = 4u; i <= 6u; ++i )
+  for ( auto i = 4u; i < 5u; ++i )
   {
     fmt::print( "[i] run experiments for {}-input cut functions\n", i );
     run_experiments( exp, experiments::epfl_benchmarks( ~experiments::epfl::hyp ), fmt::format( "EPFL benchmarks {}", i ),

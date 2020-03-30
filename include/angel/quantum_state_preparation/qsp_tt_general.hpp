@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 #include <iostream>
 #include <map>
+#include <vector>
 
 namespace angel
 {
@@ -75,6 +76,65 @@ struct qsp_general_stats
         os << fmt::format("[i] SD SQgates = {}\n", sd_s);
     }
 };
+
+struct deps_operation_stats
+{
+    uint32_t eq_op{0};
+    uint32_t not_op{0};
+    std::vector<uint32_t> xor_op{std::vector<uint32_t>(6,0)};
+    std::vector<uint32_t> xnor_op{std::vector<uint32_t>(6,0)};
+    std::vector<uint32_t> and_op{std::vector<uint32_t>(6,0)};
+    std::vector<uint32_t> nand_op{std::vector<uint32_t>(6,0)};
+    std::vector<uint32_t> or_op{std::vector<uint32_t>(6,0)};
+    std::vector<uint32_t> nor_op{std::vector<uint32_t>(6,0)};
+
+    void report(std::ostream &os = std::cout) const
+    {
+        os << "[i] number of eq operation: " << eq_op << std::endl;
+        os << "[i] number of not operation: " << not_op << std::endl;
+        for(auto i=2u; i<6; i++)
+            os << fmt::format( "[i] number of xor({}) operation: {}\n", i, xor_op[i] );
+        for(auto i=2u; i<6; i++)
+            os << fmt::format( "[i] number of xnor({}) operation: {}\n", i, xnor_op[i] );
+        for(auto i=2u; i<6; i++)
+            os << fmt::format( "[i] number of and({}) operation: {}\n", i, and_op[i] );
+        for(auto i=2u; i<6; i++)
+            os << fmt::format( "[i] number of nand({}) operation: {}\n", i, nand_op[i] );
+        for(auto i=2u; i<6; i++)
+            os << fmt::format( "[i] number of or({}) operation: {}\n", i, or_op[i] );
+        for(auto i=2u; i<6; i++)
+            os << fmt::format( "[i] number of nor({}) operation: {}\n", i, nor_op[i] );
+        
+    }
+};
+
+void extract_deps_operation_stats(deps_operation_stats & op_stats, dependencies_t deps)
+{
+    for(auto i=0u; i<deps.size(); i++)
+    {
+        if(deps.find(i) == deps.end())
+            continue;
+
+        if(deps[i][0].first=="eq")
+            op_stats.eq_op++;
+        else if(deps[i][0].first=="not")
+            op_stats.not_op++;
+        else if(deps[i][0].first=="xor")
+            op_stats.xor_op[deps[i][0].second.size()]++;
+        else if(deps[i][0].first=="xnor")
+            op_stats.xnor_op[deps[i][0].second.size()]++;
+        else if(deps[i][0].first=="and")
+            op_stats.and_op[deps[i][0].second.size()]++;
+        else if(deps[i][0].first=="nand")
+            op_stats.nand_op[deps[i][0].second.size()]++;
+        else if(deps[i][0].first=="or")
+            op_stats.or_op[deps[i][0].second.size()]++;
+        else if(deps[i][0].first=="nor")
+            op_stats.nor_op[deps[i][0].second.size()]++;
+    }
+
+}
+
 
 /* with dependencies */
 void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
@@ -664,7 +724,7 @@ void gates_statistics(gates_t gates, uint32_t const num_vars, qsp_general_stats 
 */
 template <class Network, class DependencyAnalysisAlgorithm, class ReorderingAlgorithm>
 void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, ReorderingAlgorithm orders_alg,
-                    kitty::dynamic_truth_table tt, qsp_general_stats &final_qsp_stats)
+                    kitty::dynamic_truth_table tt, qsp_general_stats& final_qsp_stats, deps_operation_stats& op_stats)
 {
     if(kitty::is_const0(tt))
     {
@@ -688,6 +748,7 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
 
     auto max_cnots = pow(2, qubits_count + 1);
     order_t best_order(qubits_count);
+    dependencies_t best_deps;
     qsp_general_stats best_stats;
     stopwatch<>::duration_type time_traversal{0};
     {
@@ -736,12 +797,15 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
                 std::copy(order.begin(), order.end(), best_order.begin());
                 best_stats = qsp_stats;
                 max_cnots = qsp_stats.total_cnots;
+                if(best_deps.size()>0)
+                    best_deps.erase(best_deps.begin(), best_deps.end());
+                best_deps = deps;
             }
         }
     }
 
-    //final_qsp_stats += best_stats;
-    //std::cout<<"order: "<<best_order[0]<<" "<<best_order[1]<<" "<<best_order[2]<<" "<<best_order[3]<<std::endl;
+    extract_deps_operation_stats(op_stats, best_deps);
+
     final_qsp_stats.total_time += time_traversal;
     final_qsp_stats.total_bench += best_stats.total_bench;
     final_qsp_stats.has_no_dependencies += best_stats.has_no_dependencies;
@@ -752,20 +816,10 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
     final_qsp_stats.total_cnots += best_stats.total_cnots;
     final_qsp_stats.total_rys += best_stats.total_rys;
     final_qsp_stats.total_nots += best_stats.total_nots;
-    //auto temp = best_stats.gates_count.back();
-    //std::cout<<"yes: "<<final_qsp_stats.total_cnots<<std::endl;
+    
     if ( best_stats.gates_count.size() > 0u )
       final_qsp_stats.gates_count.emplace_back(best_stats.gates_count.back());
 
-    //kitty::dynamic_truth_table tt_copy = tt;
-    //angel::reordering_on_tt_inplace(tt_copy, best_order);
-    // kitty::print_binary(tt_copy);
-    // std::cout << std::endl;
-
-    //qsp_general_stats qsp_stats;
-
-    //dependencies_t deps = deps_alg.run(tt_copy, qsp_stats);
-    // deps_alg.print_dependencies(deps);
 }
 
 } // namespace angel
