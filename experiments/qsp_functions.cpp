@@ -10,12 +10,13 @@ int main()
   constexpr int32_t const min_num_variables = 4;
   constexpr int32_t const max_num_variables = 8;
 
-  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double>
-    exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "rnd: #cnots", "rnd: time", "dep: #cnots", "dep: time" );
+  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double, uint32_t, double>
+    exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "no: #cnots", "no: time", "rnd: #cnots", "rnd: time", "dep: #cnots", "dep: time" );
 
   for ( auto num_vars = min_num_variables; num_vars <= max_num_variables; ++num_vars )
   {
     angel::qsp_general_stats stats_baseline;
+    angel::qsp_general_stats stats_default_order;
     angel::qsp_general_stats stats_random_reorder;
     angel::qsp_general_stats stats_deps_reorder;
 
@@ -23,10 +24,9 @@ int main()
     for ( auto i = 0; i < num_vars; ++i )
     {
       kitty::create_equals( tt, i );
-      // kitty::print_hex( tt ); std::cout << std::endl;
 
       {
-        /* state preparation without reordering (baseline) */
+        /* state preparation without dependency analysis or reordering (baseline) */
         tweedledum::netlist<tweedledum::mcmt_gate> ntk;
         angel::NoDeps deps_alg;
         angel::NoReordering orders;
@@ -34,7 +34,15 @@ int main()
       }
 
       {
-        /* state preparation with random reordering */
+        /* state preparation with dependency analysis but no reordering */
+        tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+        angel::ResubSynthesisDeps deps_alg;
+        angel::NoReordering orders;
+        angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_default_order );
+      }
+
+      {
+        /* state preparation with dependency analysis and random reordering */
         tweedledum::netlist<tweedledum::mcmt_gate> ntk;
         angel::ResubSynthesisDeps deps_alg;
         angel::RandomReordering orders{5};
@@ -42,7 +50,7 @@ int main()
       }
 
       {
-        /* state preparation with dependency-considered reordering */
+        /* state preparation with dependency analysis and dependency-considered reordering */
         tweedledum::netlist<tweedledum::mcmt_gate> ntk;
         angel::ResubSynthesisDeps deps_alg;
         angel::ConsideringDepsReordering orders{5};
@@ -52,8 +60,9 @@ int main()
 
     exp( fmt::format( "{:2d}-equals-k benchmarks", num_vars ), stats_baseline.total_bench,
        stats_baseline.total_cnots, angel::to_seconds( stats_baseline.total_time ),
+       stats_default_order.total_cnots, angel::to_seconds( stats_default_order.total_time ),
        stats_random_reorder.total_cnots, angel::to_seconds( stats_random_reorder.total_time ),
-       stats_deps_reorder.total_cnots, angel::to_seconds( stats_deps_reorder.total_time ) );    
+       stats_deps_reorder.total_cnots, angel::to_seconds( stats_deps_reorder.total_time ) );
   }
 
   exp.save();
