@@ -1,13 +1,6 @@
-#include <angel/dependency_analysis/resub_synthesis.hpp>
-#include <angel/quantum_state_preparation/qsp_tt_general.hpp>
-#include <angel/reordering/all_reordering.hpp>
-#include <angel/reordering/considering_deps_reordering.hpp>
-#include <angel/reordering/no_reordering.hpp>
-#include <angel/reordering/random_reordering.hpp>
-#include <angel/utils/function_extractor.hpp>
+#include <angel/angel.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/netlist.hpp>
-#include <angel/utils/stopwatch.hpp>
 
 #include "experiments.hpp"
 
@@ -17,6 +10,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
   angel::function_extractor extractor{ps};
 
   angel::qsp_general_stats stats_baseline;
+  angel::qsp_general_stats stats_default_order;
   angel::qsp_general_stats stats_random_reorder;
   angel::qsp_general_stats stats_deps_reorder;
 
@@ -28,7 +22,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
 
     extractor.run( [&]( kitty::dynamic_truth_table const &tt ){
         {
-          /* state preparation without reordering (baseline) */
+          /* state preparation without dependency analysis or reordering (baseline) */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           angel::NoDeps deps_alg;
           angel::NoReordering orders;
@@ -36,7 +30,15 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
         }
 
         {
-          /* state preparation with random reordering */
+          /* state preparation with dependency analysis but no reordering */
+          tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+          angel::ResubSynthesisDeps deps_alg;
+          angel::NoReordering orders;
+          angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_default_order );
+        }
+
+        {
+          /* state preparation with dependency analysis and random reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           angel::ResubSynthesisDeps deps_alg;
           angel::RandomReordering orders{5};
@@ -44,7 +46,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
         }
 
         {
-          /* state preparation with dependency-considered reordering */
+          /* state preparation with dependency analysis and dependency-considered reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           angel::ResubSynthesisDeps deps_alg;
           angel::ConsideringDepsReordering orders{5};
@@ -55,18 +57,19 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
 
   exp( name, stats_baseline.total_bench,
        stats_baseline.total_cnots, angel::to_seconds( stats_baseline.total_time ),
+       stats_default_order.total_cnots, angel::to_seconds( stats_default_order.total_time ),
        stats_random_reorder.total_cnots, angel::to_seconds( stats_random_reorder.total_time ),
        stats_deps_reorder.total_cnots, angel::to_seconds( stats_deps_reorder.total_time ) );
 }
 
 int main()
 {
-  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double>
-    exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "rnd: #cnots", "rnd: time", "dep: #cnots", "dep: time" );
+  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double, uint32_t, double>
+    exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "no: #cnots", "no: time", "rnd: #cnots", "rnd: time", "dep: #cnots", "dep: time" );
 
   for ( auto i = 4u; i <= 6u; ++i )
   {
-    fmt::print( "[i] run experiments for {}input cut functions\n", i );
+    fmt::print( "[i] run experiments for {}-input cut functions\n", i );
     run_experiments( exp, experiments::epfl_benchmarks( ~experiments::epfl::hyp ), fmt::format( "EPFL benchmarks {}", i ),
                      {.num_vars = i} );
     run_experiments( exp, experiments::iscas_benchmarks(), fmt::format( "ISCAS benchmarks {}", i ),
