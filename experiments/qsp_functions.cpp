@@ -29,7 +29,7 @@ int main()
     for ( auto i = 0; i < num_vars; ++i )
     {
       kitty::create_equals( tt, i );
-
+      
       {
         /* state preparation without dependency analysis or reordering (baseline) */
         tweedledum::netlist<tweedledum::mcmt_gate> ntk;
@@ -50,7 +50,7 @@ int main()
         /* state preparation with dependency analysis and random reordering */
         tweedledum::netlist<tweedledum::mcmt_gate> ntk;
         angel::ResubSynthesisDeps deps_alg;
-        angel::RandomReordering orders{5};
+        angel::RandomReordering orders(num_vars*num_vars);
         angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_random_reorder, op_stats_random_reorder );
       }
 
@@ -63,7 +63,7 @@ int main()
       }
     }
 
-    exp( fmt::format( "{:2d}-equals-k benchmarks", num_vars ), stats_baseline.total_bench,
+    exp( fmt::format( "{:2d}-equals-k benchmarks", num_vars ), stats_default_order.total_bench,
        stats_baseline.total_cnots, angel::to_seconds( stats_baseline.total_time ),
        stats_default_order.total_cnots, angel::to_seconds( stats_default_order.total_time ),
        stats_random_reorder.total_cnots, angel::to_seconds( stats_random_reorder.total_time ),

@@ -46,7 +46,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           /* state preparation with dependency analysis and random reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           angel::ResubSynthesisDeps deps_alg;
-          angel::RandomReordering orders{5};
+          angel::RandomReordering orders(ps.num_vars * ps.num_vars);
           angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_random_reorder, op_stats_random_reorder );
         }
 
