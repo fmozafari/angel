@@ -70,7 +70,7 @@ inline std::vector<uint32_t> reordering_on_tt_inplace (kitty::dynamic_truth_tabl
     std::vector<uint32_t> new_order;
     std::reverse(orders.begin(), orders.end());
     
-    for(auto i=0; i<var_num; i++)
+    for(auto i=0u; i<var_num; i++)
     {
         if(i != orders[i])
         {

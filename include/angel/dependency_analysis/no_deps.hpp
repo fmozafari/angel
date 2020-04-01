@@ -38,6 +38,7 @@ public:
 
     dependencies_t run(kitty::dynamic_truth_table const &tt, qsp_general_stats &stats)
     {
+        (void) tt;
         stats.total_bench++;
         dependencies_t deps;
         return deps;

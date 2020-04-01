@@ -177,7 +177,7 @@ void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t va
         {
             if (gates[var_index].size() == 0)
             {
-                for (auto d = 0; d < dependencies[var_index].size(); d++)
+                for (auto d = 0u; d < dependencies[var_index].size(); d++)
                 {
                     if (dependencies[var_index][d].first == "eq")
                     {
@@ -537,7 +537,7 @@ void gates_statistics(gates_t gates, dependencies_t const &dependencies,
             }
             if (have_max_controls || cnots > pow(2, ((num_vars - i - 1) - n_reduc))) /* we have max number of controls */
             {
-                if (i == (num_vars - 1 - n_reduc)) /* first line for preparation */
+                if (i == int(num_vars - 1 - n_reduc)) /* first line for preparation */
                 {
                     cnots = 0;
                     rys = 1;
@@ -581,7 +581,7 @@ void gates_statistics(gates_t gates, dependencies_t const &dependencies,
             }
             if (have_max_controls || cnots > pow(2, ((num_vars - i - 1) - n_reduc))) /* we have max number of controls */
             {
-                if (i == (num_vars - 1 - n_reduc)) /* first line for preparation */
+                if (i == int(num_vars - 1 - n_reduc)) /* first line for preparation */
                 {
                     cnots = 0;
                     rys = 1;
@@ -681,7 +681,7 @@ void gates_statistics(gates_t gates, uint32_t const num_vars, qsp_general_stats 
         }
         if (have_max_controls || cnots > pow(2, ((num_vars - i - 1) - n_reduc))) /* we have max number of controls */
         {
-            if (i == (num_vars - 1 - n_reduc)) /* first line for preparation */
+            if (i == int(num_vars - 1 - n_reduc)) /* first line for preparation */
             {
                 cnots = 0;
                 rys = 1;

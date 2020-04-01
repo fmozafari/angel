@@ -55,8 +55,8 @@ BDD create_bdd_from_pla(Cudd &cudd, std::string file_name, uint32_t &num_inputs)
     std::string in, out;
     infile >> in >> out;
     num_inputs = std::atoi(out.c_str());
-    int num_outputs = 1;
-    auto mgr = cudd.getManager();
+    //int num_outputs = 1;
+    //auto mgr = cudd.getManager();
     BDD output;
     auto bddNodes = new BDD[num_inputs];
     for (int i = num_inputs - 1; i >= 0; i--)
@@ -114,7 +114,7 @@ BDD create_bdd_from_tt(Cudd &cudd, std::string file_name, uint32_t &num_inputs)
     BDD f_bdd;
     int sig = 1;
     ;
-    for (auto i = 0; i < tt_str.size(); i++)
+    for (auto i = 0u; i < tt_str.size(); i++)
     {
         if (tt_str[i] == '1')
         {
