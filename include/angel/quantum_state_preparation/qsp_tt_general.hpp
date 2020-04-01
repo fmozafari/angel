@@ -6,6 +6,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <unordered_map>
 
 namespace angel
 {
@@ -79,60 +80,33 @@ struct qsp_general_stats
 
 struct deps_operation_stats
 {
-    uint32_t eq_op{0};
-    uint32_t not_op{0};
-    std::vector<uint32_t> xor_op{std::vector<uint32_t>(6,0)};
-    std::vector<uint32_t> xnor_op{std::vector<uint32_t>(6,0)};
-    std::vector<uint32_t> and_op{std::vector<uint32_t>(6,0)};
-    std::vector<uint32_t> nand_op{std::vector<uint32_t>(6,0)};
-    std::vector<uint32_t> or_op{std::vector<uint32_t>(6,0)};
-    std::vector<uint32_t> nor_op{std::vector<uint32_t>(6,0)};
+  /* Be verbose */
+  bool verbose = true;
 
-    void report(std::ostream &os = std::cout) const
+  /* Map pattern name to number of occurrencies */
+  mutable std::unordered_map<std::string, uint32_t> pattern_occurrence;
+
+  void report( std::ostream &os = std::cout ) const
+  {
+    for ( const auto& d : pattern_occurrence )
     {
-        os << "[i] number of eq operation: " << eq_op << std::endl;
-        os << "[i] number of not operation: " << not_op << std::endl;
-        for(auto i=2u; i<6; i++)
-            os << fmt::format( "[i] number of xor({}) operation: {}\n", i, xor_op[i] );
-        for(auto i=2u; i<6; i++)
-            os << fmt::format( "[i] number of xnor({}) operation: {}\n", i, xnor_op[i] );
-        for(auto i=2u; i<6; i++)
-            os << fmt::format( "[i] number of and({}) operation: {}\n", i, and_op[i] );
-        for(auto i=2u; i<6; i++)
-            os << fmt::format( "[i] number of nand({}) operation: {}\n", i, nand_op[i] );
-        for(auto i=2u; i<6; i++)
-            os << fmt::format( "[i] number of or({}) operation: {}\n", i, or_op[i] );
-        for(auto i=2u; i<6; i++)
-            os << fmt::format( "[i] number of nor({}) operation: {}\n", i, nor_op[i] );
-        
+      if ( d.second > 0u || verbose )
+      {
+        os << fmt::format( "[i] number of {:6s} operation: {:7d}\n", d.first, d.second );
+      }
     }
+  }
 };
 
-void extract_deps_operation_stats(deps_operation_stats & op_stats, dependencies_t deps)
+void extract_deps_operation_stats( deps_operation_stats& op_stats, dependencies_t const& deps )
 {
-    for(auto i=0u; i<deps.size(); i++)
-    {
-        if(deps.find(i) == deps.end())
-            continue;
+  for( auto i = 0u; i < deps.size(); ++i )
+  {
+    if ( deps.find( i ) == deps.end() )
+      continue;
 
-        if(deps[i][0].first=="eq")
-            op_stats.eq_op++;
-        else if(deps[i][0].first=="not")
-            op_stats.not_op++;
-        else if(deps[i][0].first=="xor")
-            op_stats.xor_op[deps[i][0].second.size()]++;
-        else if(deps[i][0].first=="xnor")
-            op_stats.xnor_op[deps[i][0].second.size()]++;
-        else if(deps[i][0].first=="and")
-            op_stats.and_op[deps[i][0].second.size()]++;
-        else if(deps[i][0].first=="nand")
-            op_stats.nand_op[deps[i][0].second.size()]++;
-        else if(deps[i][0].first=="or")
-            op_stats.or_op[deps[i][0].second.size()]++;
-        else if(deps[i][0].first=="nor")
-            op_stats.nor_op[deps[i][0].second.size()]++;
-    }
-
+    op_stats.pattern_occurrence[fmt::format( "{}-{}", deps.at( i ).at( 0 ).first, deps.at( i ).at( 0 ).second.size() )]++;
+  }
 }
 
 
