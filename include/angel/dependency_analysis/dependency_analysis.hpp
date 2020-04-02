@@ -210,7 +210,7 @@ public:
           goto evaluate;
 
         if ( ps.max_pattern_size < 2u )
-          break;
+          continue;
 
         for ( auto k = j + 1u; k < num_vars; ++k )
         {
@@ -222,7 +222,7 @@ public:
             goto evaluate;
 
           if ( ps.max_pattern_size < 3u )
-            break;
+            continue;
 
           for ( auto l = k + 1u; l < num_vars; ++l )
           {
@@ -234,7 +234,7 @@ public:
               goto evaluate;
 
             if ( ps.max_pattern_size < 4u )
-              break;
+              continue;
 
             for ( auto m = l + 1u; m < num_vars; ++m )
             {
@@ -246,7 +246,7 @@ public:
                 goto evaluate;
 
               if ( ps.max_pattern_size < 5u )
-                break;
+                continue;
 
               for ( auto n = m + 1u; n < num_vars; ++n )
               {
