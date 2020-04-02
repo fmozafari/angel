@@ -65,7 +65,9 @@ struct dependency_analysis_types
   /* pattern */
   enum class pattern_kind
   {
+    /* unary */
     EQUAL = 1,
+    /* nary */
     XOR   = 2,
     AND   = 3,
   };
@@ -119,9 +121,6 @@ public:
       }
     }
 
-    /* reverse for some reason */
-    std::reverse( std::begin( columns ), std::end( columns ) );
-
     // for ( const auto& c : columns )
     // {
     //   kitty::print_binary( c.tt ); std::cout << std::endl;
@@ -163,17 +162,95 @@ public:
 private:
   void check_unary_patterns( std::vector<dependency_analysis_types::column> const& columns, uint32_t target_index, uint32_t other_index )
   {
-    fmt::print( "check {} for unary relation with {}\n", target_index, other_index );
+    if ( columns[target_index].tt == columns[other_index].tt )
+    {
+      fmt::print( "EQUAL {} = {}\n", target_index, other_index );
+    }
+    else if ( columns[target_index].tt == ~columns[other_index].tt )
+    {
+      fmt::print( "EQUAL {} = ~{}\n", target_index, ~other_index );
+    }
   }
 
   void check_nary_patterns( std::vector<dependency_analysis_types::column> const& columns, uint32_t target_index, std::vector<uint32_t> const& other_indices )
   {
-    fmt::print( "check {} for nary relation with ", target_index );
-    for ( const auto& other_index : other_indices )
+    /* xor */
+    if ( columns[target_index].tt == nary_xor( columns, other_indices ) )
     {
-      std::cout << other_index << ' ';
+      fmt::print( "EQUAL {} = XOR ", target_index );
+      for ( const auto& i : other_indices )
+      {
+        std::cout << i << ' ';
+      }
+      std::cout << std::endl;
     }
-    std::cout << std::endl;
+    if ( ~columns[target_index].tt == nary_xor( columns, other_indices ) )
+    {
+      fmt::print( "EQUAL {} = ~XOR ", target_index );
+      for ( const auto& i : other_indices )
+      {
+        std::cout << i << ' ';
+      }
+      std::cout << std::endl;
+    }
+
+    for ( uint32_t polarity = 0u; polarity < ( 1u << other_indices.size() ); ++polarity )
+    {
+      /* convert polarity to complement flags */
+      std::vector<bool> complement;
+      auto copy_polarity = polarity;
+      for ( auto i = 0u; i < other_indices.size(); ++i )
+      {
+        complement.push_back( ( copy_polarity & 1u ) );
+        copy_polarity >>= 1u;
+      }
+
+      /* and */
+      if ( columns[target_index].tt == nary_and( columns, other_indices, complement ) )
+      {
+        fmt::print( "EQUAL {} = AND ", target_index );
+        for ( auto i = 0u; i < other_indices.size(); ++i )
+        {
+          if ( complement[i] )
+            std::cout << "~";
+          std::cout << other_indices[i] << ' ';
+        }
+        std::cout << std::endl;
+      }
+      if ( columns[target_index].tt == ~nary_and( columns, other_indices, complement ) )
+      {
+        fmt::print( "EQUAL {} = NAND ", target_index );
+        for ( auto i = 0u; i < other_indices.size(); ++i )
+        {
+          if ( complement[i] )
+            std::cout << "~";
+          std::cout << other_indices[i] << ' ';
+        }
+        std::cout << std::endl;
+      }
+    }
+  }
+
+  kitty::partial_truth_table nary_and( std::vector<dependency_analysis_types::column> const& columns, std::vector<uint32_t> const& other_indices, std::vector<bool> const& complement )
+  {
+    /* compute nary and */
+    auto result = complement[0u] ? ~columns[other_indices[0u]].tt : columns[other_indices[0u]].tt;
+    for ( auto i = 1u; i < other_indices.size(); ++i )
+    {
+      result &= complement[i] ? ~columns[other_indices[i]].tt : columns[other_indices[i]].tt;
+    }
+    return result;
+  }
+
+  kitty::partial_truth_table nary_xor( std::vector<dependency_analysis_types::column> const& columns, std::vector<uint32_t> const& other_indices )
+  {
+    /* compute nary and */
+    auto result = columns[other_indices[0u]].tt;
+    for ( auto i = 1u; i < other_indices.size(); ++i )
+    {
+      result ^= columns[other_indices[i]].tt;
+    }
+    return result;
   }
 
 private:
