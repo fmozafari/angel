@@ -47,16 +47,32 @@ namespace angel
 
 struct dependency_analysis_params
 {
+  bool select_first = false;
+
+  /* a value between 1u and 5u */
+  uint32_t max_pattern_size = 4u;
 }; /* dependency_analysis_params */
 
 struct dependency_analysis_stats
 {
+  uint32_t num_patterns{0};
+
+  uint32_t num_singletons{0};
+  uint32_t num_2tuples{0};
+  uint32_t num_3tuples{0};
+  uint32_t num_4tuples{0};
+  uint32_t num_5tuples{0};
+
   void report() const
   {
+    fmt::print( "[i] analysed patterns: {:8d}\n", num_patterns );
+    fmt::print( "[i] iterations: {} singletons + {} pairs + {} triples + {} 4-tuples + {} 5-tuples\n",
+                num_singletons, num_2tuples, num_3tuples, num_4tuples, num_5tuples);
   }
 
   void reset()
   {
+    *this = {};
   }
 }; /* dependency_analysis_stats */
 
@@ -160,34 +176,63 @@ public:
     dependency_analysis_result_type result;
     for ( auto i = 0u; i < num_vars; ++i )
     {
+      /* collect patterns for i-th target column */
       patterns.clear();
 
-      /* collect patterns */
+      bool success = false;
       for ( auto j = i + 1u; j < num_vars; ++j )
       {
-        check_unary_patterns( columns, i, j );
+        ++st.num_singletons;
+        success = check_unary_patterns( columns, i, j );
+        if ( ps.select_first && success )
+          goto evaluate;
+
+        if ( ps.max_pattern_size < 2u )
+          goto evaluate;
 
         for ( auto k = j + 1u; k < num_vars; ++k )
         {
-          check_nary_patterns( columns, i, { j, k } );
+          ++st.num_2tuples;
+          success = check_nary_patterns( columns, i, { j, k } );
+          if ( ps.select_first && success )
+            goto evaluate;
+
+          if ( ps.max_pattern_size < 3u )
+            goto evaluate;
 
           for ( auto l = k + 1u; l < num_vars; ++l )
           {
-            check_nary_patterns( columns, i, { j, k, l } );
+            ++st.num_3tuples;
+            success = check_nary_patterns( columns, i, { j, k, l } );
+            if ( ps.select_first && success )
+              goto evaluate;
+
+            if ( ps.max_pattern_size < 4u )
+              goto evaluate;
 
             for ( auto m = l + 1u; m < num_vars; ++m )
             {
-              check_nary_patterns( columns, i, { j, k, l, m } );
+              ++st.num_4tuples;
+              success = check_nary_patterns( columns, i, { j, k, l, m } );
+              if ( ps.select_first && success )
+                goto evaluate;
+
+              if ( ps.max_pattern_size < 5u )
+                goto evaluate;
 
               for ( auto n = m + 1u; n < num_vars; ++n )
               {
-                check_nary_patterns( columns, i, { j, k, l, m, n } );
+                ++st.num_5tuples;
+                success = check_nary_patterns( columns, i, { j, k, l, m, n } );
+                if ( ps.select_first && success )
+                  goto evaluate;
               }
             }
           }
         }
       }
 
+evaluate:
       /* evaluate patterns */
       std::sort( std::begin( patterns ), std::end( patterns ),
                  [&]( const auto& a, const auto& b ){
@@ -240,9 +285,11 @@ public:
         /* store the best dependency pattern */
         result.dependencies[i] = patterns[0u];
       }
+
+      /* update statistics */
+      st.num_patterns += patterns.size();
     }
 
-    /* TODO */
     return result;
   }
 
