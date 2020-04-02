@@ -50,11 +50,22 @@ struct dependency_analysis_params
   bool select_first = false;
 
   /* a value between 1u and 5u */
-  uint32_t max_pattern_size = 4u;
+  uint32_t max_pattern_size{5};
 }; /* dependency_analysis_params */
 
 struct dependency_analysis_stats
 {
+  stopwatch<>::duration_type total_time{0};
+  stopwatch<>::duration_type pattern1_time{0};
+  stopwatch<>::duration_type pattern2_time{0};
+  stopwatch<>::duration_type pattern3_time{0};
+  stopwatch<>::duration_type pattern4_time{0};
+  stopwatch<>::duration_type pattern5_time{0};
+
+  /* number of patterns analysed by the algorithm */
+  uint32_t num_analysed_patterns{0};
+
+  /* number of patterns return as result */
   uint32_t num_patterns{0};
 
   uint32_t num_singletons{0};
@@ -65,7 +76,14 @@ struct dependency_analysis_stats
 
   void report() const
   {
-    fmt::print( "[i] analysed patterns: {:8d}\n", num_patterns );
+    fmt::print("[i] total analysis time =        {:8.2f}s\n", to_seconds( total_time ));
+    fmt::print("[i]   patterns from singletons = {:8.2f}s\n", to_seconds( pattern1_time ));
+    fmt::print("[i]   patterns from pairs =      {:8.2f}s\n", to_seconds( pattern2_time ));
+    fmt::print("[i]   patterns from triples =    {:8.2f}s\n", to_seconds( pattern3_time ));
+    fmt::print("[i]   patterns from 4-tuples =   {:8.2f}s\n", to_seconds( pattern4_time ));
+    fmt::print("[i]   patterns from 5-tuples =   {:8.2f}s\n", to_seconds( pattern5_time ));
+
+    fmt::print( "[i] computed patterns: {:8d} / {:8d}\n", num_patterns, num_analysed_patterns );
     fmt::print( "[i] iterations: {} singletons + {} pairs + {} triples + {} 4-tuples + {} 5-tuples\n",
                 num_singletons, num_2tuples, num_3tuples, num_4tuples, num_5tuples);
   }
@@ -150,8 +168,10 @@ public:
 
   dependency_analysis_result_type run( function_type const& function )
   {
-    uint32_t const num_vars = function.num_vars();
+    stopwatch t( st.total_time );
 
+    /* create column vectors */
+    uint32_t const num_vars = function.num_vars();
     std::vector<dependency_analysis_types::column> columns{num_vars};
     for ( auto i = 0u; i < columns.size(); ++i )
     {
@@ -183,7 +203,9 @@ public:
       for ( auto j = i + 1u; j < num_vars; ++j )
       {
         ++st.num_singletons;
-        success = check_unary_patterns( columns, i, j );
+        success = call_with_stopwatch( st.pattern1_time, [&]() {
+            return check_unary_patterns( columns, i, j );
+          });
         if ( ps.select_first && success )
           goto evaluate;
 
@@ -193,7 +215,9 @@ public:
         for ( auto k = j + 1u; k < num_vars; ++k )
         {
           ++st.num_2tuples;
-          success = check_nary_patterns( columns, i, { j, k } );
+          success = call_with_stopwatch( st.pattern2_time, [&]() {
+              return check_nary_patterns( columns, i, { j, k } );
+            });
           if ( ps.select_first && success )
             goto evaluate;
 
@@ -203,7 +227,9 @@ public:
           for ( auto l = k + 1u; l < num_vars; ++l )
           {
             ++st.num_3tuples;
-            success = check_nary_patterns( columns, i, { j, k, l } );
+            success = call_with_stopwatch( st.pattern3_time, [&]() {
+                return check_nary_patterns( columns, i, { j, k, l } );
+              });
             if ( ps.select_first && success )
               goto evaluate;
 
@@ -213,7 +239,9 @@ public:
             for ( auto m = l + 1u; m < num_vars; ++m )
             {
               ++st.num_4tuples;
-              success = check_nary_patterns( columns, i, { j, k, l, m } );
+              success = call_with_stopwatch( st.pattern4_time, [&]() {
+                  return check_nary_patterns( columns, i, { j, k, l, m } );
+                });
               if ( ps.select_first && success )
                 goto evaluate;
 
@@ -223,7 +251,9 @@ public:
               for ( auto n = m + 1u; n < num_vars; ++n )
               {
                 ++st.num_5tuples;
-                success = check_nary_patterns( columns, i, { j, k, l, m, n } );
+                success = call_with_stopwatch( st.pattern5_time, [&]() {
+                    return check_nary_patterns( columns, i, { j, k, l, m, n } );
+                  });
                 if ( ps.select_first && success )
                   goto evaluate;
               }
@@ -244,11 +274,19 @@ evaluate:
                    {
                      return true;
                    }
+                   else if ( cost_a.first > cost_b.first )
+                   {
+                     return false;
+                   }
 
                    /* compare NOTs */
                    if ( cost_a.second < cost_b.second )
                    {
                      return true;
+                   }
+                   else if ( cost_a.second > cost_b.second )
+                   {
+                     return false;
                    }
 
                    /* when costs are equal, compare structurally to ensure a total order */
@@ -256,19 +294,25 @@ evaluate:
                    {
                      return true;
                    }
+                   else if ( a.first > b.first )
+                   {
+                     return false;
+                   }
 
                    if ( a.second.size() < b.second.size() )
                    {
                      return true;
                    }
-                   else if ( a.second.size() == b.second.size() )
+                   else if ( a.second.size() > b.second.size() )
                    {
-                     for ( auto i = 0u; i< a.second.size(); ++i )
+                     return false;
+                   }
+
+                   for ( auto i = 0u; i< a.second.size(); ++i )
+                   {
+                     if ( a.second[i] < b.second[i] )
                      {
-                       if ( a.second[i] < b.second[i] )
-                       {
-                         return true;
-                       }
+                       return true;
                      }
                    }
 
@@ -280,14 +324,14 @@ evaluate:
       //   std::cout << dependency_analysis_types::pattern_string( p ) << ' ' << cost( p ).first << ' ' << cost( p ).second << std::endl;
       // }
 
+      /* update statistics and result */
       if ( patterns.size() > 0u )
       {
-        /* store the best dependency pattern */
         result.dependencies[i] = patterns[0u];
+        ++st.num_patterns;
       }
 
-      /* update statistics */
-      st.num_patterns += patterns.size();
+      st.num_analysed_patterns += patterns.size();
     }
 
     return result;
@@ -318,9 +362,9 @@ private:
         auto polarity_counter = 0u;
         for ( auto i = 0u; i < n; ++i )
         {
-          polarity_counter += p.second[i] % 2;
+          polarity_counter += 2u*( p.second[i] % 2 );
         }
-        return { 1u << ( n + 1 ) - 2u, polarity_counter };
+        return { ( 1u << ( n + 1 ) ) - 2u, polarity_counter };
       }
     case dependency_analysis_types::pattern_kind::NAND:
       {
@@ -328,9 +372,9 @@ private:
         auto polarity_counter = 1u;
         for ( auto i = 0u; i < n; ++i )
         {
-          polarity_counter += p.second[i] % 2;
+          polarity_counter += 2u*( p.second[i] % 2 );
         }
-        return { 1u << ( n + 1 ) - 2u, polarity_counter };
+        return { ( 1u << ( n + 1 ) ) - 2u, polarity_counter };
       }
     default:
       std::abort();
@@ -444,17 +488,9 @@ private:
   std::vector<dependency_analysis_types::pattern> patterns;
 }; /* dependency_analysis_impl */
 
-dependency_analysis_result_type compute_dependencies( kitty::dynamic_truth_table const &tt )
+dependency_analysis_result_type compute_dependencies( kitty::dynamic_truth_table const &tt, dependency_analysis_params const& ps, dependency_analysis_stats& st )
 {
-  dependency_analysis_params ps;
-  dependency_analysis_stats st;
-  dependency_analysis_impl da( ps, st );
-
-  auto const result = da.run( tt );
-
-  st.report();
-
-  return result;
+  return dependency_analysis_impl( ps, st ).run( tt );
 }
 
 } /* namespace angel */
