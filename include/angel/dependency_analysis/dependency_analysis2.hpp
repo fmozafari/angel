@@ -53,12 +53,17 @@ struct dependency_analysis2_params
 
 struct dependency_analysis2_stats
 {
+  stopwatch<>::duration_type total_time{0};
+
+  uint32_t num_patterns{0};
+
   void report() const
   {
   }
 
   void reset()
   {
+    *this = {};
   }
 };
 
@@ -69,7 +74,15 @@ struct dependency_analysis2_result_type
 class dependency_analysis2_impl
 {
 public:
-  explicit dependency_analysis2_impl( dependency_analysis2_params& const ps, dependency_analysis2_stats& st )
+  using parameter_type = dependency_analysis2_params;
+  using statistics_type = dependency_analysis2_stats;
+  using result_type = dependency_analysis2_result_type;
+
+public:
+  using function_type = kitty::dynamic_truth_table;
+
+public:
+  explicit dependency_analysis2_impl( dependency_analysis2_params const& ps, dependency_analysis2_stats& st )
     : ps( ps )
     , st( st )
   {
@@ -77,17 +90,37 @@ public:
 
   dependency_analysis2_result_type run( function_type const& function )
   {
+    stopwatch t( st.total_time );
+
+    /* create column vectors */
+    uint32_t const num_vars = function.num_vars();
+    std::vector<dependency_analysis_types::column> columns{num_vars};
+    for ( auto i = 0u; i < columns.size(); ++i )
+    {
+      columns[i].index = i;
+    }
+
+    kitty::dynamic_truth_table minterm{function.num_vars()};
+    for ( auto const &m : kitty::get_minterms( function ) )
+    {
+      minterm._bits[0] = m;
+      for ( auto i = 0; i < minterm.num_vars(); ++i )
+      {
+        columns[i].tt.add_bit( kitty::get_bit( minterm, i ) );
+      }
+    }
+
+    // for ( const auto& c : columns )
+    // {
+    //   kitty::print_binary( c.tt ); std::cout << std::endl;
+    // }
+
     dependency_analysis2_result_type result;
     return result;
   }
 
-  dependency_analysis2_params& const ps;
-  dependency_analysis2_stats& st
+  dependency_analysis2_params const& ps;
+  dependency_analysis2_stats& st;
 };
-
-dependency_analysis2_result_type compute_dependencies( kitty::dynamic_truth_table const &tt, dependency_analysis_params const& ps, dependency_analysis_stats& st )
-{
-  return dependency_analysis2_impl( ps, st ).run( tt );
-}
 
 } /* namespace angel */

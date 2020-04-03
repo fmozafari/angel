@@ -97,4 +97,10 @@ struct dependency_analysis_types
   }
 }; /* dependency_analysis_types */
 
+template<typename Algorithm>
+typename Algorithm::result_type compute_dependencies( kitty::dynamic_truth_table const &tt, typename Algorithm::parameter_type const& ps, typename Algorithm::statistics_type& st )
+{
+  return Algorithm( ps, st ).run( tt );
+}
+
 } /* namespace angel */

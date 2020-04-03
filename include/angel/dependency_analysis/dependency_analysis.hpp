@@ -101,9 +101,15 @@ struct dependency_analysis_result_type
 class dependency_analysis_impl
 {
 public:
+  using parameter_type = dependency_analysis_params;
+  using statistics_type = dependency_analysis_stats;
+  using result_type = dependency_analysis_result_type;
+
+public:
   using function_type = kitty::dynamic_truth_table;
 
 public:
+
   explicit dependency_analysis_impl( dependency_analysis_params const& ps, dependency_analysis_stats &st )
     : ps( ps )
     , st( st )
@@ -431,10 +437,5 @@ private:
 
   std::vector<dependency_analysis_types::pattern> patterns;
 }; /* dependency_analysis_impl */
-
-dependency_analysis_result_type compute_dependencies( kitty::dynamic_truth_table const &tt, dependency_analysis_params const& ps, dependency_analysis_stats& st )
-{
-  return dependency_analysis_impl( ps, st ).run( tt );
-}
 
 } /* namespace angel */
