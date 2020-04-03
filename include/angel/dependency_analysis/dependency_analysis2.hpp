@@ -137,7 +137,7 @@ public:
 
       /* sort by entropy (highest entropy first) */
       std::sort( std::rbegin( columns_copy ), std::rend( columns_copy ), [&]( auto const &a, auto const &b ) {
-          return a.entropy < b.entropy || (a.entropy == b.entropy && a.index < b.index);
+          return a.entropy < b.entropy || (a.entropy == b.entropy && a.index > b.index);
         });
 
       /* overwrite the entropy of the target */
@@ -154,37 +154,93 @@ public:
       // }
 
       /* try to cover the target using the columns */
-      for ( auto j = 1u; j < columns_copy.size(); ++j )
+      uint32_t current_entropy;
+      std::vector<uint32_t> indices;
+
+      bool found = false;
+      for ( auto j = 1u; j < columns_copy.size() && !found; ++j )
       {
-        uint32_t current_entropy = 0u;
-        std::vector<uint32_t> indices;
+        current_entropy = 0u;
+        indices.clear();
 
-        for ( auto k = j; k < columns_copy.size(); ++k )
+        for ( auto k = j; k < columns_copy.size() && !found; ++k )
         {
-          if ( current_entropy >= target.entropy )
-          {
-            /* found candidate */
-            std::cout << "found a candidate: ";
-            for ( const auto& i : indices )
-            {
-              std::cout << i << ' ';
-            }
-            std::cout << std::endl;
-            break;
-          }
-
           indices.push_back( columns_copy[k].index );
           current_entropy += columns_copy[k].entropy;
+
+          if ( current_entropy >= target.entropy )
+          {
+            auto const success = on_candidate( columns, target.index, indices );
+            if ( success )
+            {
+              ++st.num_patterns;
+              found = true;
+              break;
+            }
+          }
         }
       }
     }
-
-    /* TODO */
 
     dependency_analysis2_result_type result;
     return result;
   }
 
+private:
+  bool on_candidate( std::vector<dependency_analysis_types::column> const& columns, uint32_t target_index, std::vector<uint32_t> const& divisor_indices )
+  {
+    std::vector<kitty::partial_truth_table> functions;
+    for ( const auto& i : divisor_indices )
+    {
+      functions.push_back( columns[i].tt );
+    }
+
+    auto const covered = covers( columns[target_index].tt, functions );
+    if ( covered )
+    {
+      fmt::print( "algorithm 1: found a {}-input solution for target {}: ", divisor_indices.size(), target_index );
+      for ( const auto& i : divisor_indices )
+      {
+        std::cout << i << ' ';
+      }
+      std::cout << std::endl;
+      return true;
+    }
+
+    return false;
+  }
+
+  bool covers( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisors )
+  {
+    /* iterate over all bit pairs of target */
+    for ( uint32_t i = 0u; i < uint32_t( target.num_bits() ); ++i )
+    {
+      for ( uint32_t j = i + 1u; j < uint32_t( target.num_bits() ); ++j )
+      {
+        if ( get_bit( target, i ) != get_bit( target, j ) )
+        {
+          /* check if this bit pair is distinguished by a divisor */
+          bool found = false;
+          for ( const auto& d : divisors )
+          {
+            if ( get_bit( d, i ) != get_bit( d, j ) )
+            {
+              found = true;
+              break;
+            }
+          }
+
+          if ( !found )
+          {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+private:
   dependency_analysis2_params const& ps;
   dependency_analysis2_stats& st;
 };
