@@ -65,6 +65,7 @@ struct dependency_analysis_types
   {
     kitty::partial_truth_table tt;
     uint32_t index;
+    uint64_t entropy;
   };
 
   static std::string pattern_kind_string( pattern_kind const kind )

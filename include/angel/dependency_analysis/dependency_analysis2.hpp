@@ -38,6 +38,7 @@
 
 #include <kitty/implicant.hpp>
 #include <kitty/partial_truth_table.hpp>
+#include <kitty/properties.hpp>
 
 #include <fmt/format.h>
 
@@ -114,6 +115,71 @@ public:
     // {
     //   kitty::print_binary( c.tt ); std::cout << std::endl;
     // }
+
+    /* collect divisors */
+    std::vector<dependency_analysis_types::column> columns_copy;
+    for ( auto i = 0u; i < columns.size(); ++i )
+    {
+      /* copy the original columns */
+      columns_copy = std::vector<dependency_analysis_types::column>( std::begin( columns ) + i, std::end( columns ) );
+
+      /* initialize entropy field */
+      {
+        auto& target = columns_copy[0];
+        target.entropy = std::numeric_limits<uint64_t>::max();
+
+        for ( auto j = 1u; j < columns_copy.size(); ++j )
+        {
+          auto& sig = columns_copy[j];
+          sig.entropy = kitty::relative_distinguishing_power( sig.tt, target.tt );
+        }
+      }
+
+      /* sort by entropy (highest entropy first) */
+      std::sort( std::rbegin( columns_copy ), std::rend( columns_copy ), [&]( auto const &a, auto const &b ) {
+          return a.entropy < b.entropy || (a.entropy == b.entropy && a.index < b.index);
+        });
+
+      /* overwrite the entropy of the target */
+      auto& target = columns_copy[0];
+      target.entropy = kitty::absolute_distinguishing_power( target.tt );
+
+      /* print */
+      // std::cout << "===========================================================================" << std::endl;
+      // std::cout << "target = "; kitty::print_binary( target.tt ); std::cout << ' ' << target.entropy << std::endl;
+      //
+      // for ( auto j = 1u; j < columns_copy.size(); ++j )
+      // {
+      //   std::cout << columns_copy[j].index << ' '; kitty::print_binary( columns_copy[j].tt ); std::cout << ' ' << columns_copy[j].entropy << std::endl;
+      // }
+
+      /* try to cover the target using the columns */
+      for ( auto j = 1u; j < columns_copy.size(); ++j )
+      {
+        uint32_t current_entropy = 0u;
+        std::vector<uint32_t> indices;
+
+        for ( auto k = j; k < columns_copy.size(); ++k )
+        {
+          if ( current_entropy >= target.entropy )
+          {
+            /* found candidate */
+            std::cout << "found a candidate: ";
+            for ( const auto& i : indices )
+            {
+              std::cout << i << ' ';
+            }
+            std::cout << std::endl;
+            break;
+          }
+
+          indices.push_back( columns_copy[k].index );
+          current_entropy += columns_copy[k].entropy;
+        }
+      }
+    }
+
+    /* TODO */
 
     dependency_analysis2_result_type result;
     return result;
