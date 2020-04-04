@@ -195,8 +195,8 @@ private:
       functions.push_back( columns[i].tt );
     }
 
-    auto const covered = covers( columns[target_index].tt, functions );
-    if ( covered )
+    auto const cover = cover_with_divisors<true>( columns[target_index].tt, functions );
+    if ( cover.available )
     {
       fmt::print( "algorithm 1: found a {}-input solution for target {}: ", divisor_indices.size(), target_index );
       for ( const auto& i : divisor_indices )
@@ -204,14 +204,56 @@ private:
         std::cout << i << ' ';
       }
       std::cout << std::endl;
+
+      std::cout << "ON-set SOP cover = ";
+      for ( const auto& c : cover.cover )
+      {
+        c.print( functions.size() );
+        std::cout << ' ';
+      }
+      std::cout << std::endl;
+
+      auto const cover2 = cover_with_divisors<true>( ~columns[target_index].tt, functions );
+      if ( cover2.available )
+      {
+        std::cout << "OFF-set SOP cover = ";
+        for ( const auto& c : cover2.cover )
+        {
+          c.print( functions.size() );
+          std::cout << ' ';
+        }
+        std::cout << std::endl;
+      }
+
       return true;
     }
 
     return false;
   }
 
-  bool covers( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisors )
+  template<bool compute_cover>
+  struct cover_result_type;
+
+  template<>
+  struct cover_result_type<false>
   {
+    bool available;
+    uint32_t index;
+  };
+
+  template<>
+  struct cover_result_type<true>
+  {
+    bool available;
+    uint32_t index;
+    std::vector<kitty::cube> cover;
+  };
+
+  template<bool compute_cover=false>
+  cover_result_type<compute_cover> cover_with_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisors )
+  {
+    std::vector<kitty::cube> cover;
+
     /* iterate over all bit pairs of target */
     for ( uint32_t i = 0u; i < uint32_t( target.num_bits() ); ++i )
     {
@@ -232,12 +274,44 @@ private:
 
           if ( !found )
           {
-            return false;
+            if constexpr ( compute_cover )
+            {
+              return {false, i, cover};
+            }
+            else
+            {
+              return {false, i};
+            }
           }
         }
       }
+
+      if constexpr ( compute_cover )
+      {
+        if ( !get_bit( target, i ) )
+          continue;
+
+        /* compute a cube for the i-th bit */
+        kitty::cube c;
+        for ( auto j = 0u; j < divisors.size(); ++j )
+        {
+          c.add_literal( j, get_bit( divisors.at( j ), i ) );
+        }
+        cover.push_back( c );
+      }
     }
-    return true;
+
+    if constexpr ( compute_cover )
+    {
+      /* remove duplicate cubes */
+      std::sort( std::begin( cover ), std::end( cover ) );
+      cover.erase( std::unique( std::begin( cover ), std::end( cover ) ), std::end( cover ) );
+      return { true, 0u, cover };
+    }
+    else
+    {
+      return { true, 0u };
+    }
   }
 
 private:
