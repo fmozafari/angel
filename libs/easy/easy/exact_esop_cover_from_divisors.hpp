@@ -33,14 +33,16 @@
 
 #pragma once
 
-#include "cube.hpp"
+#include "cubes.hpp"
 
 #include <kitty/partial_truth_table.hpp>
+#include <bill/sat/solver.hpp>
+#include <bill/sat/tseytin.hpp>
 
 namespace easy
 {
 
-std::optional<std::vector<kitty::cube>> compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
+std::optional<std::vector<easy::cube>> compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
 {
   (void)target;
   (void)divisor_functions;
