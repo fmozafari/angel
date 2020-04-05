@@ -26,7 +26,7 @@
 /*!
   \file exact_esop_cover_from_divisors.hpp
 
-  \brief Computes an exact ESOP cover form a divisor covering problem
+  \brief Computes an exact ESOP cover from a divisor covering problem
 
   \author Heinz Riener
 */
@@ -42,14 +42,56 @@
 namespace easy
 {
 
+struct compute_esop_cover_from_divisors_parameters
+{
+};
+
+struct compute_esop_cover_from_divisors_statistics
+{
+};
+
+struct compute_esop_cover_from_divisors_result_type
+{
+  std::optional<std::vector<easy::cube>> esop_cover;
+};
+
+class compute_esop_cover_from_divisors_impl
+{
+public:
+  explicit compute_esop_cover_from_divisors_impl( compute_esop_cover_from_divisors_parameters const& ps, compute_esop_cover_from_divisors_statistics& st )
+    : ps( ps )
+    , st( st )
+  {
+  }
+
+  compute_esop_cover_from_divisors_result_type run( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
+  {
+    (void)target;
+    (void)divisor_functions;
+
+    assert( false && "not implemented" );
+
+    compute_esop_cover_from_divisors_result_type result;
+    return result;
+  }
+
+private:
+  compute_esop_cover_from_divisors_parameters const ps;
+  compute_esop_cover_from_divisors_statistics& st;
+};
+
+std::optional<std::vector<easy::cube>> compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions,
+                                                                               compute_esop_cover_from_divisors_parameters const& ps,
+                                                                               compute_esop_cover_from_divisors_statistics& st )
+{
+  return compute_esop_cover_from_divisors_impl( ps, st ).run( target, divisor_functions ).esop_cover;
+}
+
 std::optional<std::vector<easy::cube>> compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
 {
-  (void)target;
-  (void)divisor_functions;
-
-  assert( false && "not implemented" );
-
-  return std::nullopt;
+  compute_esop_cover_from_divisors_parameters ps;
+  compute_esop_cover_from_divisors_statistics st;
+  return compute_exact_esop_cover_from_divisors( target, divisor_functions, ps, st );
 }
 
 } // namespace easy
