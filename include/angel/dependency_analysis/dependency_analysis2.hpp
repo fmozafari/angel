@@ -72,6 +72,8 @@ struct dependency_analysis2_stats
 
 struct dependency_analysis2_result_type
 {
+  /* maps an index to an ESOP cover */
+  std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
 };
 
 class dependency_analysis2_impl
@@ -117,6 +119,8 @@ public:
     // {
     //   kitty::print_binary( c.tt ); std::cout << std::endl;
     // }
+
+    dependency_analysis2_result_type result;
 
     /* collect divisors */
     std::vector<dependency_analysis_types::column> columns_copy;
@@ -172,11 +176,12 @@ public:
 
           if ( current_entropy >= target.entropy )
           {
-            auto const success = on_candidate( columns, target.index, indices );
-            if ( success )
+            auto const pattern = on_candidate( columns, target.index, indices );
+            if ( pattern )
             {
-              ++st.num_patterns;
               found = true;
+              result.dependencies[target.index] = *pattern;
+              ++st.num_patterns;
               break;
             }
           }
@@ -184,12 +189,12 @@ public:
       }
     }
 
-    dependency_analysis2_result_type result;
     return result;
   }
 
 private:
-  bool on_candidate( std::vector<dependency_analysis_types::column> const& columns, uint32_t target_index, std::vector<uint32_t> const& divisor_indices )
+  std::optional<std::vector<std::vector<uint32_t>>>
+  on_candidate( std::vector<dependency_analysis_types::column> const& columns, uint32_t target_index, std::vector<uint32_t> const& divisor_indices )
   {
     std::vector<kitty::partial_truth_table> functions;
     for ( const auto& i : divisor_indices )
@@ -197,24 +202,60 @@ private:
       functions.push_back( columns[i].tt );
     }
 
-    auto const esop_cover = easy::compute_exact_esop_cover_from_divisors( columns[target_index].tt, functions );
-    if ( esop_cover )
+    if ( is_covered_with_divisors( columns[target_index].tt, functions ) )
     {
-      fmt::print( "algorithm 1: found a {}-input solution for target {}: ", divisor_indices.size(), target_index );
-      for ( const auto& i : divisor_indices )
+      auto const result = easy::compute_exact_esop_cover_from_divisors( columns[target_index].tt, functions );
+      if ( result.esop_cover )
       {
-        std::cout << i << ' ';
+        /* re-encode ESOP cover */
+        std::vector<std::vector<uint32_t>> esop_cover;
+        std::vector<uint32_t> new_cube;
+        for ( auto const& cube : *result.esop_cover )
+        {
+          new_cube.clear();
+          for ( auto i = 0u; i < divisor_indices.size(); ++i )
+          {
+            if ( cube.get_mask( divisor_indices[i] ) )
+            {
+              new_cube.push_back( cube.get_bit( divisor_indices[i] ) ? 2u*divisor_indices[i] : 2u*divisor_indices[i] + 1 );
+            }
+          }
+          esop_cover.push_back( new_cube );
+        }
+        return esop_cover;
       }
-      std::cout << std::endl;
-
-      easy::print_cubes<true>( *esop_cover, functions.size() );
-
-      return true;
     }
-    else
+    return std::nullopt;
+  }
+
+  bool is_covered_with_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisors )
+  {
+    /* iterate over all bit pairs of target */
+    for ( uint32_t i = 0u; i < uint32_t( target.num_bits() ); ++i )
     {
-      return false;
+      for ( uint32_t j = i + 1u; j < uint32_t( target.num_bits() ); ++j )
+      {
+        if ( get_bit( target, i ) != get_bit( target, j ) )
+        {
+          /* check if this bit pair is distinguished by a divisor */
+          bool found = false;
+          for ( const auto& d : divisors )
+          {
+            if ( get_bit( d, i ) != get_bit( d, j ) )
+            {
+              found = true;
+              break;
+            }
+          }
+
+          if ( !found )
+          {
+            return false;
+          }
+        }
+      }
     }
+    return true;
   }
 
 private:

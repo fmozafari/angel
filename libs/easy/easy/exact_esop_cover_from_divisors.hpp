@@ -45,7 +45,7 @@ namespace easy
 struct compute_esop_cover_from_divisors_parameters
 {
   /* maximum number of cubes */
-  uint32_t max_num_cubes{2u};
+  uint32_t max_num_cubes{4u};
 };
 
 struct compute_esop_cover_from_divisors_statistics
@@ -259,14 +259,14 @@ private:
   compute_esop_cover_from_divisors_statistics& st;
 };
 
-std::optional<std::vector<easy::cube>> compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions,
-                                                                               compute_esop_cover_from_divisors_parameters const& ps,
-                                                                               compute_esop_cover_from_divisors_statistics& st )
+compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions,
+                                                                                     compute_esop_cover_from_divisors_parameters const& ps,
+                                                                                     compute_esop_cover_from_divisors_statistics& st )
 {
-  return compute_esop_cover_from_divisors_impl( ps, st ).run( target, divisor_functions ).esop_cover;
+  return compute_esop_cover_from_divisors_impl( ps, st ).run( target, divisor_functions );
 }
 
-std::optional<std::vector<easy::cube>> compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
+compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
 {
   compute_esop_cover_from_divisors_parameters ps;
   compute_esop_cover_from_divisors_statistics st;
