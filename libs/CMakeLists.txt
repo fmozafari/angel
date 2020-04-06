@@ -23,6 +23,7 @@ endif()
 if (NOT TARGET easy)
   add_library(easy INTERFACE)
   target_include_directories(easy INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/easy)
+  target_link_libraries(easy INTERFACE kitty bill)
 endif()
 
 if (NOT TARGET ez)

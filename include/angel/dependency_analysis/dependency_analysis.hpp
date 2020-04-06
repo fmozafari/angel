@@ -1,5 +1,5 @@
 /* angel: C++ state preparation library
- * Copyright (C) 2018-2019  EPFL
+ * Copyright (C) 2019-2020  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,13 +34,11 @@
 
 #pragma once
 
-#include <kitty/implicant.hpp>
-#include <kitty/partial_truth_table.hpp>
+#include "common.hpp"
 
-#include <fmt/format.h>
+#include <kitty/implicant.hpp>
 
 #include <map>
-#include <vector>
 
 namespace angel
 {
@@ -94,60 +92,6 @@ struct dependency_analysis_stats
   }
 }; /* dependency_analysis_stats */
 
-struct dependency_analysis_types
-{
-  /* pattern */
-  enum class pattern_kind
-  {
-    /* unary */
-    EQUAL = 1,
-    /* nary */
-    XOR   = 2,
-    XNOR  = 3,
-    AND   = 4,
-    NAND  = 5,
-  };
-
-  using fanins = std::vector<uint32_t>;
-  using pattern = std::pair<pattern_kind, fanins>;
-
-  /* column */
-  struct column
-  {
-    kitty::partial_truth_table tt;
-    uint32_t index;
-  };
-
-  static std::string pattern_kind_string( pattern_kind const kind )
-  {
-    switch( kind )
-    {
-    case pattern_kind::EQUAL:
-      return "EQUAL";
-    case pattern_kind::XOR:
-      return "XOR";
-    case pattern_kind::XNOR:
-      return "~XOR";
-    case pattern_kind::AND:
-      return "AND";
-    case pattern_kind::NAND:
-      return "~AND";
-    default:
-      std::abort();
-    }
-  }
-
-  static std::string pattern_string( pattern const& p )
-  {
-    std::string args;
-    for ( const auto& a : p.second )
-    {
-      args += fmt::format( "{} ", a );
-    }
-    return fmt::format( "{}( {})", pattern_kind_string( p.first ), args );
-  }
-}; /* dependency_analysis_types */
-
 struct dependency_analysis_result_type
 {
   /* maps an index to a dependency pattern, fanins are encoded as literals */
@@ -157,9 +101,15 @@ struct dependency_analysis_result_type
 class dependency_analysis_impl
 {
 public:
+  using parameter_type = dependency_analysis_params;
+  using statistics_type = dependency_analysis_stats;
+  using result_type = dependency_analysis_result_type;
+
+public:
   using function_type = kitty::dynamic_truth_table;
 
 public:
+
   explicit dependency_analysis_impl( dependency_analysis_params const& ps, dependency_analysis_stats &st )
     : ps( ps )
     , st( st )
@@ -308,7 +258,7 @@ evaluate:
                      return false;
                    }
 
-                   for ( auto i = 0u; i< a.second.size(); ++i )
+                   for ( auto i = 0u; i < a.second.size(); ++i )
                    {
                      if ( a.second[i] < b.second[i] )
                      {
@@ -487,10 +437,5 @@ private:
 
   std::vector<dependency_analysis_types::pattern> patterns;
 }; /* dependency_analysis_impl */
-
-dependency_analysis_result_type compute_dependencies( kitty::dynamic_truth_table const &tt, dependency_analysis_params const& ps, dependency_analysis_stats& st )
-{
-  return dependency_analysis_impl( ps, st ).run( tt );
-}
 
 } /* namespace angel */
