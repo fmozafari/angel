@@ -710,7 +710,7 @@ void gates_statistics(gates_t gates, uint32_t const num_vars, qsp_general_stats 
  * \param qsp_stats store all desired statistics of quantum state preparation process
 */
 template <class Network, class DependencyAnalysisAlgorithm, class ReorderingAlgorithm>
-void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, ReorderingAlgorithm orders_alg,
+void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ ReorderingAlgorithm orders_alg,
                     kitty::dynamic_truth_table tt, qsp_general_stats& final_qsp_stats /*, deps_operation_stats& op_stats*/)
 {
     if(kitty::is_const0(tt))
@@ -742,21 +742,20 @@ void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, Reorderi
         stopwatch t(time_traversal);
         for (auto order : orders)
         {
-            order_t next_order; 
-            
-            kitty::dynamic_truth_table tt_temp = tt;
-            angel::reordering_on_tt_inplace(tt_temp, order);
-            qsp_general_stats qsp_stats_temp;
-            //dependencies_t deps_temp = deps_alg.run(tt_temp, qsp_stats_temp);
-            typename DependencyAnalysisAlgorithm::parameter_type pt_temp;
-            typename DependencyAnalysisAlgorithm::statistics_type st_temp;
-            auto deps_temp = compute_dependencies<deps_alg>(tt_temp, pt_temp, st_temp);
-            if(orders_alg.compute_next_order(next_order, qubits_count, deps_temp))
-            {
-                //std::cout<<"before: "<<order[0]<<"  "<<order[1]<<"  "<<order[2]<<"  "<<order[3]<<std::endl;
-                std::copy(next_order.begin(), next_order.end(), order.begin());
-                //std::cout<<"next: "<<order[0]<<"  "<<order[1]<<"  "<<order[2]<<"  "<<order[3]<<std::endl;
-            }
+            /* using feedback to compute next better order from the current one */
+            // order_t next_order; 
+            // kitty::dynamic_truth_table tt_temp = tt;
+            // angel::reordering_on_tt_inplace(tt_temp, order);
+            // qsp_general_stats qsp_stats_temp;
+            // typename DependencyAnalysisAlgorithm::parameter_type pt_temp;
+            // typename DependencyAnalysisAlgorithm::statistics_type st_temp;
+            // auto deps_temp = compute_dependencies<DependencyAnalysisAlgorithm>(tt_temp, pt_temp, st_temp);
+            // if(orders_alg.compute_next_order(next_order, qubits_count, deps_temp.dependencies))
+            // {
+            //     //std::cout<<"before: "<<order[0]<<"  "<<order[1]<<"  "<<order[2]<<"  "<<order[3]<<std::endl;
+            //     std::copy(next_order.begin(), next_order.end(), order.begin());
+            //     //std::cout<<"next: "<<order[0]<<"  "<<order[1]<<"  "<<order[2]<<"  "<<order[3]<<std::endl;
+            // }
 
             kitty::dynamic_truth_table tt_copy = tt;
             angel::reordering_on_tt_inplace(tt_copy, order);
