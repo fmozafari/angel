@@ -710,7 +710,7 @@ void gates_statistics(gates_t gates, uint32_t const num_vars, qsp_general_stats 
  * \param qsp_stats store all desired statistics of quantum state preparation process
 */
 template <class Network, class DependencyAnalysisAlgorithm, class ReorderingAlgorithm>
-void qsp_tt_general(Network &net, DependencyAnalysisAlgorithm deps_alg, ReorderingAlgorithm orders_alg,
+void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ ReorderingAlgorithm orders_alg,
                     kitty::dynamic_truth_table tt, qsp_general_stats& final_qsp_stats /*, deps_operation_stats& op_stats*/)
 {
     if(kitty::is_const0(tt))
