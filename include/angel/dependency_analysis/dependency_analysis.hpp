@@ -35,9 +35,7 @@
 #pragma once
 
 #include "common.hpp"
-
 #include <kitty/implicant.hpp>
-
 #include <map>
 
 namespace angel
@@ -74,16 +72,15 @@ struct dependency_analysis_stats
 
   void report() const
   {
-    fmt::print("[i] total analysis time =        {:8.2f}s\n", to_seconds( total_time ));
-    fmt::print("[i]   patterns from singletons = {:8.2f}s\n", to_seconds( pattern1_time ));
-    fmt::print("[i]   patterns from pairs =      {:8.2f}s\n", to_seconds( pattern2_time ));
-    fmt::print("[i]   patterns from triples =    {:8.2f}s\n", to_seconds( pattern3_time ));
-    fmt::print("[i]   patterns from 4-tuples =   {:8.2f}s\n", to_seconds( pattern4_time ));
-    fmt::print("[i]   patterns from 5-tuples =   {:8.2f}s\n", to_seconds( pattern5_time ));
-
+    fmt::print( "[i] total analysis time =        {:8.2f}s\n", to_seconds( total_time ) );
+    fmt::print( "[i]   patterns from singletons = {:8.2f}s\n", to_seconds( pattern1_time ) );
+    fmt::print( "[i]   patterns from pairs =      {:8.2f}s\n", to_seconds( pattern2_time ) );
+    fmt::print( "[i]   patterns from triples =    {:8.2f}s\n", to_seconds( pattern3_time ) );
+    fmt::print( "[i]   patterns from 4-tuples =   {:8.2f}s\n", to_seconds( pattern4_time ) );
+    fmt::print( "[i]   patterns from 5-tuples =   {:8.2f}s\n", to_seconds( pattern5_time ) );
     fmt::print( "[i] computed patterns: {:8d} / {:8d}\n", num_patterns, num_analysed_patterns );
     fmt::print( "[i] iterations: {} singletons + {} pairs + {} triples + {} 4-tuples + {} 5-tuples\n",
-                num_singletons, num_2tuples, num_3tuples, num_4tuples, num_5tuples);
+                num_singletons, num_2tuples, num_3tuples, num_4tuples, num_5tuples );
   }
 
   void reset()
@@ -96,6 +93,7 @@ struct dependency_analysis_result_type
 {
   /* maps an index to a dependency pattern, fanins are encoded as literals */
   std::map<uint32_t, dependency_analysis_types::pattern> dependencies;
+  bool considering_deps = true;
 }; /* dependency_analysis_result_type */
 
 class dependency_analysis_impl
@@ -109,10 +107,8 @@ public:
   using function_type = kitty::dynamic_truth_table;
 
 public:
-
-  explicit dependency_analysis_impl( dependency_analysis_params const& ps, dependency_analysis_stats &st )
-    : ps( ps )
-    , st( st )
+  explicit dependency_analysis_impl( dependency_analysis_params const& ps, dependency_analysis_stats& st )
+      : ps( ps ), st( st )
   {
   }
 
@@ -129,7 +125,7 @@ public:
     }
 
     kitty::dynamic_truth_table minterm{function.num_vars()};
-    for ( auto const &m : kitty::get_minterms( function ) )
+    for ( auto const& m : kitty::get_minterms( function ) )
     {
       minterm._bits[0] = m;
       for ( auto i = 0; i < minterm.num_vars(); ++i )
@@ -154,8 +150,8 @@ public:
       {
         ++st.num_singletons;
         success = call_with_stopwatch( st.pattern1_time, [&]() {
-            return check_unary_patterns( columns, i, j );
-          });
+          return check_unary_patterns( columns, i, j );
+        } );
         if ( ps.select_first && success )
           goto evaluate;
 
@@ -166,8 +162,8 @@ public:
         {
           ++st.num_2tuples;
           success = call_with_stopwatch( st.pattern2_time, [&]() {
-              return check_nary_patterns( columns, i, { j, k } );
-            });
+            return check_nary_patterns( columns, i, {j, k} );
+          } );
           if ( ps.select_first && success )
             goto evaluate;
 
@@ -178,8 +174,8 @@ public:
           {
             ++st.num_3tuples;
             success = call_with_stopwatch( st.pattern3_time, [&]() {
-                return check_nary_patterns( columns, i, { j, k, l } );
-              });
+              return check_nary_patterns( columns, i, {j, k, l} );
+            } );
             if ( ps.select_first && success )
               goto evaluate;
 
@@ -190,8 +186,8 @@ public:
             {
               ++st.num_4tuples;
               success = call_with_stopwatch( st.pattern4_time, [&]() {
-                  return check_nary_patterns( columns, i, { j, k, l, m } );
-                });
+                return check_nary_patterns( columns, i, {j, k, l, m} );
+              } );
               if ( ps.select_first && success )
                 goto evaluate;
 
@@ -202,8 +198,8 @@ public:
               {
                 ++st.num_5tuples;
                 success = call_with_stopwatch( st.pattern5_time, [&]() {
-                    return check_nary_patterns( columns, i, { j, k, l, m, n } );
-                  });
+                  return check_nary_patterns( columns, i, {j, k, l, m, n} );
+                } );
                 if ( ps.select_first && success )
                   goto evaluate;
               }
@@ -212,10 +208,10 @@ public:
         }
       }
 
-evaluate:
+    evaluate:
       /* evaluate patterns */
       std::sort( std::begin( patterns ), std::end( patterns ),
-                 [&]( const auto& a, const auto& b ){
+                 [&]( const auto& a, const auto& b ) {
                    auto const cost_a = cost( a );
                    auto const cost_b = cost( b );
 
@@ -294,38 +290,38 @@ private:
     switch ( p.first )
     {
     case dependency_analysis_types::pattern_kind::EQUAL:
-      {
-        assert( p.second.size() == 1u );
-        return { 1u, p.second[0] % 2u } ;
-      }
+    {
+      assert( p.second.size() == 1u );
+      return {1u, p.second[0] % 2u};
+    }
     case dependency_analysis_types::pattern_kind::XOR:
-      {
-        return { p.second.size(), 0u };
-      }
+    {
+      return {p.second.size(), 0u};
+    }
     case dependency_analysis_types::pattern_kind::XNOR:
-      {
-        return { p.second.size(), 1u };
-      }
+    {
+      return {p.second.size(), 1u};
+    }
     case dependency_analysis_types::pattern_kind::AND:
+    {
+      auto const n = p.second.size();
+      auto polarity_counter = 0u;
+      for ( auto i = 0u; i < n; ++i )
       {
-        auto const n = p.second.size();
-        auto polarity_counter = 0u;
-        for ( auto i = 0u; i < n; ++i )
-        {
-          polarity_counter += 2u*( p.second[i] % 2 );
-        }
-        return { ( 1u << ( n + 1 ) ) - 2u, polarity_counter };
+        polarity_counter += 2u * ( p.second[i] % 2 );
       }
+      return {( 1u << ( n + 1 ) ) - 2u, polarity_counter};
+    }
     case dependency_analysis_types::pattern_kind::NAND:
+    {
+      auto const n = p.second.size();
+      auto polarity_counter = 1u;
+      for ( auto i = 0u; i < n; ++i )
       {
-        auto const n = p.second.size();
-        auto polarity_counter = 1u;
-        for ( auto i = 0u; i < n; ++i )
-        {
-          polarity_counter += 2u*( p.second[i] % 2 );
-        }
-        return { ( 1u << ( n + 1 ) ) - 2u, polarity_counter };
+        polarity_counter += 2u * ( p.second[i] % 2 );
       }
+      return {( 1u << ( n + 1 ) ) - 2u, polarity_counter};
+    }
     default:
       std::abort();
     }
@@ -336,12 +332,12 @@ private:
     bool found = false;
     if ( columns[target_index].tt == columns[other_index].tt )
     {
-      patterns.emplace_back( dependency_analysis_types::pattern_kind::EQUAL, std::vector<uint32_t>{2u*other_index} );
+      patterns.emplace_back( dependency_analysis_types::pattern_kind::EQUAL, std::vector<uint32_t>{2u * other_index} );
       found = true;
     }
     else if ( columns[target_index].tt == ~columns[other_index].tt )
     {
-      patterns.emplace_back( dependency_analysis_types::pattern_kind::EQUAL, std::vector<uint32_t>{2u*other_index + 1u} );
+      patterns.emplace_back( dependency_analysis_types::pattern_kind::EQUAL, std::vector<uint32_t>{2u * other_index + 1u} );
       found = true;
     }
     return found;
@@ -357,7 +353,7 @@ private:
       std::vector<uint32_t> fanins( other_indices.size() );
       for ( auto i = 0u; i < other_indices.size(); ++i )
       {
-        fanins[i] = 2u*other_indices[i];
+        fanins[i] = 2u * other_indices[i];
       }
       patterns.emplace_back( dependency_analysis_types::pattern_kind::XOR, fanins );
       found = true;
@@ -367,7 +363,7 @@ private:
       std::vector<uint32_t> fanins( other_indices.size() );
       for ( auto i = 0u; i < other_indices.size(); ++i )
       {
-        fanins[i] = 2u*other_indices[i];
+        fanins[i] = 2u * other_indices[i];
       }
       patterns.emplace_back( dependency_analysis_types::pattern_kind::XNOR, fanins );
       found = true;
@@ -390,7 +386,7 @@ private:
         std::vector<uint32_t> fanins( other_indices.size() );
         for ( auto i = 0u; i < other_indices.size(); ++i )
         {
-          fanins[i] = 2u*other_indices[i] + complement[i];
+          fanins[i] = 2u * other_indices[i] + complement[i];
         }
         patterns.emplace_back( dependency_analysis_types::pattern_kind::AND, fanins );
         found = true;
@@ -400,7 +396,7 @@ private:
         std::vector<uint32_t> fanins( other_indices.size() );
         for ( auto i = 0u; i < other_indices.size(); ++i )
         {
-          fanins[i] = 2u*other_indices[i] + complement[i];
+          fanins[i] = 2u * other_indices[i] + complement[i];
         }
         patterns.emplace_back( dependency_analysis_types::pattern_kind::NAND, fanins );
         found = true;
@@ -433,7 +429,7 @@ private:
 
 private:
   dependency_analysis_params const& ps;
-  dependency_analysis_stats &st;
+  dependency_analysis_stats& st;
 
   std::vector<dependency_analysis_types::pattern> patterns;
 }; /* dependency_analysis_impl */
