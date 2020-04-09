@@ -74,6 +74,7 @@ struct dependency_analysis2_result_type
 {
   /* maps an index to an ESOP cover */
   std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
+  bool considering_deps = true;
 };
 
 class dependency_analysis2_impl

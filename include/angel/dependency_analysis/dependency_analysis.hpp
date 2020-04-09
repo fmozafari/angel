@@ -94,7 +94,7 @@ struct dependency_analysis_result_type
   /* maps an index to a dependency pattern, fanins are encoded as literals */
   std::map<uint32_t, dependency_analysis_types::pattern> dependencies;
   bool considering_deps = true;
-}; /* dependency_analysis_result_type */
+}; 
 
 class dependency_analysis_impl
 {
