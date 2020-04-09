@@ -35,9 +35,7 @@
 #pragma once
 
 #include <kitty/partial_truth_table.hpp>
-
 #include <fmt/format.h>
-
 #include <vector>
 
 namespace angel

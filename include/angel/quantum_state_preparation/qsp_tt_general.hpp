@@ -156,10 +156,15 @@ void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t va
                 if (dependencies[var_index].first == dependency_analysis_types::pattern_kind::EQUAL)
                 {
                     if(dependencies[var_index].second[0] % 2 == 0) /* equal operation */
+                    {
                         gates[var_index].emplace_back(std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second}});
+                    }
                     else /* not operation */
+                    {
                         gates[var_index].emplace_back(std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second}});
                         gates[var_index].emplace_back(std::pair{M_PI, std::vector<uint32_t>{}});
+                    }
+                        
                 }
 
                 else if (dependencies[var_index].first == dependency_analysis_types::pattern_kind::XOR)
@@ -715,7 +720,7 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
 {
     if(kitty::is_const0(tt))
     {
-        std::cout<<"The tt is zero, please enter another tt\n";
+        std::cout<<"The tt is zero, algorithm return an empty circuit!\n";
         return;
     }
     const uint32_t qubits_count = tt.num_vars();
@@ -764,6 +769,13 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
             typename DependencyAnalysisAlgorithm::parameter_type pt;
             typename DependencyAnalysisAlgorithm::statistics_type st;
             auto result_deps = compute_dependencies<DependencyAnalysisAlgorithm>(tt_copy, pt, st);
+            
+            // for(auto i=0u; i<result_deps.dependencies.size(); i++)
+            // {
+            //     if(result_deps.dependencies.find(i)== result_deps.dependencies.end())
+            //         continue;
+            //     std::cout<<dependency_analysis_types::pattern_string(result_deps.dependencies[i])<<std::endl;
+            // }
 
             std::vector<uint32_t> zero_lines;
             std::vector<uint32_t> one_lines;
