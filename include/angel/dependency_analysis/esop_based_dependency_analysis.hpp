@@ -50,11 +50,11 @@
 namespace angel
 {
 
-struct dependency_analysis2_params
+struct esop_deps_analysis_params
 {
 };
 
-struct dependency_analysis2_stats
+struct esop_deps_analysis_stats
 {
   stopwatch<>::duration_type total_time{0};
 
@@ -70,14 +70,14 @@ struct dependency_analysis2_stats
   }
 };
 
-struct dependency_analysis2_result_type
+struct esop_deps_analysis_result_type
 {
   /* maps an index to an ESOP cover */
   std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
   bool considering_deps = true;
 };
 
-class dependency_analysis2_impl
+class esop_deps_analysis
 {
 public:
   using parameter_type = dependency_analysis2_params;
@@ -88,13 +88,13 @@ public:
   using function_type = kitty::dynamic_truth_table;
 
 public:
-  explicit dependency_analysis2_impl( dependency_analysis2_params const& ps, dependency_analysis2_stats& st )
+  explicit esop_deps_analysis( esop_deps_analysis_params const& ps, esop_deps_analysis_stats& st )
     : ps( ps )
     , st( st )
   {
   }
 
-  dependency_analysis2_result_type run( function_type const& function )
+  esop_deps_analysis_result_type run( function_type const& function )
   {
     stopwatch t( st.total_time );
 
@@ -121,7 +121,7 @@ public:
     //   kitty::print_binary( c.tt ); std::cout << std::endl;
     // }
 
-    dependency_analysis2_result_type result;
+    esop_deps_analysis_result_type result;
 
     /* collect divisors */
     std::vector<dependency_analysis_types::column> columns_copy;
@@ -260,8 +260,8 @@ private:
   }
 
 private:
-  dependency_analysis2_params const& ps;
-  dependency_analysis2_stats& st;
+  esop_deps_analysis_params const& ps;
+  esop_deps_analysis_stats& st;
 };
 
 } /* namespace angel */
