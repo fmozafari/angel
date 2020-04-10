@@ -41,7 +41,7 @@
 namespace angel
 {
 
-struct dependency_analysis_params
+struct pattern_deps_analysis_params
 {
   bool select_first = false;
 
@@ -49,7 +49,7 @@ struct dependency_analysis_params
   uint32_t max_pattern_size{5};
 }; /* dependency_analysis_params */
 
-struct dependency_analysis_stats
+struct pattern_deps_analysis_stats
 {
   stopwatch<>::duration_type total_time{0};
   stopwatch<>::duration_type pattern1_time{0};
@@ -89,30 +89,30 @@ struct dependency_analysis_stats
   }
 }; /* dependency_analysis_stats */
 
-struct dependency_analysis_result_type
+struct pattern_deps_analysis_result_type
 {
   /* maps an index to a dependency pattern, fanins are encoded as literals */
   std::map<uint32_t, dependency_analysis_types::pattern> dependencies;
   bool considering_deps = true;
 }; 
 
-class dependency_analysis_impl
+class pattern_deps_analysis
 {
 public:
-  using parameter_type = dependency_analysis_params;
-  using statistics_type = dependency_analysis_stats;
-  using result_type = dependency_analysis_result_type;
+  using parameter_type = pattern_deps_analysis_params;
+  using statistics_type = pattern_deps_analysis_stats;
+  using result_type = pattern_deps_analysis_result_type;
 
 public:
   using function_type = kitty::dynamic_truth_table;
 
 public:
-  explicit dependency_analysis_impl( dependency_analysis_params const& ps, dependency_analysis_stats& st )
+  explicit pattern_deps_analysis( pattern_deps_analysis_params const& ps, pattern_deps_analysis_stats& st )
       : ps( ps ), st( st )
   {
   }
 
-  dependency_analysis_result_type run( function_type const& function )
+  pattern_deps_analysis_result_type run( function_type const& function )
   {
     stopwatch t( st.total_time );
 
@@ -139,7 +139,7 @@ public:
     //   kitty::print_binary( c.tt ); std::cout << std::endl;
     // }
 
-    dependency_analysis_result_type result;
+    pattern_deps_analysis_result_type result;
     for ( auto i = 0u; i < num_vars; ++i )
     {
       /* collect patterns for i-th target column */
@@ -428,8 +428,8 @@ private:
   }
 
 private:
-  dependency_analysis_params const& ps;
-  dependency_analysis_stats& st;
+  pattern_deps_analysis_params const& ps;
+  pattern_deps_analysis_stats& st;
 
   std::vector<dependency_analysis_types::pattern> patterns;
 }; /* dependency_analysis_impl */

@@ -80,9 +80,9 @@ struct esop_deps_analysis_result_type
 class esop_deps_analysis
 {
 public:
-  using parameter_type = dependency_analysis2_params;
-  using statistics_type = dependency_analysis2_stats;
-  using result_type = dependency_analysis2_result_type;
+  using parameter_type = esop_deps_analysis_params;
+  using statistics_type = esop_deps_analysis_stats;
+  using result_type = esop_deps_analysis_result_type;
 
 public:
   using function_type = kitty::dynamic_truth_table;
