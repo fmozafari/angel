@@ -112,7 +112,7 @@ struct qsp_general_stats
 // }
 
 
-/* with dependencies */
+/* with esop based dependencies */
 void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
                       esop_based_dependencies_t dependencies, std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines)
 {
@@ -153,9 +153,10 @@ void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t va
         {
             if (gates[var_index].size() == 0)
             {
-              
+              std::cout<<"outer size: "<<dependencies[var_index].size()<<std::endl;
               for(auto const& inner: dependencies[var_index])
               {
+                std::cout<<"index: "<<var_index<<"  inner size: "<<inner.size()<<std::endl;
                 gates[var_index].emplace_back(std::pair{M_PI, std::vector<uint32_t>{inner}}); 
               }
                 
@@ -248,6 +249,7 @@ void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t va
     }
 }
 
+/* with pattern based dependencies */
 void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
                       pattern_based_dependencies_t dependencies, std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines)
 {
@@ -864,6 +866,9 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
         net.add_qubit();
 
     auto orders = orders_alg.run(qubits_count);
+    //std::vector<std::vector<uint32_t>> orders{{1,2,3,0}};
+  
+    std::cout<<orders[0][0]<<"  "<<orders[0][1]<<"  "<<orders[0][2]<<"  "<<orders[0][3]<<"\n";
     // std::cout<<"num orders: "<<orders.size()<<std::endl;
     // std::cout<<"qubit size: "<<qubits_count<<std::endl;
     // std::cout<<"order size: "<<orders.size()<<std::endl;
@@ -900,6 +905,8 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
 
             kitty::dynamic_truth_table tt_copy = tt;
             angel::reordering_on_tt_inplace(tt_copy, order);
+            kitty::print_binary(tt_copy);
+            std::cout<<std::endl;
             qsp_general_stats qsp_stats;
             //dependencies_t deps = deps_alg.run(tt_copy, qsp_stats);
             typename DependencyAnalysisAlgorithm::parameter_type pt;
@@ -909,7 +916,11 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
             for(auto i=0u; i<qubits_count; i++)
             {
                 if(result_deps.dependencies.find(i) != result_deps.dependencies.end())
+                {
                     have_deps[i] = true;
+                    std::cout<<"i: "<<i<<std::endl;
+                }
+                    
             }
             
             // for(auto i=0u; i<result_deps.dependencies.size(); i++)
