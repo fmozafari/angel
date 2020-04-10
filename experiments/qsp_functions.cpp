@@ -39,7 +39,7 @@ int main()
         angel::ResubSynthesisDeps deps_alg;
         angel::NoReordering orders;
         //angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_default_order );
-        angel::qsp_tt_general<decltype( ntk ), angel::dependency_analysis_impl, decltype( orders )>(ntk, orders, tt, stats_default_order);
+        angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_default_order);
       }
 
       {
@@ -48,7 +48,7 @@ int main()
         angel::ResubSynthesisDeps deps_alg;
         angel::RandomReordering orders(5);//(num_vars*num_vars);
         //angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_random_reorder );
-        angel::qsp_tt_general<decltype( ntk ), angel::dependency_analysis_impl, decltype( orders )>(ntk, orders, tt, stats_random_reorder);
+        angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_random_reorder);
       }
 
       {
@@ -57,7 +57,7 @@ int main()
         angel::ResubSynthesisDeps deps_alg;
         angel::ConsideringDepsReordering orders{5};
         //angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_deps_reorder );
-        angel::qsp_tt_general<decltype( ntk ), angel::dependency_analysis_impl, decltype( orders )>(ntk, orders, tt, stats_deps_reorder);
+        angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_deps_reorder);
       }
     }
 

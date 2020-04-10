@@ -35,7 +35,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           //angel::ResubSynthesisDeps deps_alg;
           angel::NoReordering orders;
-          angel::qsp_tt_general<decltype( ntk ), angel::dependency_analysis_impl, decltype( orders )>(ntk, orders, tt, stats_default_order);
+          angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_default_order);
         }
 
         {
@@ -43,7 +43,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           //angel::ResubSynthesisDeps deps_alg;
           angel::RandomReordering orders(5);//(ps.num_vars * ps.num_vars);
-          angel::qsp_tt_general<decltype( ntk ), angel::dependency_analysis_impl, decltype( orders )>(ntk, orders, tt, stats_random_reorder);
+          angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_random_reorder);
         }
 
         {
@@ -51,7 +51,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           //angel::ResubSynthesisDeps deps_alg;
           angel::ConsideringDepsReordering orders{5};
-          angel::qsp_tt_general<decltype( ntk ), angel::dependency_analysis_impl, decltype( orders )>(ntk, orders, tt, stats_deps_reorder);
+          angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_deps_reorder);
         }
       });
   }

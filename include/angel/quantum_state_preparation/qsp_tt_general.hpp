@@ -154,7 +154,7 @@ void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t va
             if (gates[var_index].size() == 0)
             {
               
-              for(auto const& inner: gates[var_index])
+              for(auto const& inner: dependencies[var_index])
               {
                 gates[var_index].emplace_back(std::pair{M_PI, std::vector<uint32_t>{inner}}); 
               }
@@ -603,7 +603,7 @@ void MC_qg_generation(gates_t &gates, kitty::dynamic_truth_table tt, uint32_t va
 }
 
 /* with dependencies */
-void gates_statistics(gates_t gates, pattern_based_dependencies_t const &dependencies,
+void gates_statistics(gates_t gates, std::map<uint32_t, bool> const &have_dependencies,
                       uint32_t const num_vars, qsp_general_stats &stats)
 {
     auto total_rys = 0;
@@ -637,9 +637,9 @@ void gates_statistics(gates_t gates, pattern_based_dependencies_t const &depende
         }
 
         /* check deps */
-        auto it = dependencies.find(i);
+        auto it = have_dependencies.find(i);
         /* there exists deps */
-        if (it != dependencies.end())
+        if (it != have_dependencies.end())
         {
             for (auto j = 0u; j < gates[i].size(); j++)
             {
@@ -737,7 +737,7 @@ void gates_statistics(gates_t gates, pattern_based_dependencies_t const &depende
     stats.total_nots += total_nots;
     stats.gates_count.emplace_back(std::make_pair(total_cnots, total_rys + total_nots));
 
-    if (dependencies.size() > 0)
+    if (have_dependencies.size() > 0)
     {
         if (total_cnots < (pow(2, num_vars - n_reduc) - 2))
         {
@@ -905,6 +905,12 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
             typename DependencyAnalysisAlgorithm::parameter_type pt;
             typename DependencyAnalysisAlgorithm::statistics_type st;
             auto result_deps = compute_dependencies<DependencyAnalysisAlgorithm>(tt_copy, pt, st);
+            std::map<uint32_t, bool> have_deps;
+            for(auto i=0u; i<qubits_count; i++)
+            {
+                if(result_deps.dependencies.find(i) != result_deps.dependencies.end())
+                    have_deps[i] = true;
+            }
             
             // for(auto i=0u; i<result_deps.dependencies.size(); i++)
             // {
@@ -924,12 +930,12 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
             if ( result_deps.considering_deps )
             {
                 MC_qg_generation(gates, tt_copy, var_idx, cs, result_deps.dependencies, zero_lines, one_lines);
-                gates_statistics(gates, result_deps.dependencies, qubits_count, qsp_stats);
+                gates_statistics(gates, have_deps, qubits_count, qsp_stats);
             }
             else
             {
                 MC_qg_generation(gates, tt_copy, var_idx, cs, zero_lines, one_lines);
-                gates_statistics(gates, qubits_count, qsp_stats);
+                gates_statistics(gates, have_deps, qubits_count, qsp_stats);
             }
 
             if (max_cnots > qsp_stats.total_cnots)
@@ -937,9 +943,9 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
                 std::copy(order.begin(), order.end(), best_order.begin());
                 best_stats = qsp_stats;
                 max_cnots = qsp_stats.total_cnots;
-                if(result_deps.dependencies.size()>0)
-                    best_deps.erase(best_deps.begin(), best_deps.end());
-                best_deps = result_deps.dependencies;
+                // if(result_deps.dependencies.size()>0)
+                //     best_deps.erase(best_deps.begin(), best_deps.end());
+                // best_deps = result_deps.dependencies;
             }
         }
     }

@@ -1,7 +1,7 @@
 #include <angel/dependency_analysis/resub_synthesis.hpp>
 #include <angel/dependency_analysis/common.hpp>
-#include <angel/dependency_analysis/dependency_analysis.hpp>
-#include <angel/dependency_analysis/dependency_analysis2.hpp>
+#include <angel/dependency_analysis/pattern_based_dependency_analysis.hpp>
+#include <angel/dependency_analysis/esop_based_dependency_analysis.hpp>
 #include <angel/quantum_state_preparation/qsp_tt_general.hpp>
 #include <angel/reordering/all_reordering.hpp>
 #include <angel/reordering/considering_deps_reordering.hpp>
