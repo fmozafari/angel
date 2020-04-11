@@ -35,6 +35,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "../utils/stopwatch.hpp"
 
 #include <easy/exact_esop_cover_from_divisors.hpp>
 
