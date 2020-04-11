@@ -284,14 +284,14 @@ private:
   compute_esop_cover_from_divisors_statistics& st;
 };
 
-compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions,
+inline compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions,
                                                                                      compute_esop_cover_from_divisors_parameters const& ps,
                                                                                      compute_esop_cover_from_divisors_statistics& st )
 {
   return compute_esop_cover_from_divisors_impl( ps, st ).run( target, divisor_functions );
 }
 
-compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
+inline compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
 {
   compute_esop_cover_from_divisors_parameters ps;
   compute_esop_cover_from_divisors_statistics st;
