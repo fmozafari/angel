@@ -216,8 +216,9 @@ private:
           for ( auto i = 0u; i < divisor_indices.size(); ++i )
           {
             if ( cube.get_mask( divisor_indices[i] ) )
+            if ( cube.get_mask( i ) )
             {
-              new_cube.push_back( cube.get_bit( divisor_indices[i] ) ? 2u*divisor_indices[i] : 2u*divisor_indices[i] + 1 );
+              new_cube.push_back( cube.get_bit( i ) ? 2u*divisor_indices[i] : 2u*divisor_indices[i] + 1 );
             }
           }
           esop_cover.push_back( new_cube );
