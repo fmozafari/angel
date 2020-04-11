@@ -29,7 +29,7 @@ if(ANGEL_EXAMPLES)
 endif()
 
 if(ANGEL_TESTS)
-  add_subdirectory(tests)
+  add_subdirectory(test)
 endif()
 
 if(ANGEL_EXPERIMENTS)
