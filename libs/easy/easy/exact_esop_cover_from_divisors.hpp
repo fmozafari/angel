@@ -225,7 +225,6 @@ public:
         {
           clause.push_back( z( l, i ) );
         }
-        bill::add_xor_clause( solver, clause, bill::lit_type::polarities( kitty::get_bit( target, l ) ) );
         bill::add_xor_clause( solver, clause, bill::lit_type::polarities( !kitty::get_bit( target, l ) ) );
       }
 
