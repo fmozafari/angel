@@ -74,13 +74,13 @@ public:
 
     /* some special cases */
     {
-      if ( kitty::is_const0( target ) )
+      if ( kitty::is_const0( ~target ) )
       {
         result.esop_cover = std::vector{easy::cube()}; /* true */
         return result;
       }
 
-      if ( kitty::is_const0( ~target ) )
+      if ( kitty::is_const0( target ) )
       {
         result.esop_cover = std::vector<easy::cube>{}; /* false */
         return result;
@@ -104,6 +104,7 @@ public:
           c.add_literal( 0u, false );
           cover.push_back( c );
           result.esop_cover = cover;
+          return result;
         }
       }
     }
