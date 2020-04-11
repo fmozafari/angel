@@ -31,13 +31,15 @@
 
 #pragma once
 
-#include <cstdint>
-#include <type_traits>
-#include <vector>
-
 #include "detail/constants.hpp"
 #include "traits.hpp"
 #include "operations.hpp"
+
+#include <cstdint>
+#include <type_traits>
+#include <vector>
+#include <iostream>
+#include <iomanip>
 
 namespace kitty
 {

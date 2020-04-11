@@ -74,7 +74,6 @@ struct esop_deps_analysis_result_type
 {
   /* maps an index to an ESOP cover */
   std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
-  bool considering_deps = true;
 };
 
 class esop_deps_analysis
