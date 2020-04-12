@@ -35,6 +35,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "../utils/stopwatch.hpp"
 
 #include <easy/exact_esop_cover_from_divisors.hpp>
 
@@ -74,7 +75,6 @@ struct esop_deps_analysis_result_type
 {
   /* maps an index to an ESOP cover */
   std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
-  bool considering_deps = true;
 };
 
 class esop_deps_analysis
@@ -217,8 +217,9 @@ private:
           for ( auto i = 0u; i < divisor_indices.size(); ++i )
           {
             if ( cube.get_mask( divisor_indices[i] ) )
+            if ( cube.get_mask( i ) )
             {
-              new_cube.push_back( cube.get_bit( divisor_indices[i] ) ? 2u*divisor_indices[i] : 2u*divisor_indices[i] + 1 );
+              new_cube.push_back( cube.get_bit( i ) ? 2u*divisor_indices[i] : 2u*divisor_indices[i] + 1 );
             }
           }
           esop_cover.push_back( new_cube );

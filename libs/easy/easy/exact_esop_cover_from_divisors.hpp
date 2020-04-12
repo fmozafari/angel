@@ -74,13 +74,13 @@ public:
 
     /* some special cases */
     {
-      if ( kitty::is_const0( target ) )
+      if ( kitty::is_const0( ~target ) )
       {
         result.esop_cover = std::vector{easy::cube()}; /* true */
         return result;
       }
 
-      if ( kitty::is_const0( ~target ) )
+      if ( kitty::is_const0( target ) )
       {
         result.esop_cover = std::vector<easy::cube>{}; /* false */
         return result;
@@ -97,13 +97,14 @@ public:
           result.esop_cover = cover;
           return result;
         }
-        else if ( target != divisor_functions[0u] )
+        else if ( target == ~divisor_functions[0u] )
         {
           std::vector<easy::cube> cover;
           easy::cube c;
           c.add_literal( 0u, false );
           cover.push_back( c );
           result.esop_cover = cover;
+          return result;
         }
       }
     }
@@ -141,9 +142,9 @@ public:
         * (l,j) ---------------------------------------------------------------------------------------------------------------------------------------------> j < k
         *   |   z(0,0)          = 2*n*k                z(0,1)          = 2*n*k + 1                         ...   z(0,k-1)          = 2*n*k + k-1 
         *   |   z(1,0)          = (2*n+1)*k            z(1,1)          = (2*n+1)*k + 1                     ...   z(1,k-1)          = (2*n+1)*k + k-1 
-        *   |   .
-        *   |   .
-        *   |   .
+        *   |   .                 .                    .                                                         .
+        *   |   .                 .                    .                                                         .
+        *   |   .                 .                    .                                                         .
         *   |   z(num_bits-1,0) = (2*n+num_bits-1)*k   z(num_bits-1,1) = (2*n+num_bits-1)*k + 1            ...   z(num_bits-1,k-1) = (2*n+num_bits-1)*k + k-1 
         *   v
         * l < num_bits
@@ -166,8 +167,33 @@ public:
       auto const z = [&]( uint32_t l, uint32_t j ){
         assert( l < num_bits ); /* minterm */
         assert( j < k ); /* cube */
-        return bill::lit_type( bill::var_type( 2*n*k + (k-1)*l + j ), bill::lit_type::polarities::positive );
+        return bill::lit_type( bill::var_type( 2*n*k + k*l + j ), bill::lit_type::polarities::positive );
       };
+
+      /* print layout */
+      // for ( auto i = 0u; i < k; ++i )
+      // {
+      //   for ( auto j = 0u; j < n; ++j )
+      //   {
+      //     fmt::print( "p({},{}) = {}\n", i, j, uint32_t( p( i, j ).variable() ) );
+      //   }
+      // }
+      //
+      // for ( auto i = 0u; i < k; ++i )
+      // {
+      //   for ( auto j = 0u; j < n; ++j )
+      //   {
+      //     fmt::print( "q({},{}) = {}\n", i, j, uint32_t( q( i, j ).variable() ) );
+      //   }
+      // }
+      //
+      // for ( auto l = 0u; l < num_bits; ++l )
+      // {
+      //   for ( auto j = 0u; j < k; ++j )
+      //   {
+      //     fmt::print( "z({},{}) = {}\n", l, j, uint32_t( z( l, j ).variable() ) );
+      //   }
+      // }
 
       /* add constraints */
       for ( auto l = 0u; l < num_bits; ++l ) /* for each row in the divisors */
@@ -200,7 +226,7 @@ public:
         {
           clause.push_back( z( l, i ) );
         }
-        bill::add_xor_clause( solver, clause, bill::lit_type::polarities( kitty::get_bit( target, l ) ) );
+        bill::add_xor_clause( solver, clause, bill::lit_type::polarities( !kitty::get_bit( target, l ) ) );
       }
 
       switch( solver.solve() )
@@ -259,14 +285,14 @@ private:
   compute_esop_cover_from_divisors_statistics& st;
 };
 
-compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions,
+inline compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions,
                                                                                      compute_esop_cover_from_divisors_parameters const& ps,
                                                                                      compute_esop_cover_from_divisors_statistics& st )
 {
   return compute_esop_cover_from_divisors_impl( ps, st ).run( target, divisor_functions );
 }
 
-compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
+inline compute_esop_cover_from_divisors_result_type compute_exact_esop_cover_from_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisor_functions )
 {
   compute_esop_cover_from_divisors_parameters ps;
   compute_esop_cover_from_divisors_statistics st;
