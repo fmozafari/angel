@@ -1,15 +1,16 @@
 cmake_minimum_required(VERSION 3.8)
-project(ANGEL LANGUAGES CXX)
+project(angel LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Options
 option(ANGEL_EXAMPLES "Build examples" ON)
-option(ANGEL_TESTS "Build tests" OFF)
+option(ANGEL_TEST "Build tests" OFF)
 option(ANGEL_EXPERIMENTS "Build experiments" OFF)
+option(ENABLE_COVERAGE "Enable coverage reporting for gcc/clang" OFF)
 
-if(UNIX)
+if (UNIX)
   # show quite some warnings (but remove some intentionally)
   include(CheckCXXCompilerFlag)
   add_compile_options(-W -Wall -Wextra)
@@ -19,6 +20,9 @@ if(UNIX)
       add_compile_options(-Wno-${WARNING})
     endif()
   endforeach()
+  if (ENABLE_COVERAGE)
+    add_compile_options(-O0 -g --coverage -fprofile-arcs -ftest-coverage)
+  endif()
 endif()
 
 add_subdirectory(include)
@@ -28,7 +32,7 @@ if(ANGEL_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
-if(ANGEL_TESTS)
+if(ANGEL_TEST)
   add_subdirectory(test)
 endif()
 
