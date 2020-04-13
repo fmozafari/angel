@@ -35,6 +35,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "../utils/stopwatch.hpp"
 #include <kitty/implicant.hpp>
 #include <map>
 
@@ -93,7 +94,6 @@ struct pattern_deps_analysis_result_type
 {
   /* maps an index to a dependency pattern, fanins are encoded as literals */
   std::map<uint32_t, dependency_analysis_types::pattern> dependencies;
-  bool considering_deps = true;
 }; 
 
 class pattern_deps_analysis

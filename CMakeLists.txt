@@ -33,7 +33,7 @@ if(ANGEL_EXAMPLES)
 endif()
 
 if(ANGEL_TEST)
-  add_subdirectory(tests)
+  add_subdirectory(test)
 endif()
 
 if(ANGEL_EXPERIMENTS)
