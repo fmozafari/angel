@@ -10,9 +10,19 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
   angel::function_extractor extractor{ps};
 
   angel::qsp_general_stats stats_baseline;
-  angel::qsp_general_stats stats_default_order;
-  angel::qsp_general_stats stats_random_reorder;
-  angel::qsp_general_stats stats_deps_reorder;
+  angel::qsp_general_stats stats_defaultOrder_patternDeps;
+  angel::qsp_general_stats stats_defaultOrder_esopDeps;
+  angel::qsp_general_stats stats_randomOrder_patternDeps;
+  angel::qsp_general_stats stats_randomOrder_esopDeps;
+
+  auto seed = 1;
+  uint32_t counter = ps.num_vars;
+  while(counter!= 0)
+  {
+      seed *= counter;
+      counter--;
+  }
+ 
 
   for ( const auto &benchmark : benchmarks )
   {
@@ -30,43 +40,55 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           //angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_baseline );
         }
 
+
         {
-          /* state preparation with dependency analysis but no reordering */
+          /* state preparation with pattern dependency analysis but no reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           //angel::ResubSynthesisDeps deps_alg;
           angel::NoReordering orders;
-          angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_default_order);
+          angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_defaultOrder_patternDeps);
         }
 
         {
-          /* state preparation with dependency analysis and random reordering */
+          /* state preparation with esop dependency analysis but no reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           //angel::ResubSynthesisDeps deps_alg;
-          angel::RandomReordering orders(5);//(ps.num_vars * ps.num_vars);
-          angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_random_reorder);
+          angel::NoReordering orders;
+          angel::qsp_tt_general<decltype( ntk ), angel::esop_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_defaultOrder_esopDeps);
+        }
+
+
+        {
+          /* state preparation with pattern dependency analysis and random reordering */
+          tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+          //angel::ResubSynthesisDeps deps_alg;
+          angel::RandomReordering orders(seed, ps.num_vars * ps.num_vars);
+          angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_randomOrder_patternDeps);
         }
 
         {
-          /* state preparation with dependency analysis and dependency-considered reordering */
+          /* state preparation with esop dependency analysis and random reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           //angel::ResubSynthesisDeps deps_alg;
-          angel::ConsideringDepsReordering orders{5};
-          angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_deps_reorder);
+          angel::RandomReordering orders(seed, ps.num_vars * ps.num_vars);
+          angel::qsp_tt_general<decltype( ntk ), angel::esop_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_randomOrder_esopDeps);
         }
       });
   }
 
   exp( name, stats_baseline.total_bench,
        stats_baseline.total_cnots, angel::to_seconds( stats_baseline.total_time ),
-       stats_default_order.total_cnots, angel::to_seconds( stats_default_order.total_time ),
-       stats_random_reorder.total_cnots, angel::to_seconds( stats_random_reorder.total_time ),
-       stats_deps_reorder.total_cnots, angel::to_seconds( stats_deps_reorder.total_time ) );
+       stats_defaultOrder_patternDeps.total_cnots, angel::to_seconds( stats_defaultOrder_patternDeps.total_time ),
+       stats_defaultOrder_esopDeps.total_cnots, angel::to_seconds( stats_defaultOrder_esopDeps.total_time ),
+       stats_randomOrder_patternDeps.total_cnots, angel::to_seconds( stats_randomOrder_patternDeps.total_time ),
+       stats_randomOrder_esopDeps.total_cnots, angel::to_seconds( stats_randomOrder_esopDeps.total_time ) );
 }
 
 int main()
 {
-  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double, uint32_t, double>
-    exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "no: #cnots", "no: time", "rnd: #cnots", "rnd: time", "dep: #cnots", "dep: time" );
+  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double, uint32_t, double, uint32_t, double>
+    exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "no-pattern: #cnots", "no-pattern: time", 
+    "no-esop: #cnots", "no-esop: time", "rnd-pattern: #cnots", "rnd-pattern: time", "rnd-esop: #cnots", "rnd-esop: time" );
 
   for ( auto i = 4u; i < 7u; ++i )
   {
