@@ -913,15 +913,14 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
             typename DependencyAnalysisAlgorithm::statistics_type st;
             auto result_deps = compute_dependencies<DependencyAnalysisAlgorithm>(tt_copy, pt, st);
             std::map<uint32_t, bool> have_deps;
-            for(auto i=0u; i<qubits_count; i++)
+             for(auto i=0u; i<qubits_count; i++)
             {
                 if(result_deps.dependencies.find(i) != result_deps.dependencies.end())
                 {
                     have_deps[i] = true;
-                    std::cout<<"i: "<<i<<std::endl;
                 }
-                    
             }
+            
             
             // for(auto i=0u; i<result_deps.dependencies.size(); i++)
             // {
@@ -938,7 +937,7 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
             auto var_idx = qubits_count - 1;
             std::vector<uint32_t> cs;
 
-            if ( result_deps.considering_deps )
+            if ( !result_deps.dependencies.empty() )
             {
                 MC_qg_generation(gates, tt_copy, var_idx, cs, result_deps.dependencies, zero_lines, one_lines);
                 gates_statistics(gates, have_deps, qubits_count, qsp_stats);
