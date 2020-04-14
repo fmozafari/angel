@@ -1,56 +1,64 @@
 #include <map>
 #include <fmt/format.h>
 #include <iostream>
-#include <angel/quantum_state_preparation/qsp_tt_general.hpp>
 
 namespace angel
 {
 
-class NoDeps
+struct no_deps_analysis_params
+{
+};
+
+struct no_deps_analysis_stats
+{
+  stopwatch<>::duration_type total_time{0};
+
+  void report() const
+  {
+  }
+
+  void reset()
+  {
+    *this = {};
+  }
+};
+
+/* it is fake */
+struct no_deps_analysis_result_type
+{
+  /* maps an index to an ESOP cover */
+  std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
+};
+
+class no_deps_analysis
 {
 public:
-    using dependencies_t = std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>>;
+  using parameter_type = no_deps_analysis_params;
+  using statistics_type = no_deps_analysis_stats;
+  using result_type = no_deps_analysis_result_type;
 
 public:
-    void print_dependencies(dependencies_t const &dependencies, std::ostream &os = std::cout)
-    {
-        os << "[i] dependencies:" << std::endl;
-        os << "dependencies size: " << dependencies.size() << std::endl;
-        for (const auto &d : dependencies)
-        {
-            os << d.first << "  ";
-            for (const auto &dd : d.second)
-            {
-                os << dd.first << ' ';
-                for (const auto &c : dd.second)
-                {
-                    os << c << ' ';
-                }
-            }
-            os << std::endl;
-        }
-    }
+  using function_type = kitty::dynamic_truth_table;
 
 public:
-    explicit NoDeps()
-    {
-    }
+  explicit no_deps_analysis( no_deps_analysis_params const& ps, no_deps_analysis_stats& st )
+    : ps( ps )
+    , st( st )
+  {
+  }
 
-    dependencies_t run(kitty::dynamic_truth_table const &tt, qsp_general_stats &stats)
-    {
-        (void) tt;
-        stats.total_bench++;
-        dependencies_t deps;
-        return deps;
-    }
+  no_deps_analysis_result_type run( function_type const& function )
+  {
+    stopwatch t( st.total_time );
+    no_deps_analysis_result_type result;
 
-    bool get_considering_deps()
-    {
-        return considering_deps;
-    }
+    return result;
+  }
 
-protected:
-    bool considering_deps = false;
-}; /// class NoDeps end
+private:
+  no_deps_analysis_params const& ps;
+  no_deps_analysis_stats& st;
+
+};
 
 } /// namespace angel

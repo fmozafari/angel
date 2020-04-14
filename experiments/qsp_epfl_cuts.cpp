@@ -1,14 +1,7 @@
-#include <angel/utils/function_extractor.hpp>
-
-#include <angel/quantum_state_preparation/qsp_tt_general.hpp>
-#include <angel/reordering/random_reordering.hpp>
-#include <angel/reordering/all_reordering.hpp>
-#include <angel/reordering/no_reordering.hpp>
-#include <angel/reordering/considering_deps_reordering.hpp>
-#include <angel/dependency_analysis/resub_synthesis.hpp>
+#include <angel/angel.hpp>
+#include <kitty/kitty.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/netlist.hpp>
-#include <angel/utils/stopwatch.hpp>
 
 #include "experiments.hpp"
 
@@ -59,14 +52,14 @@ int main()
             //{
                 {
                     tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-                    angel::NoDeps deps_alg1;
+                    //angel::NoDeps deps_alg1;
                     angel::NoReordering orders1;
                     //angel::qsp_tt_general(ntk, deps_alg1, orders1, tt, qsp_stats1);
                 }
 
                 {
                     tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-                    angel::ResubSynthesisDeps deps_alg2;
+                    //angel::ResubSynthesisDeps deps_alg2;
                     angel::RandomReordering orders2(seed, 1);
                     //angel::RandomReordering orders2(seed,n*n);
                     //angel::qsp_tt_general(ntk, deps_alg2, orders2, tt, qsp_stats2);
@@ -74,7 +67,7 @@ int main()
 
                 {
                     tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-                    angel::ResubSynthesisDeps deps_alg3;
+                    //angel::ResubSynthesisDeps deps_alg3;
                     angel::RandomReordering orders3(seed,n*n);
                     //angel::AllReordering orders3;
                     //angel::qsp_tt_general(ntk, deps_alg3, orders3, tt, qsp_stats3);

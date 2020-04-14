@@ -28,7 +28,7 @@ int main()
       {
         /* state preparation without dependency analysis or reordering (baseline) */
         tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-        angel::NoDeps deps_alg;
+        //angel::NoDeps deps_alg;
         angel::NoReordering orders;
         //angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_baseline );
       }
@@ -36,7 +36,7 @@ int main()
       {
         /* state preparation with dependency analysis but no reordering */
         tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-        angel::ResubSynthesisDeps deps_alg;
+        //angel::ResubSynthesisDeps deps_alg;
         angel::NoReordering orders;
         //angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_default_order );
         angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_default_order);
@@ -45,7 +45,7 @@ int main()
       {
         /* state preparation with dependency analysis and random reordering */
         tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-        angel::ResubSynthesisDeps deps_alg;
+        //angel::ResubSynthesisDeps deps_alg;
         angel::RandomReordering orders(5);//(num_vars*num_vars);
         //angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_random_reorder );
         angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_random_reorder);
@@ -54,7 +54,7 @@ int main()
       {
         /* state preparation with dependency analysis and dependency-considered reordering */
         tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-        angel::ResubSynthesisDeps deps_alg;
+        //angel::ResubSynthesisDeps deps_alg;
         angel::ConsideringDepsReordering orders{5};
         //angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_deps_reorder );
         angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_deps_reorder);

@@ -34,17 +34,14 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
         {
           /* state preparation without dependency analysis or reordering (baseline) */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-          angel::NoDeps deps_alg;
           angel::NoReordering orders;
-          
-          //angel::qsp_tt_general( ntk, deps_alg, orders, tt, stats_baseline );
+          angel::qsp_tt_general<decltype( ntk ), angel::no_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_baseline);
         }
 
 
         {
           /* state preparation with pattern dependency analysis but no reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-          //angel::ResubSynthesisDeps deps_alg;
           angel::NoReordering orders;
           angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_defaultOrder_patternDeps);
         }
@@ -52,7 +49,6 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
         {
           /* state preparation with esop dependency analysis but no reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-          //angel::ResubSynthesisDeps deps_alg;
           angel::NoReordering orders;
           angel::qsp_tt_general<decltype( ntk ), angel::esop_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_defaultOrder_esopDeps);
         }
@@ -61,7 +57,6 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
         {
           /* state preparation with pattern dependency analysis and random reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-          //angel::ResubSynthesisDeps deps_alg;
           angel::RandomReordering orders(seed, ps.num_vars * ps.num_vars);
           angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_randomOrder_patternDeps);
         }
@@ -69,7 +64,6 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
         {
           /* state preparation with esop dependency analysis and random reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-          //angel::ResubSynthesisDeps deps_alg;
           angel::RandomReordering orders(seed, ps.num_vars * ps.num_vars);
           angel::qsp_tt_general<decltype( ntk ), angel::esop_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_randomOrder_esopDeps);
         }
