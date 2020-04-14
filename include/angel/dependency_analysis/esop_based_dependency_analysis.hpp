@@ -95,7 +95,7 @@ struct esop_deps_analysis_result_type
       std::cout << deps << " 0\n";
     }
   }
-  
+
 };
 
 class esop_deps_analysis
@@ -236,7 +236,6 @@ private:
           new_cube.clear();
           for ( auto i = 0u; i < divisor_indices.size(); ++i )
           {
-            //if ( cube.get_mask( divisor_indices[i] ) )
             if ( cube.get_mask( i ) )
             {
               new_cube.push_back( cube.get_bit( i ) ? 2u * divisor_indices[i] : 2u * divisor_indices[i] + 1 );
