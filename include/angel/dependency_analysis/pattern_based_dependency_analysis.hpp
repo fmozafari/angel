@@ -94,6 +94,17 @@ struct pattern_deps_analysis_result_type
 {
   /* maps an index to a dependency pattern, fanins are encoded as literals */
   std::map<uint32_t, dependency_analysis_types::pattern> dependencies;
+  void print()
+  {
+      for(std::map< uint32_t, dependency_analysis_types::pattern >::const_iterator it = dependencies.begin(); it != dependencies.end(); ++it)
+      {
+        std::cout<<fmt::format( "{} = ", it->first );
+        std::cout<<dependency_analysis_types::pattern_string(it->second);
+        std::cout<<"\n";
+      }
+
+  }
+
 }; 
 
 class pattern_deps_analysis

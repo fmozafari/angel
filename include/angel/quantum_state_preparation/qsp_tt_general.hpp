@@ -912,6 +912,8 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
             typename DependencyAnalysisAlgorithm::parameter_type pt;
             typename DependencyAnalysisAlgorithm::statistics_type st;
             auto result_deps = compute_dependencies<DependencyAnalysisAlgorithm>(tt_copy, pt, st);
+            result_deps.print();
+            
             std::map<uint32_t, bool> have_deps;
              for(auto i=0u; i<qubits_count; i++)
             {

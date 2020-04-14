@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include "common.hpp"
 #include "../utils/stopwatch.hpp"
+#include "common.hpp"
 
 #include <easy/exact_esop_cover_from_divisors.hpp>
 
@@ -75,6 +75,27 @@ struct esop_deps_analysis_result_type
 {
   /* maps an index to an ESOP cover */
   std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
+  void print()
+  {
+    for ( std::map<uint32_t, std::vector<std::vector<uint32_t>>>::const_iterator it = dependencies.begin(); it != dependencies.end(); ++it )
+    {
+
+      std::string deps;
+      deps += fmt::format( "{} = ", it->first );
+      for ( auto const& outer : it->second )
+      {
+        deps += "{";
+        for ( auto const& inner : outer )
+        {
+          deps += fmt::format( "{} ", inner );
+        }
+        deps += "}";
+        deps += " XOR ";
+      }
+      std::cout << deps << " 0\n";
+    }
+  }
+  
 };
 
 class esop_deps_analysis
@@ -89,8 +110,7 @@ public:
 
 public:
   explicit esop_deps_analysis( esop_deps_analysis_params const& ps, esop_deps_analysis_stats& st )
-    : ps( ps )
-    , st( st )
+      : ps( ps ), st( st )
   {
   }
 
@@ -107,7 +127,7 @@ public:
     }
 
     kitty::dynamic_truth_table minterm{function.num_vars()};
-    for ( auto const &m : kitty::get_minterms( function ) )
+    for ( auto const& m : kitty::get_minterms( function ) )
     {
       minterm._bits[0] = m;
       for ( auto i = 0; i < minterm.num_vars(); ++i )
@@ -143,9 +163,9 @@ public:
       }
 
       /* sort by entropy (highest entropy first) */
-      std::sort( std::rbegin( columns_copy ), std::rend( columns_copy ), [&]( auto const &a, auto const &b ) {
-          return a.entropy < b.entropy || (a.entropy == b.entropy && a.index > b.index);
-        });
+      std::sort( std::rbegin( columns_copy ), std::rend( columns_copy ), [&]( auto const& a, auto const& b ) {
+        return a.entropy < b.entropy || ( a.entropy == b.entropy && a.index > b.index );
+      } );
 
       /* overwrite the entropy of the target */
       auto& target = columns_copy[0];
@@ -219,7 +239,7 @@ private:
             //if ( cube.get_mask( divisor_indices[i] ) )
             if ( cube.get_mask( i ) )
             {
-              new_cube.push_back( cube.get_bit( i ) ? 2u*divisor_indices[i] : 2u*divisor_indices[i] + 1 );
+              new_cube.push_back( cube.get_bit( i ) ? 2u * divisor_indices[i] : 2u * divisor_indices[i] + 1 );
             }
           }
           esop_cover.push_back( new_cube );

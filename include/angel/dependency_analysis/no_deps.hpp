@@ -28,6 +28,8 @@ struct no_deps_analysis_result_type
 {
   /* maps an index to an ESOP cover */
   std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
+  void print() {}
+
 };
 
 class no_deps_analysis
