@@ -321,7 +321,7 @@ private:
       {
         polarity_counter += 2u * ( p.second[i] % 2 );
       }
-      return {( 1u << n ), polarity_counter};
+      return {( 1u << n ), polarity_counter + ( 1u << n )};
     }
     case dependency_analysis_types::pattern_kind::NAND:
     {
@@ -331,7 +331,7 @@ private:
       {
         polarity_counter += 2u * ( p.second[i] % 2 );
       }
-      return {( 1u << n ), polarity_counter};
+      return {( 1u << n ), polarity_counter + ( 1u << n )};
     }
     default:
       std::abort();

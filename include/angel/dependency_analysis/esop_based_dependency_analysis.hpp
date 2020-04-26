@@ -249,6 +249,8 @@ private:
     return std::nullopt;
   }
 
+
+
   bool is_covered_with_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisors )
   {
     /* iterate over all bit pairs of target */
