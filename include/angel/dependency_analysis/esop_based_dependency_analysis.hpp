@@ -95,7 +95,6 @@ struct esop_deps_analysis_result_type
       std::cout << deps << " 0\n";
     }
   }
-
 };
 
 class esop_deps_analysis
@@ -249,8 +248,6 @@ private:
     return std::nullopt;
   }
 
-
-
   bool is_covered_with_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisors )
   {
     /* iterate over all bit pairs of target */
@@ -279,6 +276,39 @@ private:
       }
     }
     return true;
+  }
+
+private:
+  std::pair<uint32_t, uint32_t> cost( std::vector<std::vector<uint32_t>> const& esop ) const
+  {
+    assert( esop.size() > 0u );
+    std::pair<uint32_t, uint32_t> cnots_sqgs = {0, 0};
+    /// first AND pattern
+    auto const n0 = esop[0].size();
+    auto polarity_counter = 0u;
+    for ( auto i = 0u; i < n0; ++i )
+    {
+      polarity_counter += 2u * ( esop[0][i] % 2 );
+    }
+    cnots_sqgs.first += ( 1 << n0 );
+    cnots_sqgs.second += ( 1 << n0 );
+    cnots_sqgs.second += polarity_counter;
+
+    /// the rest
+    for ( auto i = 1u; i < esop.size(); i++ )
+    {
+      auto const n = esop[i].size();
+      auto polarity_counter = 0u;
+      for ( auto j = 0u; j < n; ++j )
+      {
+        polarity_counter += 2u * ( esop[i][j] % 2 );
+      }
+      cnots_sqgs.first += ( 1 << ( n + 1 ) );
+      cnots_sqgs.second += ( 1 << ( n + 1 ) );
+      cnots_sqgs.second += polarity_counter;
+    }
+
+    return cnots_sqgs;
   }
 
 private:
