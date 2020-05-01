@@ -4,6 +4,7 @@
 #include <angel/dependency_analysis/no_deps.hpp>
 #include <angel/quantum_state_preparation/qsp_tt_general.hpp>
 #include <angel/reordering/all_reordering.hpp>
+#include <angel/reordering/sift_reordering.hpp>
 #include <angel/reordering/considering_deps_reordering.hpp>
 #include <angel/reordering/no_reordering.hpp>
 #include <angel/reordering/random_reordering.hpp>

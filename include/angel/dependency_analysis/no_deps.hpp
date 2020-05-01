@@ -58,8 +58,8 @@ public:
   }
 
 private:
-  no_deps_analysis_params const& ps;
-  no_deps_analysis_stats& st;
+   no_deps_analysis_params const& ps;
+   no_deps_analysis_stats& st;
 
 };
 

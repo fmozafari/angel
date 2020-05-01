@@ -25,15 +25,6 @@ public:
         return all_orders;
     }
 
-    using dependencies_t = std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>>;
-    bool compute_next_order(order& current_order, uint32_t var_count, dependencies_t deps)
-    {
-        (void) current_order;
-        (void) var_count;
-        (void) deps;
-        return false;
-    }
-
 };
 
 } /// namespace angel end
