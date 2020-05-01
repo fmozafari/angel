@@ -278,7 +278,7 @@ private:
     return true;
   }
 
-private:
+public:
   std::pair<uint32_t, uint32_t> cost( std::vector<std::vector<uint32_t>> const& esop ) const
   {
     assert( esop.size() > 0u );
