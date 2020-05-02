@@ -14,6 +14,8 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
   angel::qsp_general_stats stats_defaultOrder_esopDeps;
   angel::qsp_general_stats stats_randomOrder_patternDeps;
   angel::qsp_general_stats stats_randomOrder_esopDeps;
+  angel::qsp_general_stats stats_siftOrder_patternDeps;
+  angel::qsp_general_stats stats_siftOrder_esopDeps;
 
   auto seed = 1;
   uint32_t counter = ps.num_vars;
@@ -53,7 +55,6 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           angel::qsp_tt_general<decltype( ntk ), angel::esop_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_defaultOrder_esopDeps);
         }
 
-
         {
           /* state preparation with pattern dependency analysis and random reordering */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
@@ -67,6 +68,21 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
           angel::RandomReordering orders(seed, ps.num_vars * ps.num_vars);
           angel::qsp_tt_general<decltype( ntk ), angel::esop_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_randomOrder_esopDeps);
         }
+
+        {
+          /* state preparation with pattern dependency analysis and sift reordering */
+          tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+          angel::SiftReordering orders(tt);
+          angel::qsp_tt_general<decltype( ntk ), angel::pattern_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_siftOrder_patternDeps);
+        }
+
+        {
+          /* state preparation with esop dependency analysis and random reordering */
+          tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+          angel::SiftReordering orders(tt);
+          angel::qsp_tt_general<decltype( ntk ), angel::esop_deps_analysis, decltype( orders )>(ntk, orders, tt, stats_siftOrder_esopDeps);
+        }
+
       });
   }
 
@@ -75,14 +91,18 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
        stats_defaultOrder_patternDeps.total_cnots, angel::to_seconds( stats_defaultOrder_patternDeps.total_time ),
        stats_defaultOrder_esopDeps.total_cnots, angel::to_seconds( stats_defaultOrder_esopDeps.total_time ),
        stats_randomOrder_patternDeps.total_cnots, angel::to_seconds( stats_randomOrder_patternDeps.total_time ),
-       stats_randomOrder_esopDeps.total_cnots, angel::to_seconds( stats_randomOrder_esopDeps.total_time ) );
+       stats_randomOrder_esopDeps.total_cnots, angel::to_seconds( stats_randomOrder_esopDeps.total_time ),
+       stats_siftOrder_patternDeps.total_cnots, angel::to_seconds( stats_siftOrder_patternDeps.total_time ),
+       stats_siftOrder_esopDeps.total_cnots, angel::to_seconds( stats_siftOrder_esopDeps.total_time ) );
 }
 
 int main()
 {
-  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double, uint32_t, double, uint32_t, double>
+  experiments::experiment<std::string, uint32_t, uint32_t, double, uint32_t, double, uint32_t, double, uint32_t, double, 
+  uint32_t, double, uint32_t, double, uint32_t, double>
     exp( "qsp_cuts", "benchmarks", "#functions", "base: #cnots", "base: time", "no-pattern: #cnots", "no-pattern: time", 
-    "no-esop: #cnots", "no-esop: time", "rnd-pattern: #cnots", "rnd-pattern: time", "rnd-esop: #cnots", "rnd-esop: time" );
+    "no-esop: #cnots", "no-esop: time", "rnd-pattern: #cnots", "rnd-pattern: time", "rnd-esop: #cnots", "rnd-esop: time",
+    "sift-pattern: #cnots", "sift-pattern: time", "sift-esop: #cnots", "sift-esop: time" );
 
   for ( auto i = 4u; i < 7u; ++i )
   {

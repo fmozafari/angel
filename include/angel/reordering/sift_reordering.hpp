@@ -38,8 +38,8 @@ public:
                 if ( next_t < tt )
                 {
                     tt = next_t;
-                    kitty::print_binary(tt);
-                    std::cout<<std::endl;
+                    //kitty::print_binary(tt);
+                    //std::cout<<std::endl;
                     std::swap( perm[i], perm[i + 1] );
                     orders.emplace_back(perm);
                     local_improvement = true;

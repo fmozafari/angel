@@ -27,11 +27,13 @@ struct qsp_1bench_stats
     std::pair<uint32_t, uint32_t> gates_count = std::make_pair(0,0);
 };
 
-/* cache declaration */
-std::unordered_map<uint64_t, qsp_1bench_stats> cache;
+
 
 struct qsp_general_stats
 {
+    /* cache declaration */
+    std::unordered_map<uint64_t, qsp_1bench_stats> cache;
+
     stopwatch<>::duration_type total_time{0};
     uint32_t total_bench{0};
     uint32_t has_no_dependencies{0};
@@ -959,6 +961,7 @@ void qsp(gates_t& qc_gates, kitty::dynamic_truth_table tt, std::vector<order_t> 
     //extract_deps_operation_stats(op_stats, best_deps);
 
     qc_gates = best_gates;
+    final_qsp_stats = best_stats;
     final_qsp_stats.total_time = time_traversal;
     //final_qsp_stats.total_bench += 1;
     //final_qsp_stats.has_no_dependencies += best_stats.has_no_dependencies;
@@ -966,10 +969,10 @@ void qsp(gates_t& qc_gates, kitty::dynamic_truth_table tt, std::vector<order_t> 
     //final_qsp_stats.has_dependencies += best_stats.has_dependencies;
     //final_qsp_stats.funcdep_bench_useful += best_stats.funcdep_bench_useful;
     //final_qsp_stats.funcdep_bench_notuseful += best_stats.funcdep_bench_notuseful;
-    final_qsp_stats.total_cnots = best_stats.total_cnots;
-    final_qsp_stats.total_rys = best_stats.total_rys;
-    final_qsp_stats.total_nots = best_stats.total_nots;
-    final_qsp_stats.gates_count = best_stats.gates_count;
+    //final_qsp_stats.total_cnots = best_stats.total_cnots;
+    //final_qsp_stats.total_rys = best_stats.total_rys;
+    //final_qsp_stats.total_nots = best_stats.total_nots;
+    //final_qsp_stats.gates_count = best_stats.gates_count;
       
 
 }
@@ -1058,9 +1061,9 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
         stopwatch t(caching_time);
         auto const [tt_min, phase, order] = kitty::exact_p_canonization(tt);
         tt_p_min = tt_min;
-        if(cache.find(tt_min._bits[0u]) != cache.end()) /// already exist
+        if(final_qsp_stats.cache.find(tt_min._bits[0u]) != final_qsp_stats.cache.end()) /// already exist
         {   
-            qsp_stats = cache[tt_min._bits[0u]];
+            qsp_stats = final_qsp_stats.cache[tt_min._bits[0u]];
             exist_in_cache = true;
         }
 
@@ -1090,7 +1093,7 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
     final_qsp_stats.total_time += caching_time;
 
     /* insert into cache */
-    cache[tt_p_min._bits[0u]] = qsp_stats;
+    final_qsp_stats.cache[tt_p_min._bits[0u]] = qsp_stats;
     
 }
 
