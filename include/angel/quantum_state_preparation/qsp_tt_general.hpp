@@ -32,7 +32,7 @@ struct qsp_1bench_stats
 struct qsp_general_stats
 {
     /* cache declaration */
-    std::unordered_map<uint64_t, qsp_1bench_stats> cache;
+    std::unordered_map<kitty::dynamic_truth_table, qsp_1bench_stats, kitty::hash<kitty::dynamic_truth_table>> cache;
 
     stopwatch<>::duration_type total_time{0};
     uint32_t total_bench{0};
@@ -1061,9 +1061,9 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
         stopwatch t(caching_time);
         auto const [tt_min, phase, order] = kitty::exact_p_canonization(tt);
         tt_p_min = tt_min;
-        if(final_qsp_stats.cache.find(tt_min._bits[0u]) != final_qsp_stats.cache.end()) /// already exist
+        if(final_qsp_stats.cache.find(tt_min/*tt_min._bits[0u]*/) != final_qsp_stats.cache.end()) /// already exist
         {   
-            qsp_stats = final_qsp_stats.cache[tt_min._bits[0u]];
+            qsp_stats = final_qsp_stats.cache[tt_min];
             exist_in_cache = true;
         }
 
@@ -1093,7 +1093,7 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
     final_qsp_stats.total_time += caching_time;
 
     /* insert into cache */
-    final_qsp_stats.cache[tt_p_min._bits[0u]] = qsp_stats;
+    final_qsp_stats.cache[tt_p_min] = qsp_stats;
     
 }
 
