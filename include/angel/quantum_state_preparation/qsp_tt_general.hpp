@@ -27,8 +27,6 @@ struct qsp_1bench_stats
     std::pair<uint32_t, uint32_t> gates_count = std::make_pair(0,0);
 };
 
-
-
 struct qsp_general_stats
 {
     /* cache declaration */
@@ -1043,6 +1041,7 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
     if(kitty::is_const0(tt))
     {
         std::cout<<"The tt is zero, algorithm return an empty circuit!\n";
+        final_qsp_stats.total_bench ++;
         return;
     }
     const uint32_t qubits_count = tt.num_vars();
@@ -1059,14 +1058,13 @@ void qsp_tt_general(Network &net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reor
     stopwatch<>::duration_type caching_time{0};
     {
         stopwatch t(caching_time);
-        auto const [tt_min, phase, order] = kitty::exact_p_canonization(tt);
+        auto const [tt_min, phase, order] = (qubits_count<7u) ? kitty::exact_p_canonization(tt) : kitty::sifting_p_canonization(tt);
         tt_p_min = tt_min;
         if(final_qsp_stats.cache.find(tt_min/*tt_min._bits[0u]*/) != final_qsp_stats.cache.end()) /// already exist
         {   
             qsp_stats = final_qsp_stats.cache[tt_min];
             exist_in_cache = true;
         }
-
     }
     if(exist_in_cache)
     {
