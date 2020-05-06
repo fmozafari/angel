@@ -170,6 +170,20 @@ public:
       auto& target = columns_copy[0];
       target.entropy = kitty::absolute_distinguishing_power( target.tt );
 
+      /* skip constants */
+      if ( kitty::is_const0( target.tt ) )
+      {
+        /* false */
+        result.dependencies[target.index] = std::vector<std::vector<uint32_t>>{};
+        continue;
+      }
+      else if ( kitty::is_const0( ~target.tt ) )
+      {
+        /* true */
+        result.dependencies[target.index] = std::vector<std::vector<uint32_t>>{{}};
+        continue;
+      }
+
       /* print */
       // std::cout << "===========================================================================" << std::endl;
       // std::cout << "target = "; kitty::print_binary( target.tt ); std::cout << ' ' << target.entropy << std::endl;
@@ -276,39 +290,6 @@ private:
       }
     }
     return true;
-  }
-
-public:
-  std::pair<uint32_t, uint32_t> cost( std::vector<std::vector<uint32_t>> const& esop ) const
-  {
-    assert( esop.size() > 0u );
-    std::pair<uint32_t, uint32_t> cnots_sqgs = {0, 0};
-    /// first AND pattern
-    auto const n0 = esop[0].size();
-    auto polarity_counter = 0u;
-    for ( auto i = 0u; i < n0; ++i )
-    {
-      polarity_counter += 2u * ( esop[0][i] % 2 );
-    }
-    cnots_sqgs.first += ( 1 << n0 );
-    cnots_sqgs.second += ( 1 << n0 );
-    cnots_sqgs.second += polarity_counter;
-
-    /// the rest
-    for ( auto i = 1u; i < esop.size(); i++ )
-    {
-      auto const n = esop[i].size();
-      auto polarity_counter = 0u;
-      for ( auto j = 0u; j < n; ++j )
-      {
-        polarity_counter += 2u * ( esop[i][j] % 2 );
-      }
-      cnots_sqgs.first += ( 1 << ( n + 1 ) );
-      cnots_sqgs.second += ( 1 << ( n + 1 ) );
-      cnots_sqgs.second += polarity_counter;
-    }
-
-    return cnots_sqgs;
   }
 
 private:
