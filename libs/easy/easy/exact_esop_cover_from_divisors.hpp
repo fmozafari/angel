@@ -35,7 +35,7 @@
 
 #include "cubes.hpp"
 
-#include <kitty/partial_truth_table.hpp>
+#include <kitty/kitty.hpp>
 #include <bill/sat/solver.hpp>
 #include <bill/sat/tseytin.hpp>
 #include <algorithm>
@@ -78,12 +78,16 @@ public:
       if ( kitty::is_const0( ~target ) )
       {
         result.esop_cover = std::vector{easy::cube()}; /* true */
+        assert( result.esop_cover->size() == 1u );
+        assert( (*result.esop_cover)[0].num_literals() == 0u );
+        assert( cnot_cost( *result.esop_cover ) == 0u );
         return result;
       }
 
       if ( kitty::is_const0( target ) )
       {
         result.esop_cover = std::vector<easy::cube>{}; /* false */
+        assert( result.esop_cover->size() == 0u );
         return result;
       }
 
@@ -235,13 +239,49 @@ public:
       {
       case bill::result::states::satisfiable:
         {
-          auto cover = esop_cover_from_model( solver.get_model().model(), n, k );
-          auto const cost = cnot_cost( cover );
-          if ( cost < best_cost )
+          do
           {
-            best_cost = cost;
-            result.esop_cover = cover;
-          }
+            auto const model = solver.get_model().model();
+
+            auto cover = esop_cover_from_model( model, n, k );
+            auto const cost = cnot_cost( cover );
+            if ( cost < best_cost )
+            {
+              best_cost = cost;
+              result.esop_cover = cover;
+            }
+
+            /* constraint current solution */
+            std::vector<bill::lit_type> clause;
+            for ( auto i = 0u; i < k; ++i ) /* for each ESOP cube */
+            {
+              for ( auto j = 0u; j < n; ++j ) /* for each variable */
+              {
+                auto const p_value = model[2*n*i + 2*j] == bill::lbool_type::true_;
+                auto const q_value = model[2*n*i + 2*j + 1] == bill::lbool_type::true_;
+
+                if ( p_value )
+                {
+                  clause.emplace_back( ~p( i, j ) );
+                }
+                else
+                {
+                  clause.emplace_back( p( i, j ) );
+                }
+
+                if ( q_value )
+                {
+                  clause.emplace_back( ~q( i, j ) );
+                }
+                else
+                {
+                  clause.emplace_back( q( i, j ) );
+                }
+              }
+            }
+            solver.add_clause( clause );
+          } while ( solver.solve() == bill::result::states::satisfiable );
+
           continue;
         }
         break;
@@ -258,6 +298,8 @@ private:
   std::vector<easy::cube> esop_cover_from_model( bill::result::model_type const& model, uint32_t n, uint32_t k )
   {
     std::vector<easy::cube> cover;
+
+    uint32_t empty_cube_counter = 0u;
     for ( auto i = 0u; i < k; ++i ) /* for each ESOP cube */
     {
       easy::cube c;
@@ -286,12 +328,24 @@ private:
       {
         continue;
       }
+      else if ( c.num_literals() == 0u )
+      {
+        ++empty_cube_counter;
+        continue;
+      }
       cover.push_back( c );
     }
+
+    /* add at most one empty cube for negation */
+    if ( ( empty_cube_counter % 2 ) == 1u )
+    {
+      cover.push_back( easy::cube() );
+    }
+
     return cover;
   }
 
-  uint32_t cnot_cost( easy::cube const& c ) const
+  uint32_t cnot_cost( easy::cube const& c, bool is_first = false ) const
   {
     auto const num_literals = c.num_literals();
     switch ( num_literals )
@@ -301,20 +355,27 @@ private:
     case 1:
       return 1;
     default:
-      return ( 1 << ( num_literals + 1 ) ) - 2u;
+      if ( is_first )
+        return ( 1 << num_literals );
+      else
+        return ( 1 << ( num_literals + 1 ) ) - 2u;
     }
   }
 
   uint32_t cnot_cost( std::vector<easy::cube>& esop ) const
   {
     uint32_t cost = 0u;
+    if ( esop.size() == 0u )
+    {
+      return cost;
+    }
 
     uint32_t first_cube = 0u;
     uint32_t best_cost_savings = 0u;
     for ( auto i = 0u; i < esop.size(); ++i )
     {
-      uint32_t const cost_a = cnot_cost( esop[i] );
-      uint32_t const cost_b = ( 1 << esop[i].num_literals() );
+      uint32_t const cost_a = cnot_cost( esop[i], false );
+      uint32_t const cost_b = cnot_cost( esop[i], true );
       uint32_t const cost_savings = cost_a > cost_b ? cost_a - cost_b : cost_b - cost_a;
       if ( cost_savings > best_cost_savings )
       {
@@ -324,15 +385,13 @@ private:
     }
 
     /* reorder ESOP cubes */
-    std::swap( esop[0u], esop[first_cube] );
+    if ( first_cube != 0u )
+      std::swap( esop[0u], esop[first_cube] );
 
-    /* consider costs for the first cube */
-    cost += 1 << esop[0].num_literals();
-
-    /* consider costs for the remaining cubes */
+    cost += cnot_cost( esop[0], true );
     for ( auto i = 1u; i < esop.size(); ++i )
     {
-      cost += cnot_cost( esop[i] );
+      cost += cnot_cost( esop[i], false );
     }
 
     return cost;

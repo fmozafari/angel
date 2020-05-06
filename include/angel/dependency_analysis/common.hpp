@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <kitty/dynamic_truth_table.hpp>
 #include <kitty/partial_truth_table.hpp>
 #include <fmt/format.h>
 #include <vector>
@@ -46,13 +47,15 @@ struct dependency_analysis_types
   /* pattern */
   enum class pattern_kind
   {
+    /* const */
+    CONST = 1,
     /* unary */
-    EQUAL = 1,
+    EQUAL = 2,
     /* nary */
-    XOR   = 2,
-    XNOR  = 3,
-    AND   = 4,
-    NAND  = 5,
+    XOR   = 3,
+    XNOR  = 4,
+    AND   = 5,
+    NAND  = 6,
   };
 
   using fanins = std::vector<uint32_t>;
@@ -70,6 +73,8 @@ struct dependency_analysis_types
   {
     switch( kind )
     {
+    case pattern_kind::CONST:
+      return "CONST";
     case pattern_kind::EQUAL:
       return "EQUAL";
     case pattern_kind::XOR:

@@ -35,8 +35,10 @@
 #pragma once
 
 #include "common.hpp"
+
 #include "../utils/stopwatch.hpp"
-#include <kitty/implicant.hpp>
+
+#include <kitty/kitty.hpp>
 #include <map>
 
 namespace angel
@@ -46,8 +48,11 @@ struct pattern_deps_analysis_params
 {
   bool select_first = false;
 
-  /* a value between 1u and 5u */
+  /* A value between 1u and 5u */
   uint32_t max_pattern_size{5};
+
+  /* Be verbose. */
+  bool verbose = true;
 }; /* dependency_analysis_params */
 
 struct pattern_deps_analysis_stats
@@ -65,6 +70,7 @@ struct pattern_deps_analysis_stats
   /* number of patterns return as result */
   uint32_t num_patterns{0};
 
+  uint32_t num_constants{0};
   uint32_t num_singletons{0};
   uint32_t num_2tuples{0};
   uint32_t num_3tuples{0};
@@ -155,6 +161,18 @@ public:
     {
       /* collect patterns for i-th target column */
       patterns.clear();
+
+      /* skip constants */
+      if ( kitty::is_const0( columns[i].tt ) )
+      {
+        result.dependencies[i] = std::make_pair( dependency_analysis_types::pattern_kind::CONST, std::vector<uint32_t>{ 0 } );
+        continue;
+      }
+      else if ( kitty::is_const0( ~columns[i].tt ) )
+      {
+        result.dependencies[i] = std::make_pair( dependency_analysis_types::pattern_kind::CONST, std::vector<uint32_t>{ 1 } );
+        continue;
+      }
 
       bool success = false;
       for ( auto j = i + 1u; j < num_vars; ++j )
