@@ -235,52 +235,72 @@ public:
         bill::add_xor_clause( solver, clause, bill::lit_type::polarities( !kitty::get_bit( target, l ) ) );
       }
 
+      /* at most one cube is allowed to be empty */
+      for ( auto i = 0u; i < k-1; ++i ) // for each ESOP cube
+      {
+        std::vector<bill::lit_type> clause;
+        for ( auto j = 0u; j < n; ++j ) /* for each variable */
+        {
+          clause.push_back( bill::add_tseytin_xor( solver, p( i, j ), q( i, j ) ) );
+        }
+        solver.add_clause( clause );
+      }
+
       switch ( solver.solve() )
       {
       case bill::result::states::satisfiable:
         {
-          do
+          auto const model = solver.get_model().model();
+          auto cover = esop_cover_from_model( model, n, k );
+          auto const cost = cnot_cost( cover );
+          if ( cost < best_cost )
           {
-            auto const model = solver.get_model().model();
+            best_cost = cost;
+            result.esop_cover = cover;
+          }
+          // print_cover( cover, n, cost, best_cost );
 
-            auto cover = esop_cover_from_model( model, n, k );
-            auto const cost = cnot_cost( cover );
-            if ( cost < best_cost )
+          /* try to minimize literals */
+          std::vector<bill::lit_type> lits;
+          for ( auto i = 0u; i < k; ++i ) /* for each ESOP cube */
+          {
+            for ( auto j = 0u; j < n; ++j ) /* for each variable */
             {
-              best_cost = cost;
-              result.esop_cover = cover;
-            }
+              auto const p_value = model[2*n*i + 2*j] == bill::lbool_type::true_;
+              auto const q_value = model[2*n*i + 2*j + 1] == bill::lbool_type::true_;
 
-            /* constraint current solution */
-            std::vector<bill::lit_type> clause;
-            for ( auto i = 0u; i < k; ++i ) /* for each ESOP cube */
-            {
-              for ( auto j = 0u; j < n; ++j ) /* for each variable */
+              if ( p_value ^ q_value )
               {
-                auto const p_value = model[2*n*i + 2*j] == bill::lbool_type::true_;
-                auto const q_value = model[2*n*i + 2*j + 1] == bill::lbool_type::true_;
-
                 if ( p_value )
                 {
-                  clause.emplace_back( ~p( i, j ) );
+                  lits.push_back( p( i, j ) );
                 }
-                else
+                else if ( q_value )
                 {
-                  clause.emplace_back( p( i, j ) );
-                }
-
-                if ( q_value )
-                {
-                  clause.emplace_back( ~q( i, j ) );
-                }
-                else
-                {
-                  clause.emplace_back( q( i, j ) );
+                  lits.push_back( q( i, j ) );
                 }
               }
             }
-            solver.add_clause( clause );
-          } while ( solver.solve() == bill::result::states::satisfiable );
+          }
+
+          std::reverse( std::begin( lits ), std::end( lits ) );
+
+          for ( auto const& l : lits )
+          {
+            if ( solver.solve( { ~l } ) == bill::result::states::satisfiable )
+            {
+              auto const model = solver.get_model().model();
+
+              auto cover = esop_cover_from_model( model, n, k );
+              auto const cost = cnot_cost( cover );
+              if ( cost < best_cost )
+              {
+                best_cost = cost;
+                result.esop_cover = cover;
+              }
+              // print_cover( cover, n, cost, best_cost );
+            }
+          }
 
           continue;
         }
@@ -295,6 +315,16 @@ public:
   }
 
 private:
+  void print_cover( std::vector<easy::cube> const& esop, uint32_t num_vars, uint32_t cost, uint32_t best_cost ) const
+  {
+    for ( const auto& cube : esop )
+    {
+      cube.print( num_vars );
+      std::cout << ' ';
+    }
+    std::cout << "cost = " << cost << " best cost = " << best_cost << std::endl;
+  }
+
   std::vector<easy::cube> esop_cover_from_model( bill::result::model_type const& model, uint32_t n, uint32_t k )
   {
     std::vector<easy::cube> cover;
