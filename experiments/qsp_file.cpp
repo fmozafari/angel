@@ -21,16 +21,23 @@ void run_experiments( std::ofstream& ofs, std::vector<std::string> const& benchm
 
 int main()
 {
-  std::string const filename = "qsp_cut_functions.txt";
-  std::ofstream ofs( filename );
-  for ( auto i = 4u; i <= 6u; ++i )
+  
+  for ( auto i = 4u; i < 7u; ++i )
   {
+    std::string const filename1 = fmt::format("qsp_cut_functions_EPFL_{}.txt", i);
+    std::ofstream ofs_EPFL( filename1 );
     fmt::print( "[i] run experiments for {}-input cut functions\n", i );
-    run_experiments( ofs, experiments::epfl_benchmarks( ~experiments::epfl::hyp ), fmt::format( "EPFL benchmarks {}", i ),
+    run_experiments( ofs_EPFL, experiments::epfl_benchmarks( ~experiments::epfl::hyp ), fmt::format( "EPFL benchmarks {}", i ),
                      {.num_vars = i} );
-    run_experiments( ofs, experiments::iscas_benchmarks(), fmt::format( "ISCAS benchmarks {}", i ),
+                    
+    std::string const filename2 = fmt::format("qsp_cut_functions_ISCAS_{}.txt", i);
+    std::ofstream ofs_ISCAS( filename2 );
+    run_experiments( ofs_ISCAS, experiments::iscas_benchmarks(), fmt::format( "ISCAS benchmarks {}", i ),
                      {.num_vars = i} );
+
+    ofs_EPFL.close();
+    ofs_ISCAS.close();
   }
-  ofs.close();
+  
   return 0;
 }
