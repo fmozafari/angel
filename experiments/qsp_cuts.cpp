@@ -104,7 +104,7 @@ int main()
     "no-esop: #cnots", "no-esop: time", "rnd-pattern: #cnots", "rnd-pattern: time", "rnd-esop: #cnots", "rnd-esop: time",
     "sift-pattern: #cnots", "sift-pattern: time", "sift-esop: #cnots", "sift-esop: time" );
 
-  for ( auto i = 4u; i < 5u; ++i )
+  for ( auto i = 4u; i < 7u; ++i )
   {
     fmt::print( "[i] run experiments for {}-input cut functions\n", i );
     run_experiments( exp, experiments::epfl_benchmarks( ~experiments::epfl::hyp ), fmt::format( "EPFL benchmarks {}", i ),
