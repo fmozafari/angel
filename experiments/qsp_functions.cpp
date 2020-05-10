@@ -40,7 +40,7 @@ int main()
     {
       kitty::create_equals( tt, i );
       
-      {
+        {
           /* state preparation without dependency analysis or reordering (baseline) */
           tweedledum::netlist<tweedledum::mcmt_gate> ntk;
           angel::NoReordering orders;

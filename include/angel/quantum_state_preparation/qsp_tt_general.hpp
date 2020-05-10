@@ -594,10 +594,14 @@ void qsp( gates_t& qc_gates, kitty::dynamic_truth_table tt, std::vector<order_t>
   stopwatch<>::duration_type time_traversal{0};
   {
     stopwatch t( time_traversal );
+    auto compute_atleast_once = false;
     for ( auto order : orders )
     {
       kitty::dynamic_truth_table tt_copy = tt;
       angel::reordering_on_tt_inplace( tt_copy, order );
+      if((tt_copy == tt) && compute_atleast_once)
+        continue;
+      compute_atleast_once = true;
       //kitty::print_binary(tt_copy);
       //std::cout<<std::endl;
       qsp_1bench_stats qsp_stats;
