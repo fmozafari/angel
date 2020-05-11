@@ -323,6 +323,33 @@ void gates_statistics( gates_t gates, uint32_t const num_vars, qsp_1bench_stats&
   return;
 }
 
+using gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>;
+void  print_gates(gates_t gates)
+{
+    for(auto const& target: gates)
+    {
+        std::cout<<fmt::format("target idx: {}\n", target.first);
+        auto gs = target.second;
+        for (auto const& g: gs)
+        {
+            std::cout<<fmt::format("angle: {} controls: ", (g.first/M_PI) *180);
+            for(auto const& c: g.second)
+            {
+                if(c % 2==0)
+                {
+                    std::cout<<fmt::format("{} ", c/2);
+                }
+                else
+                {
+                    std::cout<<fmt::format("-{} ", c/2);
+                }
+                
+            }
+            std::cout<<std::endl;
+        }
+    }
+}
+
 // struct deps_operation_stats
 // {
 //   /* Be verbose */
