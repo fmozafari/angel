@@ -75,7 +75,8 @@ struct esop_deps_analysis_result_type
 {
   /* maps an index to an ESOP cover */
   std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
-  void print()
+
+  void print() const
   {
     for ( std::map<uint32_t, std::vector<std::vector<uint32_t>>>::const_iterator it = dependencies.begin(); it != dependencies.end(); ++it )
     {
@@ -113,7 +114,7 @@ public:
   {
   }
 
-  esop_deps_analysis_result_type run( function_type const& function )
+  esop_deps_analysis_result_type run( function_type const& function ) const
   {
     stopwatch t( st.total_time );
 
@@ -228,7 +229,7 @@ public:
 
 private:
   std::optional<std::vector<std::vector<uint32_t>>>
-  on_candidate( std::vector<dependency_analysis_types::column> const& columns, uint32_t target_index, std::vector<uint32_t> const& divisor_indices )
+  on_candidate( std::vector<dependency_analysis_types::column> const& columns, uint32_t target_index, std::vector<uint32_t> const& divisor_indices ) const
   {
     std::vector<kitty::partial_truth_table> functions;
     for ( const auto& i : divisor_indices )
@@ -262,7 +263,7 @@ private:
     return std::nullopt;
   }
 
-  bool is_covered_with_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisors )
+  bool is_covered_with_divisors( kitty::partial_truth_table const& target, std::vector<kitty::partial_truth_table> const& divisors ) const
   {
     /* iterate over all bit pairs of target */
     for ( uint32_t i = 0u; i < uint32_t( target.num_bits() ); ++i )

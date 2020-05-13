@@ -23,13 +23,12 @@ struct no_deps_analysis_stats
   }
 };
 
-/* it is fake */
 struct no_deps_analysis_result_type
 {
   /* maps an index to an ESOP cover */
   std::map<uint32_t, std::vector<std::vector<uint32_t>>> dependencies;
-  void print() {}
 
+  void print() const {}
 };
 
 class no_deps_analysis
@@ -49,18 +48,15 @@ public:
   {
   }
 
-  no_deps_analysis_result_type run( function_type const& function )
+  no_deps_analysis_result_type run( function_type const& function ) const
   {
     stopwatch t( st.total_time );
-    no_deps_analysis_result_type result;
-
-    return result;
+    return no_deps_analysis_result_type{};
   }
 
 private:
-   no_deps_analysis_params const& ps;
-   no_deps_analysis_stats& st;
-
+  no_deps_analysis_params const& ps;
+  no_deps_analysis_stats& st;
 };
 
 } /// namespace angel
