@@ -79,25 +79,14 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
         p1( tt ); /* patterns + no reordering */
         p2( tt ); /* ESOPs + no reordering */
 
-        std::cout << qsp0_st.num_cnots << ' ' << qsp1_st.num_cnots << ' ' << qsp2_st.num_cnots << ' '
-                  << qsp3_st.num_cnots << ' ' << qsp4_st.num_cnots << ' ' << qsp5_st.num_cnots << ' '
-                  << qsp6_st.num_cnots << ' ' << qsp7_st.num_cnots << ' ' << qsp8_st.num_cnots << std::endl;
-        
         p3( tt ); /* no dependencies + random reordering */
         p4( tt ); /* patterns + random reordering */
         p5( tt ); /* ESOPs + random reordering */
-
-        std::cout << qsp0_st.num_cnots << ' ' << qsp1_st.num_cnots << ' ' << qsp2_st.num_cnots << ' '
-                  << qsp3_st.num_cnots << ' ' << qsp4_st.num_cnots << ' ' << qsp5_st.num_cnots << ' '
-                  << qsp6_st.num_cnots << ' ' << qsp7_st.num_cnots << ' ' << qsp8_st.num_cnots << std::endl;
         
         p6( tt ); /* no dependencies + greedy reordering */
         p7( tt ); /* patterns + greedy reordering */
         p8( tt ); /* ESOPs + greedy reordering */
 
-        std::cout << qsp0_st.num_cnots << ' ' << qsp1_st.num_cnots << ' ' << qsp2_st.num_cnots << ' '
-                  << qsp3_st.num_cnots << ' ' << qsp4_st.num_cnots << ' ' << qsp5_st.num_cnots << ' '
-                  << qsp6_st.num_cnots << ' ' << qsp7_st.num_cnots << ' ' << qsp8_st.num_cnots << std::endl;
       });
   }
 
@@ -127,7 +116,7 @@ int main()
          "cnot qsp3", "time qsp3", "cnot qsp4", "time qsp4", "cnot qsp5", "time qsp5",
          "cnot qsp6", "time qsp6", "cnot qsp7", "time qsp7", "cnot qsp8", "time qsp8" );
   
-  for ( auto i = 4u; i < 8u; ++i )
+  for ( auto i = 4u; i < 9u; ++i )
   {
     fmt::print( "[i] run experiments for {}-input cut functions\n", i );
     run_experiments( exp, experiments::epfl_benchmarks(), fmt::format( "EPFL benchmarks {}", i ),

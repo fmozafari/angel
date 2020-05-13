@@ -791,6 +791,11 @@ struct state_preparation_statistics
   
   stopwatch<>::duration_type time_cache{0};
   stopwatch<>::duration_type time_total{0};
+
+  void reset()
+  {
+    *this = {};
+  }
 }; /* state_preparation_statistics */
 
 struct network
@@ -834,13 +839,11 @@ public:
       return it->second;
     }
 
-    std::cout << "---------------------------------------------------------------------------" << std::endl;
-    
     /* run state preparation for the current truth table */
     network best_ntk;
+    network ntk;
     order_strategy.foreach_reordering( tt, [&]( kitty::dynamic_truth_table const& tt ){
-        std::cout << "[i] prepare " << kitty::to_hex( tt ) << std::endl;
-        network const ntk = synthesize_network( tt );
+        ntk = synthesize_network( tt );
         if ( ntk.num_cnots < best_ntk.num_cnots )
         {
           best_ntk = ntk;
