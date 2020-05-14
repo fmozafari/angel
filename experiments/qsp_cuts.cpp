@@ -25,7 +25,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
     
   /* reordering strategies */
   angel::no_reordering no_reorder;
-  angel::random_reordering random( 0xcafeaffe, extract_ps.num_vars > 1u ? ( extract_ps.num_vars * extract_ps.num_vars - 1u ) : 1u );
+  angel::random_reordering random( 0xcafeaffe, extract_ps.num_vars > 1u ? ( extract_ps.num_vars * extract_ps.num_vars ) : 1u );
   angel::greedy_reordering greedy;
 
   /* prepare state preparation algorithms */

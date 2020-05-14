@@ -780,6 +780,7 @@ void qsp_tt_general( Network& net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reo
 
 struct state_preparation_parameters
 {
+  bool verbose{true};
 }; /* state_preparation_parameters */
 
 struct state_preparation_statistics
@@ -823,11 +824,11 @@ public:
 
   network operator()( kitty::dynamic_truth_table const& tt )
   {
-    stopwatch t( st.time_total );   
+    stopwatch t( st.time_total );
     uint32_t const num_variables = tt.num_vars();
 
     ++st.num_functions;
-    
+
     /* check if there is a network in the cache for this truth table */
     auto const [key_tt, _1, _2] = call_with_stopwatch( st.time_cache, [&]{
         return num_variables <= 7u ? kitty::exact_p_canonization( tt ) : kitty::sifting_p_canonization( tt );
@@ -836,13 +837,17 @@ public:
     if ( it != std::end( cache ) )
     {
       st.num_cnots += it->second.num_cnots;
+      if ( ps.verbose )
+      {
+        fmt::print( "cached function = {} cnots = {}\n", kitty::to_hex( tt ), it->second.num_cnots );
+      }
       return it->second;
     }
 
     /* run state preparation for the current truth table */
-    network best_ntk;
+    network best_ntk{{},std::numeric_limits<uint64_t>::max()};
     network ntk;
-    order_strategy.foreach_reordering( tt, [&]( kitty::dynamic_truth_table const& tt ){
+    order_strategy.foreach_reordering( tt, [this,&best_ntk,&ntk]( kitty::dynamic_truth_table const& tt ){
         ntk = synthesize_network( tt );
         if ( ntk.num_cnots < best_ntk.num_cnots )
         {
@@ -850,17 +855,22 @@ public:
         }
         return ntk.num_cnots;
       });
-    
+
     /* insert result into cache */
     cache.emplace( key_tt, best_ntk );
+
+    if ( ps.verbose )
+    {
+      fmt::print( "unique function = {} cnots = {}\n", kitty::to_hex( tt ), best_ntk.num_cnots );
+    }
 
     /* update statistics */
     ++st.num_unique_functions;
     st.num_cnots += best_ntk.num_cnots;
-    
+
     return best_ntk;
   }
-  
+
   network synthesize_network( kitty::dynamic_truth_table const& tt )
   {
     /* FIXME: treat const0 as a special case */
@@ -868,7 +878,7 @@ public:
     {
       return network{{}, 0u};
     }
-    
+
     /* extract dependencies */
     auto const result = dependency_strategy.run( tt );
 
@@ -907,7 +917,7 @@ public:
 
     return network{gates, st.total_cnots};
   }
-  
+
 protected:
   DependencyAnalysisStrategy& dependency_strategy;
   ReorderingStrategy& order_strategy;
