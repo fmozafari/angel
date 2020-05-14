@@ -1,16 +1,19 @@
 #pragma once
 
+#include "utils.hpp"
 #include <angel/dependency_analysis/common.hpp>
 #include <angel/utils/helper_functions.hpp>
 #include <angel/utils/stopwatch.hpp>
-#include <fmt/format.h>
-#include <iostream>
+
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/npn.hpp>
+#include <kitty/hash.hpp>
+#include <fmt/format.h>
+
+#include <iostream>
 #include <map>
 #include <unordered_map>
 #include <vector>
-#include "utils.hpp"
 
 namespace angel
 {
@@ -855,6 +858,9 @@ public:
         }
         return ntk.num_cnots;
       });
+
+    /* ensure that re-ordering has been exectued at least once */
+    assert( best_ntk.cnot_costs < std::numeric_limits<uint64_t>::max() );
 
     /* insert result into cache */
     cache.emplace( key_tt, best_ntk );
