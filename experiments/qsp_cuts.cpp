@@ -128,7 +128,7 @@ int main()
          "cnot qsp3", "time qsp3", "cnot qsp4", "time qsp4", "cnot qsp5", "time qsp5",
          "cnot qsp6", "time qsp6", "cnot qsp7", "time qsp7", "cnot qsp8", "time qsp8" );
   
-  for ( auto i = 4u; i < 9u; ++i )
+  for ( auto i = 4u; i < 8u; ++i )
   {
     fmt::print( "[i] run experiments for {}-input cut functions\n", i );
     run_experiments( exp, experiments::epfl_benchmarks(), fmt::format( "EPFL benchmarks {}", i ),

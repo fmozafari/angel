@@ -123,7 +123,7 @@ public:
         bool local_improvement = false;
         kitty::dynamic_truth_table const next_tt = kitty::swap( tt, perm[i], perm[i + 1] );
 
-        if ( tt == first_tt || next_tt == tt )
+        if ( next_tt == first_tt || next_tt == tt )
           continue;
 
         uint32_t const cost = fn( next_tt );
