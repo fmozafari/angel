@@ -82,11 +82,23 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
         p3( tt ); /* no dependencies + random reordering */
         p4( tt ); /* patterns + random reordering */
         p5( tt ); /* ESOPs + random reordering */
-        
+
         p6( tt ); /* no dependencies + greedy reordering */
         p7( tt ); /* patterns + greedy reordering */
         p8( tt ); /* ESOPs + greedy reordering */
 
+        /* ensure that baseline has the highest costs */
+        if ( qsp0_st.num_cnots < qsp1_st.num_cnots ||
+             qsp0_st.num_cnots < qsp2_st.num_cnots ||
+             qsp0_st.num_cnots < qsp3_st.num_cnots ||
+             qsp0_st.num_cnots < qsp4_st.num_cnots ||
+             qsp0_st.num_cnots < qsp5_st.num_cnots ||
+             qsp0_st.num_cnots < qsp6_st.num_cnots ||
+             qsp0_st.num_cnots < qsp7_st.num_cnots ||
+             qsp0_st.num_cnots < qsp8_st.num_cnots )
+        {
+          std::abort();
+        }
       });
   }
 
