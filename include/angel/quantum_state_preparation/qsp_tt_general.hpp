@@ -783,7 +783,8 @@ void qsp_tt_general( Network& net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reo
 
 struct state_preparation_parameters
 {
-  bool verbose{false};
+  bool verbose{true};
+  bool use_upperbound{true};
 }; /* state_preparation_parameters */
 
 struct state_preparation_statistics
@@ -848,7 +849,8 @@ public:
     }
 
     /* run state preparation for the current truth table */
-    network best_ntk{{},std::numeric_limits<uint64_t>::max()};
+    uint64_t const ub = ps.use_upperbound ? uint64_t( pow( 2u, num_variables ) - 2u ) : std::numeric_limits<uint64_t>::max();
+    network best_ntk{{},ub};
     order_strategy.foreach_reordering( tt, [this,&best_ntk]( kitty::dynamic_truth_table const& tt ){
         network ntk = synthesize_network( tt );
         if ( ntk.num_cnots < best_ntk.num_cnots )
