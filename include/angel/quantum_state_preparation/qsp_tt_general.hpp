@@ -915,9 +915,20 @@ public:
     std::map<uint32_t, bool> have_deps;
     for ( auto i = 0u; i < num_variables; i++ )
     {
-      have_deps[i] = dependencies.find( i ) != dependencies.end();
+      if ( dependencies.find( i ) != dependencies.end() )
+      {
+        have_deps[i] = true;
+      }
     }
     gates_statistics( gates, have_deps, num_variables, st );
+
+#if 0
+    std::map<uint32_t, bool> have_deps;
+    for ( auto i = 0u; i < num_variables; i++ )
+    {
+      have_deps[i] = dependencies.find( i ) != std::end( dependencies.end() );
+    }
+#endif
 
     return network{gates, st.total_cnots};
   }
