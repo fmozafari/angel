@@ -1,16 +1,19 @@
 #pragma once
 
+#include "utils.hpp"
 #include <angel/dependency_analysis/common.hpp>
 #include <angel/utils/helper_functions.hpp>
 #include <angel/utils/stopwatch.hpp>
-#include <fmt/format.h>
-#include <iostream>
+
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/npn.hpp>
+#include <kitty/hash.hpp>
+#include <fmt/format.h>
+
+#include <iostream>
 #include <map>
 #include <unordered_map>
 #include <vector>
-#include "utils.hpp"
 
 namespace angel
 {
@@ -611,7 +614,7 @@ void qsp( gates_t& qc_gates, kitty::dynamic_truth_table tt, std::vector<order_t>
       typename DependencyAnalysisAlgorithm::parameter_type pt;
       typename DependencyAnalysisAlgorithm::statistics_type st;
       auto result_deps = compute_dependencies<DependencyAnalysisAlgorithm>( tt_copy, pt, st );
-      result_deps.print();
+      // result_deps.print();
 
       std::map<uint32_t, bool> have_deps;
       for ( auto i = 0u; i < qubits_count; i++ )
@@ -775,7 +778,170 @@ void qsp_tt_general( Network& net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reo
   /* insert into cache */
   final_qsp_stats.cache[tt_p_min] = qsp_stats;
 
-  print_gates(qc_gates);
+  // print_gates(qc_gates);
 }
+
+struct state_preparation_parameters
+{
+  bool verbose{true};
+  bool use_upperbound{true};
+}; /* state_preparation_parameters */
+
+struct state_preparation_statistics
+{
+  uint64_t num_functions{0};
+  uint64_t num_unique_functions{0};
+
+  uint64_t num_cnots{0};
+  
+  stopwatch<>::duration_type time_cache{0};
+  stopwatch<>::duration_type time_total{0};
+
+  void reset()
+  {
+    *this = {};
+  }
+}; /* state_preparation_statistics */
+
+struct network
+{
+  gates_t gates;
+  uint64_t num_cnots;
+};
+
+template<class DependencyAnalysisStrategy, class ReorderingStrategy>
+class state_preparation
+{
+public:
+  using dependency_params = typename DependencyAnalysisStrategy::parameter_type;
+  using dependency_stats = typename DependencyAnalysisStrategy::statistics_type;
+
+public:
+  explicit state_preparation( DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
+                              state_preparation_parameters const& ps, state_preparation_statistics& st )
+    : dependency_strategy( dependency_strategy )
+    , order_strategy( order_strategy )
+    , ps( ps )
+    , st( st )
+  {
+  }
+
+  network operator()( kitty::dynamic_truth_table const& tt )
+  {
+    stopwatch t( st.time_total );
+    uint32_t const num_variables = tt.num_vars();
+
+    ++st.num_functions;
+
+    /* check if there is a network in the cache for this truth table */
+    auto const [key_tt, _1, _2] = call_with_stopwatch( st.time_cache, [&]{
+        return num_variables <= 7u ? kitty::exact_p_canonization( tt ) : kitty::sifting_p_canonization( tt );
+      });
+    auto const it = cache.find( key_tt );
+    if ( it != std::end( cache ) )
+    {
+      st.num_cnots += it->second.num_cnots;
+      if ( ps.verbose )
+      {
+        fmt::print( "cached function = {} cnots = {}\n", kitty::to_hex( tt ), it->second.num_cnots );
+      }
+      return it->second;
+    }
+
+    /* run state preparation for the current truth table */
+    uint64_t const ub = ps.use_upperbound ? uint64_t( pow( 2u, num_variables ) - 2u ) : std::numeric_limits<uint64_t>::max();
+    network best_ntk{{},ub};
+    order_strategy.foreach_reordering( tt, [this,&best_ntk]( kitty::dynamic_truth_table const& tt ){
+        network ntk = synthesize_network( tt );
+        if ( ntk.num_cnots < best_ntk.num_cnots )
+        {
+          best_ntk = ntk;
+        }
+        return ntk.num_cnots;
+      });
+
+    /* ensure that re-ordering has been exectued at least once */
+    assert( best_ntk.cnot_costs < std::numeric_limits<uint64_t>::max() );
+
+    /* insert result into cache */
+    cache.emplace( key_tt, best_ntk );
+    if ( ps.verbose )
+    {
+      fmt::print( "unique function = {} cnots = {}\n", kitty::to_hex( tt ), best_ntk.num_cnots );
+    }
+
+    /* update statistics */
+    ++st.num_unique_functions;
+    st.num_cnots += best_ntk.num_cnots;
+
+    return best_ntk;
+  }
+
+  network synthesize_network( kitty::dynamic_truth_table const& tt )
+  {
+    /* FIXME: treat const0 as a special case */
+    if ( kitty::is_const0( tt ) )
+    {
+      return network{{}, 0u};
+    }
+
+    /* extract dependencies */
+    auto const result = dependency_strategy.run( tt );
+
+    /* construct gates */
+    return create_gates( tt, result.dependencies );
+  }
+
+  template<typename Dependencies>
+  network create_gates( kitty::dynamic_truth_table const& tt, Dependencies const& dependencies )
+  {
+    uint32_t const num_variables = tt.num_vars();
+    uint32_t const var_index = num_variables - 1;
+
+    std::vector<uint32_t> zero_lines, one_lines;
+    extract_independent_vars( zero_lines, one_lines, tt );
+
+    gates_t gates;
+    std::vector<uint32_t> cs;
+    if ( !dependencies.empty() )
+    {
+      MC_qg_generation( gates, num_variables, tt, var_index, cs, dependencies, zero_lines, one_lines );      
+    }
+    else
+    {
+      MC_qg_generation( gates, tt, var_index, cs, zero_lines, one_lines );
+    }
+
+    /* FIXME: compute CNOT costs */
+    qsp_1bench_stats st;
+    std::map<uint32_t, bool> have_deps;
+    for ( auto i = 0u; i < num_variables; i++ )
+    {
+      if ( dependencies.find( i ) != dependencies.end() )
+      {
+        have_deps[i] = true;
+      }
+    }
+    gates_statistics( gates, have_deps, num_variables, st );
+
+#if 0
+    std::map<uint32_t, bool> have_deps;
+    for ( auto i = 0u; i < num_variables; i++ )
+    {
+      have_deps[i] = dependencies.find( i ) != std::end( dependencies.end() );
+    }
+#endif
+
+    return network{gates, st.total_cnots};
+  }
+
+protected:
+  DependencyAnalysisStrategy& dependency_strategy;
+  ReorderingStrategy& order_strategy;
+  state_preparation_parameters const& ps;
+  state_preparation_statistics& st;
+
+  std::unordered_map<kitty::dynamic_truth_table, network, kitty::hash<kitty::dynamic_truth_table>> cache;
+}; /* state_preparation */
 
 } // namespace angel

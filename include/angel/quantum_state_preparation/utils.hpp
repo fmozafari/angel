@@ -1,10 +1,13 @@
 #pragma once
 
-#include <iostream>
-#include <math.h>
-#include <map>
-#include <vector>
 #include <angel/utils/stopwatch.hpp>
+
+#include <fmt/format.h>
+
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <vector>
 
 namespace angel
 {

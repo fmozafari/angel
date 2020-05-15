@@ -47,6 +47,8 @@ struct compute_esop_cover_from_divisors_parameters
 {
   /* maximum number of cubes: 0 means infinity */
   uint32_t max_num_cubes{0u};
+
+  uint32_t num_conflicts{1000u};
 };
 
 struct compute_esop_cover_from_divisors_statistics
@@ -246,7 +248,7 @@ public:
         solver.add_clause( clause );
       }
 
-      switch ( solver.solve() )
+      switch ( solver.solve( {}, ps.num_conflicts ) )
       {
       case bill::result::states::satisfiable:
         {
@@ -287,7 +289,7 @@ public:
 
           for ( auto const& l : lits )
           {
-            if ( solver.solve( { ~l } ) == bill::result::states::satisfiable )
+            if ( solver.solve( { ~l }, ps.num_conflicts ) == bill::result::states::satisfiable )
             {
               auto const model = solver.get_model().model();
 
@@ -306,6 +308,7 @@ public:
         }
         break;
       case bill::result::states::unsatisfiable:
+      case bill::result::states::undefined:
         return result;
       default:
         std::abort();

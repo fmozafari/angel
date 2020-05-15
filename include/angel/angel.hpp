@@ -3,6 +3,7 @@
 #include <angel/dependency_analysis/esop_based_dependency_analysis.hpp>
 #include <angel/dependency_analysis/no_deps.hpp>
 #include <angel/quantum_state_preparation/qsp_tt_general.hpp>
+#include <angel/reordering/reordering.hpp>
 #include <angel/reordering/all_reordering.hpp>
 #include <angel/reordering/sift_reordering.hpp>
 #include <angel/reordering/considering_deps_reordering.hpp>
