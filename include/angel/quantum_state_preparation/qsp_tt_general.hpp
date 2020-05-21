@@ -129,7 +129,7 @@ void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_t
     bool deps_useful = false;
     if ( it != dependencies.end() )
     {
-      auto const esop_cnots = esop_cnot_cost( dependencies[var_index] );
+      auto const esop_cnots = esop_cnot_cost( dependencies[var_index] ).first;
       auto const upperbound_cost = compute_upperbound_cost( zero_lines, one_lines, num_vars, var_index );
       if ( esop_cnots <= upperbound_cost )
       {
@@ -292,16 +292,7 @@ void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_t
         {
           for ( auto d_in = 0u; d_in < dependencies[var_index].second.size(); d_in++ )
           {
-            // if ( dependencies[var_index].second[d_in] % 2 == 1 ) /* it is temporary */
-            // {
-            //   gates[dependencies[var_index].second[d_in]].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
-            //   gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second[d_in] - 1}} ); /// modifying control line
-            //   gates[dependencies[var_index].second[d_in]].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
-            // }
-            // else
-            // {
               gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second[d_in]}} );
-            //}
           }
         }
 
@@ -309,75 +300,19 @@ void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_t
         {
           for ( auto d_in = 0u; d_in < dependencies[var_index].second.size(); d_in++ )
           {
-            // if ( dependencies[var_index].second[d_in] % 2 == 1 ) /* it is temporary */
-            // {
-            //   gates[dependencies[var_index].second[d_in]].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
-            //   gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second[d_in] - 1}} ); /// modifying control line
-            //   gates[dependencies[var_index].second[d_in]].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
-            // }
-            // else
-            // {
               gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second[d_in]}} );
-            //}
           }
           gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
         }
 
         else if ( dependencies[var_index].first == dependency_analysis_types::pattern_kind::AND )
         {
-        //   std::vector<uint32_t> positive_ctrls;
-        //   for ( auto d_in = 0u; d_in < dependencies[var_index].second.size(); d_in++ ) /// insert nots
-        //   {
-        //     if ( dependencies[var_index].second[d_in] % 2 == 1 ) /* it is temporary */
-        //     {
-        //       gates[dependencies[var_index].second[d_in]].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
-        //       positive_ctrls.emplace_back( dependencies[var_index].second[d_in] - 1 );
-        //     }
-        //     else
-        //     {
-        //       positive_ctrls.emplace_back( dependencies[var_index].second[d_in] );
-        //     }
-        //   }
-
-          //gates[var_index].emplace_back( std::pair{M_PI, positive_ctrls} ); /// insert and
           gates[var_index].emplace_back( std::pair{M_PI, dependencies[var_index].second} ); /// insert and
-
-        //   for ( auto d_in = 0u; d_in < dependencies[var_index].second.size(); d_in++ ) /// insert nots
-        //   {
-        //     if ( dependencies[var_index].second[d_in] % 2 == 1 ) /* it is temporary */
-        //     {
-        //       gates[dependencies[var_index].second[d_in]].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
-        //     }
-        //   }
         }
 
         else if ( dependencies[var_index].first == dependency_analysis_types::pattern_kind::NAND )
         {
-        //   std::vector<uint32_t> positive_ctrls;
-        //   for ( auto d_in = 0u; d_in < dependencies[var_index].second.size(); d_in++ ) /// insert nots
-        //   {
-        //     if ( dependencies[var_index].second[d_in] % 2 == 1 ) /* it is temporary */
-        //     {
-        //       gates[dependencies[var_index].second[d_in]].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
-        //       positive_ctrls.emplace_back( dependencies[var_index].second[d_in] - 1 );
-        //     }
-        //     else
-        //     {
-        //       positive_ctrls.emplace_back( dependencies[var_index].second[d_in] );
-        //     }
-        //   }
-
-          //gates[var_index].emplace_back( std::pair{M_PI, positive_ctrls} ); /// insert and
           gates[var_index].emplace_back( std::pair{M_PI, dependencies[var_index].second} ); /// insert and
-
-        //   for ( auto d_in = 0u; d_in < dependencies[var_index].second.size(); d_in++ ) /// insert nots
-        //   {
-        //     if ( dependencies[var_index].second[d_in] % 2 == 1 ) /* it is temporary */
-        //     {
-        //       gates[dependencies[var_index].second[d_in]].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
-        //     }
-        //   }
-
           gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} ); /// insert not for and
         }
       }
