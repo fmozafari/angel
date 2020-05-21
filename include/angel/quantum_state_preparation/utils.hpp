@@ -4,9 +4,9 @@
 
 #include <fmt/format.h>
 
+#include <cmath>
 #include <iostream>
 #include <map>
-#include <cmath>
 #include <vector>
 
 namespace angel
@@ -78,7 +78,20 @@ uint32_t esop_cnot_cost( std::vector<std::vector<uint32_t>> const& esop )
     }
   }
 
-  return cnots_count;
+  /* using uniformly-controlled gates */
+  auto cnots_count2 = 0;
+  for(auto i=1u; i<esop.size(); i++)
+  {
+    for(auto j=0u; j<esop[i].size(); j++)
+    {
+      f = std::find(esop[0].begin(), esop[0].end(), esop[i][j]);
+      if(f == esop[0].end())
+        return cnots_count;
+    }
+  }
+  cnots_count2 = pow(2, esop[0].size());
+  
+  return cnots_count > cnots_count2 ? cnots_count2 : cnots_count;
 }
 
 /* with dependencies */
@@ -119,7 +132,7 @@ void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_depen
     auto it = have_dependencies.find( i );
     /* there exists deps */
     if ( it != have_dependencies.end() )
-    {  
+    {
       for ( auto j = 0u; j < gates[i].size(); j++ )
       {
         if ( gates[i][j].second.size() == ( ( num_vars - i - 1 ) - n_reduc ) &&
@@ -136,7 +149,7 @@ void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_depen
           rys++;
         else if ( cs == 1 && ( std::abs( gates[i][j].first - M_PI ) < 0.1 ) )
           cnots++;
-        else if(j==0)
+        else if ( j == 0 )
         {
           rys += pow( 2, cs );
           cnots += pow( 2, cs );
@@ -144,12 +157,11 @@ void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_depen
 
         else
         {
-            rys += pow( 2, cs+1 );
-            cnots += pow( 2, cs+1 );
+          rys += pow( 2, cs + 1 );
+          cnots += pow( 2, cs + 1 );
         }
-        
       }
-      
+
       if ( have_max_controls || cnots > pow( 2, ( ( num_vars - i - 1 ) - n_reduc ) ) ) /* we have max number of controls */
       {
         if ( i == int( num_vars - 1 - n_reduc ) ) /* first line for preparation */
@@ -327,30 +339,29 @@ void gates_statistics( gates_t gates, uint32_t const num_vars, qsp_1bench_stats&
 }
 
 using gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>;
-void  print_gates(gates_t gates)
+void print_gates( gates_t gates )
 {
-    for(auto const& target: gates)
+  for ( auto const& target : gates )
+  {
+    std::cout << fmt::format( "target idx: {}\n", target.first );
+    auto gs = target.second;
+    for ( auto const& g : gs )
     {
-        std::cout<<fmt::format("target idx: {}\n", target.first);
-        auto gs = target.second;
-        for (auto const& g: gs)
+      std::cout << fmt::format( "angle: {} controls: ", ( g.first / M_PI ) * 180 );
+      for ( auto const& c : g.second )
+      {
+        if ( c % 2 == 0 )
         {
-            std::cout<<fmt::format("angle: {} controls: ", (g.first/M_PI) *180);
-            for(auto const& c: g.second)
-            {
-                if(c % 2==0)
-                {
-                    std::cout<<fmt::format("{} ", c/2);
-                }
-                else
-                {
-                    std::cout<<fmt::format("-{} ", c/2);
-                }
-                
-            }
-            std::cout<<std::endl;
+          std::cout << fmt::format( "{} ", c / 2 );
         }
+        else
+        {
+          std::cout << fmt::format( "-{} ", c / 2 );
+        }
+      }
+      std::cout << std::endl;
     }
+  }
 }
 
 // struct deps_operation_stats
@@ -384,4 +395,4 @@ void  print_gates(gates_t gates)
 //   }
 // }
 
-} /* namespace angel end */
+} // namespace angel
