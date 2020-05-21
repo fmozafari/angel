@@ -16,8 +16,7 @@ struct qsp_1bench_stats
 {
   stopwatch<>::duration_type total_time{0};
   uint32_t total_cnots{0};
-  uint32_t total_rys{0};
-  uint32_t total_nots{0};
+  uint32_t total_sqgs{0};
   std::pair<uint32_t, uint32_t> gates_count = std::make_pair( 0, 0 );
 };
 
@@ -41,7 +40,7 @@ uint32_t compute_upperbound_cost( std::vector<uint32_t> zero_lines, std::vector<
   return cost;
 }
 
-std::pair<uint32_t, uint32_t> esop_cnot_cost( std::vector<std::vector<uint32_t>> const& esop )
+std::pair<uint32_t, uint32_t> esop_gate_cost( std::vector<std::vector<uint32_t>> const& esop )
 {
   assert( esop.size() > 0u );
   uint32_t cnots_count = 0;
@@ -87,14 +86,18 @@ std::pair<uint32_t, uint32_t> esop_cnot_cost( std::vector<std::vector<uint32_t>>
   }
 
   /* using uniformly-controlled gates */
-  auto cnots_count2 = 0u;
-  auto sqgs_count2 = 0u;
+  uint32_t cnots_count2 = 0u;
+  uint32_t sqgs_count2 = 0;
+  std::vector<uint32_t> controls_idx;
+  for(auto k=0u; k<esop[0].size(); k++)
+    controls_idx.emplace_back(esop[0][k]/2);
+
   for(auto i=1u; i<esop.size(); i++)
   {
     for(auto j=0u; j<esop[i].size(); j++)
     {
-      auto f = std::find(esop[0].begin(), esop[0].end(), esop[i][j]);
-      if(f == esop[0].end())
+      auto f = std::find(controls_idx.begin(), controls_idx.end(), esop[i][j]/2);
+      if(f == controls_idx.end())
         return std::make_pair(cnots_count, sqgs_count);
     }
   }
@@ -103,35 +106,53 @@ std::pair<uint32_t, uint32_t> esop_cnot_cost( std::vector<std::vector<uint32_t>>
   return (cnots_count > cnots_count2) ? std::make_pair(cnots_count2, sqgs_count2) : std::make_pair(cnots_count, sqgs_count);
 }
 
+std::pair<uint32_t, uint32_t> uniform_gate_cost( std::vector<std::vector<uint32_t>> const& us )
+{
+  std::vector<uint32_t> controls_idx;
+  for(auto const& u : us)
+  {
+    for(auto i=0u; i<u.size(); i++)
+    {
+      uint32_t control = u[i]/2;
+      auto it = std::find(controls_idx.begin(), controls_idx.end(), control);
+      if(it == controls_idx.end())
+        controls_idx.emplace_back(control);
+    }
+  }
+
+  uint32_t cnots = pow(2, controls_idx.size());
+  uint32_t sqgs = pow(2, controls_idx.size());
+
+  return std::make_pair(cnots, sqgs);
+}
+
 /* with dependencies */
 void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_dependencies,
                        uint32_t const num_vars, qsp_1bench_stats& stats )
 {
   auto total_sqgs = 0u;
   auto total_cnots = 0u;
-  bool have_max_controls;
-  auto n_reduc = 0; /* lines that always are zero or one and so we dont need to prepare them */
+  //auto n_reduc = 0; /* lines that always are zero or one and so we dont need to prepare them */
 
   for ( int32_t i = num_vars - 1; i >= 0; i-- )
   {
     auto sqgs = 0u;
     auto cnots = 0u;
-    have_max_controls = 0;
 
     if ( gates.find( i ) == gates.end() )
     {
-      n_reduc++;
+      //n_reduc++;
       continue;
     }
     if ( gates[i].size() == 0 )
     {
-      n_reduc++;
+      //n_reduc++;
       continue;
     }
     if ( gates[i].size() == 1 && gates[i][0].first == M_PI && gates[i][0].second.size() == 0 )
     {
       total_sqgs++;
-      n_reduc++;
+      //n_reduc++;
       continue;
     }
 
@@ -145,7 +166,7 @@ void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_depen
       {
         deps.emplace_back(gates[i][j].second);
       }    
-      auto gates_cost = esop_cnot_cost(deps);
+      auto gates_cost = esop_gate_cost(deps);
       cnots = gates_cost.first;
       sqgs = gates_cost.second;
     }
@@ -153,46 +174,30 @@ void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_depen
     /* doesn't exist deps */
     else
     {
-      for ( auto j = 0u; j < gates[i].size(); j++ )
+      if(gates[i].size() == 1)
       {
-        if ( gates[i][j].second.size() == ( ( num_vars - i - 1 ) - n_reduc ) &&
-             gates[i][j].second.size() != 0 ) /* number of controls is max or not? */
-        {
-          have_max_controls = 1;
-          break;
-        }
-
-        auto cs = gates[i][j].second.size();
-        if ( cs == 0 && ( std::abs( gates[i][j].first - M_PI ) < 0.1 ) )
-          sqgs++;
-        else if ( cs == 0 )
-          sqgs++;
-        else if ( cs == 1 && ( std::abs( gates[i][j].first - M_PI ) < 0.1 ) )
-          cnots += 1;
-        else
-        {
-          sqgs += pow( 2, cs );
-          cnots += pow( 2, cs );
-        }
-      }
-      if ( have_max_controls || cnots > pow( 2, ( ( num_vars - i - 1 ) - n_reduc ) ) ) /* we have max number of controls */
-      {
-        if ( i == int( num_vars - 1 - n_reduc ) ) /* first line for preparation */
-        {
-          cnots = 0;
+        if(gates[i][0].second.size() == 0)
           sqgs = 1;
-        }
-        else if ( gates[i].size() == 1 && ( std::abs( gates[i][0].first - M_PI ) < 0.1 ) && gates[i][0].second.size() == 1 ) // second line for preparation
-        {
+        else if(gates[i][0].second.size() == 1 && ( std::abs( gates[i][0].first - M_PI ) < 0.1 ))
           cnots = 1;
-          sqgs = 0;
-        }
-        else /* other lines with more than one control */
+        else 
         {
-          sqgs = pow( 2, ( ( num_vars - i - 1 ) - n_reduc ) );
-          cnots = pow( 2, ( ( num_vars - i - 1 ) - n_reduc ) );
+          cnots = pow(2, gates[i][0].second.size());
+          sqgs = pow(2, gates[i][0].second.size());
         }
       }
+      else
+      {
+        std::vector<std::vector<uint32_t>> us;
+        for ( auto j = 0u; j < gates[i].size(); j++ )
+        {
+          us.emplace_back(gates[i][j].second);
+        }    
+        auto gates_cost = uniform_gate_cost(us);
+        cnots = gates_cost.first;
+        sqgs = gates_cost.second;
+      }
+         
     }
 
     total_sqgs += sqgs;
@@ -200,96 +205,8 @@ void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_depen
   }
 
   stats.total_cnots += total_cnots;
-  stats.total_rys += total_sqgs;
-  //stats.total_nots += total_nots;
+  stats.total_sqgs += total_sqgs;
   stats.gates_count = std::make_pair( total_cnots, total_sqgs );
-
-  return;
-}
-
-/* without dependencies */
-void gates_statistics( gates_t gates, uint32_t const num_vars, qsp_1bench_stats& stats )
-{
-  auto total_rys = 0;
-  auto total_cnots = 0;
-  auto total_nots = 0;
-  bool have_max_controls;
-  auto n_reduc = 0; /* lines that always are zero or one and so we dont need to prepare them */
-
-  for ( int32_t i = num_vars - 1; i >= 0; i-- )
-  {
-    auto rys = 0;
-    auto cnots = 0;
-    auto nots = 0;
-    have_max_controls = 0;
-
-    if ( gates.find( i ) == gates.end() )
-    {
-      n_reduc++;
-      continue;
-    }
-    if ( gates[i].size() == 0 )
-    {
-      n_reduc++;
-      continue;
-    }
-    if ( gates[i].size() == 1 && gates[i][0].first == M_PI && gates[i][0].second.size() == 0 )
-    {
-      nots++;
-      n_reduc++;
-      continue;
-    }
-
-    for ( auto j = 0u; j < gates[i].size(); j++ )
-    {
-      if ( gates[i][j].second.size() == ( ( num_vars - i - 1 ) - n_reduc ) &&
-           gates[i][j].second.size() != 0 ) /* number of controls is max or not? */
-      {
-        have_max_controls = 1;
-        break;
-      }
-
-      auto cs = gates[i][j].second.size();
-      if ( cs == 0 && ( std::abs( gates[i][j].first - M_PI ) < 0.1 ) )
-        nots++;
-      else if ( cs == 0 )
-        rys++;
-      else if ( cs == 1 && ( std::abs( gates[i][j].first - M_PI ) < 0.1 ) )
-        cnots += 1;
-      else
-      {
-        rys += pow( 2, cs );
-        cnots += pow( 2, cs );
-      }
-    }
-    if ( have_max_controls || cnots > pow( 2, ( ( num_vars - i - 1 ) - n_reduc ) ) ) /* we have max number of controls */
-    {
-      if ( i == int( num_vars - 1 - n_reduc ) ) /* first line for preparation */
-      {
-        cnots = 0;
-        rys = 1;
-      }
-      else if ( gates[i].size() == 1 && ( std::abs( gates[i][0].first - M_PI ) < 0.1 ) && gates[i][0].second.size() == 1 ) // second line for preparation
-      {
-        cnots = 1;
-        rys = 0;
-      }
-      else /* other lines with more than one control */
-      {
-        rys = pow( 2, ( ( num_vars - i - 1 ) - n_reduc ) );
-        cnots = pow( 2, ( ( num_vars - i - 1 ) - n_reduc ) );
-      }
-    }
-
-    total_rys += rys;
-    total_cnots += cnots;
-    total_nots += nots;
-  }
-
-  stats.total_cnots += total_cnots;
-  stats.total_rys += total_rys;
-  stats.total_nots += total_nots;
-  stats.gates_count = std::make_pair( total_cnots, total_rys + total_nots );
 
   return;
 }

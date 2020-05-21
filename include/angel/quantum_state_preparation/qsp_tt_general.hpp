@@ -35,8 +35,7 @@ struct qsp_general_stats
   uint32_t funcdep_bench_useful{0};
   uint32_t funcdep_bench_notuseful{0};
   uint32_t total_cnots{0};
-  uint32_t total_rys{0};
-  uint32_t total_nots{0};
+  uint32_t total_sqgs{0};
   std::vector<std::pair<uint32_t, uint32_t>> gates_count = {};
 
   void report( std::ostream& os = std::cout ) const
@@ -52,10 +51,8 @@ struct qsp_general_stats
     os << fmt::format( "[i] total synthesis time (considering dependencies) = {:8.2f}s\n",
                        to_seconds( total_time ) );
 
-    os << fmt::format( "[i] synthesis result: CNOTs / RYs / NOTs = {} / {} / {} \n",
-                       total_cnots, total_rys, total_nots );
     os << fmt::format( "[i] synthesis result: CNOTs / SQgates = {} / {} \n",
-                       total_cnots, total_rys + total_nots );
+                       total_cnots, total_sqgs );
     /// Compute Avg and SD for CNOTs and SQgates
     auto sum_f = 0; /// CNOTs: first
     auto sum_s = 0; /// SQgates: second
@@ -129,7 +126,7 @@ void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_t
     bool deps_useful = false;
     if ( it != dependencies.end() )
     {
-      auto const esop_cnots = esop_cnot_cost( dependencies[var_index] ).first;
+      auto const esop_cnots = esop_gate_cost( dependencies[var_index] ).first;
       auto const upperbound_cost = compute_upperbound_cost( zero_lines, one_lines, num_vars, var_index );
       if ( esop_cnots <= upperbound_cost )
       {
@@ -689,8 +686,7 @@ void qsp_tt_general( Network& net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reo
   if ( exist_in_cache )
   {
     final_qsp_stats.total_cnots += qsp_stats.total_cnots;
-    final_qsp_stats.total_rys += qsp_stats.total_rys;
-    final_qsp_stats.total_nots += qsp_stats.total_nots;
+    final_qsp_stats.total_sqgs += qsp_stats.total_sqgs;
     final_qsp_stats.gates_count.emplace_back( qsp_stats.gates_count );
     final_qsp_stats.total_time += caching_time;
     return;
@@ -704,8 +700,7 @@ void qsp_tt_general( Network& net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reo
 
   /* update qsp stats */
   final_qsp_stats.total_cnots += qsp_stats.total_cnots;
-  final_qsp_stats.total_rys += qsp_stats.total_rys;
-  final_qsp_stats.total_nots += qsp_stats.total_nots;
+  final_qsp_stats.total_sqgs += qsp_stats.total_sqgs;
   final_qsp_stats.gates_count.emplace_back( qsp_stats.gates_count );
   final_qsp_stats.total_time += qsp_stats.total_time;
   final_qsp_stats.total_time += caching_time;
