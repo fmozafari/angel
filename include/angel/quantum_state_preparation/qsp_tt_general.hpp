@@ -22,6 +22,9 @@ using esop_based_dependencies_t = std::map<uint32_t, std::vector<std::vector<uin
 using gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>;
 using order_t = std::vector<uint32_t>;
 
+// std::string const filename1 = fmt::format("qsp_cut_functions_ISCAS_8.txt");
+// std::ofstream ofs( filename1 );
+
 struct qsp_general_stats
 {
   /* cache declaration */
@@ -713,7 +716,7 @@ void qsp_tt_general( Network& net, /*DependencyAnalysisAlgorithm deps_alg,*/ Reo
 
 struct state_preparation_parameters
 {
-  bool verbose{true};
+  bool verbose{false};
   bool use_upperbound{true};
 }; /* state_preparation_parameters */
 
@@ -770,6 +773,8 @@ public:
     auto const it = cache.find( key_tt );
     if ( it != std::end( cache ) )
     {
+      // network empty;
+      // return empty;
       st.num_cnots += it->second.num_cnots;
       if ( ps.verbose )
       {

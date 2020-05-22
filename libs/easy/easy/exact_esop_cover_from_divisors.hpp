@@ -395,12 +395,11 @@ private:
     }
   }
 
-  uint32_t cnot_cost( std::vector<easy::cube>& esop ) const
+  uint32_t cnot_cost (std::vector<easy::cube>& esop) const
   {
-    uint32_t cost = 0u;
     if ( esop.size() == 0u )
     {
-      return cost;
+      return 0u;
     }
 
     uint32_t first_cube = 0u;
@@ -421,6 +420,18 @@ private:
     if ( first_cube != 0u )
       std::swap( esop[0u], esop[first_cube] );
 
+    uint32_t cost1 = cnot_cost_mctoffoli(esop);
+    auto cost2 = cnot_cost_uniformly(esop);
+    if(cost2.first)
+      return (cost1<cost2.second) ? cost1 : cost2.second;
+    else
+      return cost1;
+  }
+
+  uint32_t cnot_cost_mctoffoli( std::vector<easy::cube>& esop ) const
+  {
+    
+    auto cost = 0u;
     cost += cnot_cost( esop[0], true );
     for ( auto i = 1u; i < esop.size(); ++i )
     {
@@ -428,6 +439,26 @@ private:
     }
 
     return cost;
+  }
+
+  bool is_mask_subset(easy::cube const& a, easy::cube const& b) const
+  {
+    easy::cube aflip;
+    aflip._mask = a._mask ^ 0xffffffff;
+    easy::cube new_cube;
+    new_cube._mask = aflip._mask & b._mask;
+    return (__builtin_popcount( new_cube._mask )==0u);
+  }
+
+  std::pair<bool, uint32_t> cnot_cost_uniformly( std::vector<easy::cube>& esop ) const
+  {
+    for(auto i=1u; i<esop.size(); i++)
+    {
+      if(!is_mask_subset(esop[0], esop[i]))
+        return std::make_pair(false, 0);
+    }
+    uint32_t cost = pow(2, esop[0].num_literals());
+    return std::make_pair(true, cost);
   }
 
 private:
