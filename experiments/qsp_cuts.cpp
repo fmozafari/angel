@@ -25,6 +25,7 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
     
   /* reordering strategies */
   angel::no_reordering no_reorder;
+  angel::exhaustive_reordering all_orders;
   angel::random_reordering random( 0xcafeaffe, extract_ps.num_vars > 1u ? ( extract_ps.num_vars * extract_ps.num_vars ) : 1u );
   angel::greedy_reordering greedy;
 
@@ -64,6 +65,10 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
   angel::state_preparation_parameters qsp8_ps;
   angel::state_preparation_statistics qsp8_st;
   angel::state_preparation<decltype( esop ), decltype( greedy )> p8( esop, greedy, qsp8_ps, qsp8_st );
+
+  angel::state_preparation_parameters qsp9_ps;
+  angel::state_preparation_statistics qsp9_st;
+  angel::state_preparation<decltype( esop ), decltype( all_orders )> p9( esop, all_orders, qsp9_ps, qsp9_st );
   
   for ( const auto& benchmark : benchmarks )
   {
@@ -86,6 +91,8 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
         p6( tt ); /* no dependencies + greedy reordering */
         p7( tt ); /* patterns + greedy reordering */
         p8( tt ); /* ESOPs + greedy reordering */
+
+        //p9(tt); /* ESOPs + all orders */
 
         /* ensure that baseline has the highest costs */
         if ( qsp0_st.num_cnots < qsp1_st.num_cnots ||
@@ -113,7 +120,8 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
 
        qsp6_st.num_cnots, angel::to_seconds( qsp6_st.time_total ),
        qsp7_st.num_cnots, angel::to_seconds( qsp7_st.time_total ),
-       qsp8_st.num_cnots, angel::to_seconds( qsp8_st.time_total )
+       qsp8_st.num_cnots, angel::to_seconds( qsp8_st.time_total ),
+       qsp9_st.num_cnots, angel::to_seconds( qsp9_st.time_total )
   );
 }
 
@@ -122,13 +130,13 @@ int main()
   experiments::experiment<std::string, uint64_t, uint64_t,
                           uint64_t, double, uint64_t, double, uint64_t, double,
                           uint64_t, double, uint64_t, double, uint64_t, double,
-                          uint64_t, double, uint64_t, double, uint64_t, double>
+                          uint64_t, double, uint64_t, double, uint64_t, double, uint32_t, double>
     exp( "qsp_cuts", "benchmarks", "total func", "unqique func",
          "cnot qsp0", "time qsp0", "cnot qsp1", "time qsp1", "cnot qsp2", "time qsp2",
          "cnot qsp3", "time qsp3", "cnot qsp4", "time qsp4", "cnot qsp5", "time qsp5",
-         "cnot qsp6", "time qsp6", "cnot qsp7", "time qsp7", "cnot qsp8", "time qsp8" );
+         "cnot qsp6", "time qsp6", "cnot qsp7", "time qsp7", "cnot qsp8", "time qsp8", "cnot qsp9", "time qsp9" );
   
-  for ( auto i = 4u; i < 7u; ++i )
+  for ( auto i = 6u; i < 8u; ++i )
   {
     fmt::print( "[i] run experiments for {}-input cut functions\n", i );
     run_experiments( exp, experiments::epfl_benchmarks(), fmt::format( "EPFL benchmarks {}", i ),
