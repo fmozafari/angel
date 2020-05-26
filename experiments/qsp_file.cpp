@@ -22,7 +22,7 @@ void run_experiments( std::ofstream& ofs, std::vector<std::string> const& benchm
 int main()
 {
   
-  for ( auto i = 4u; i < 7u; ++i )
+  for ( auto i = 10u; i < 11u; ++i )
   {
     std::string const filename1 = fmt::format("qsp_cut_functions_EPFL_{}.txt", i);
     std::ofstream ofs_EPFL( filename1 );
@@ -35,9 +35,18 @@ int main()
     run_experiments( ofs_ISCAS, experiments::iscas_benchmarks(), fmt::format( "ISCAS benchmarks {}", i ),
                      {.num_vars = i} );
 
+    std::string const filename3 = fmt::format("equal_functions_{}.txt", i);
+    std::ofstream ofs_k_equal( filename3 );
+    kitty::dynamic_truth_table tt( i );
+    for ( auto j = 0; j < i; ++j )
+    {
+      kitty::create_equals( tt, j );
+      ofs_k_equal << kitty::to_binary( tt ) << '\n';
+    }
+
     ofs_EPFL.close();
     ofs_ISCAS.close();
+    ofs_k_equal.close();
   }
   
   return 0;
-}
