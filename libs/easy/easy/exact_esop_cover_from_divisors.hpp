@@ -114,6 +114,42 @@ public:
           return result;
         }
       }
+
+      #if 1
+      / check for XOR /
+      kitty::partial_truth_table xor_tt( target.num_bits() );
+      for ( auto const& d : divisor_functions )
+      {
+        xor_tt = xor_tt ^ d;
+      }
+
+      if ( target == xor_tt )
+      {
+        std::vector<easy::cube> cover;
+        for ( auto i = 0u; i < divisor_functions.size(); ++i )
+        {
+          easy::cube c;
+          c.add_literal( i, true );
+          cover.push_back( c );
+        }
+        result.esop_cover = cover;
+        return result;
+      }
+      / check for XNOR /
+      else if ( ~target == xor_tt )
+      {
+        std::vector<easy::cube> cover{easy::cube()};
+        for ( auto i = 0u; i < divisor_functions.size(); ++i )
+        {
+          easy::cube c;
+          c.add_literal( i, true );
+          cover.push_back( c );
+        }
+        result.esop_cover = cover;
+        return result;
+      }
+#endif
+
     }
 
     /* n ... number of variables */
