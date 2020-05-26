@@ -93,7 +93,7 @@ struct esop_deps_analysis_result_type
         deps += "}";
         deps += " XOR ";
       }
-      std::cout << deps << " 0\n";
+      std::cout << deps << "\n";
     }
   }
 };
