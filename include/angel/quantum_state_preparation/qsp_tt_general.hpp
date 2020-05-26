@@ -773,8 +773,9 @@ public:
     auto const it = cache.find( key_tt );
     if ( it != std::end( cache ) )
     {
-      // network empty;
-      // return empty;
+      network empty;
+      return empty;
+      
       st.num_cnots += it->second.num_cnots;
       if ( ps.verbose )
       {
@@ -782,6 +783,7 @@ public:
       }
       return it->second;
     }
+    
 
     /* run state preparation for the current truth table */
     uint64_t const ub = ps.use_upperbound ? uint64_t( pow( 2u, num_variables ) - 2u ) : std::numeric_limits<uint64_t>::max();
@@ -858,14 +860,6 @@ public:
       }
     }
     gates_statistics( gates, have_deps, num_variables, st );
-
-#if 0
-    std::map<uint32_t, bool> have_deps;
-    for ( auto i = 0u; i < num_variables; i++ )
-    {
-      have_deps[i] = dependencies.find( i ) != std::end( dependencies.end() );
-    }
-#endif
 
     return network{gates, st.total_cnots};
   }
