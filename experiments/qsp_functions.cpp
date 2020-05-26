@@ -95,8 +95,8 @@ void w_state(Exp&& exp, uint32_t num_vars)
 
 int main()
 {
-  constexpr int32_t const min_num_variables = 4;
-  constexpr int32_t const max_num_variables = 7;
+  constexpr int32_t const min_num_variables = 6;
+  constexpr int32_t const max_num_variables = 9;
 
   experiments::experiment<std::string, uint64_t, uint64_t,
                           uint32_t, double>
@@ -107,9 +107,9 @@ int main()
 
   for ( auto num_vars = min_num_variables; num_vars < max_num_variables; num_vars+=2 )
   {
-    //k_equal_function(exp, num_vars);
+    k_equal_function(exp, num_vars);
     //ghz_state(exp, num_vars);
-    w_state(exp, num_vars);
+    //w_state(exp, num_vars);
   }
   exp.save();
   exp.table();

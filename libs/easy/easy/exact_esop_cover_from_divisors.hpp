@@ -116,7 +116,7 @@ public:
       }
 
       #if 1
-      / check for XOR /
+      /* check for XOR */
       kitty::partial_truth_table xor_tt( target.num_bits() );
       for ( auto const& d : divisor_functions )
       {
@@ -135,7 +135,7 @@ public:
         result.esop_cover = cover;
         return result;
       }
-      / check for XNOR /
+      /* check for XNOR */
       else if ( ~target == xor_tt )
       {
         std::vector<easy::cube> cover{easy::cube()};
