@@ -5,4 +5,4 @@ angel is a Quantm State Preparation (QSP) library based on C++-17. It provides s
 Read the full documentation [here](https://libangel.readthedocs.io/en/latest/index.html).
 
 # Installation requirements
-A modern compiler is required to build angel. We are continously testing with Clang 6.0.1, GCC 7.3.0, and GCC 8.2.0. More information can be found in the [documentation](https://github.com/fmozafari/angel/blob/master/docs/installation.rst).
+A modern compiler is required to build angel. We are continously testing with Clang 6.0.1, GCC 7.3.0, and GCC 8.2.0. More information can be found in the [documentation](https://libangel.readthedocs.io/en/latest/installation.html).
