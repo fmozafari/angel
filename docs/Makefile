@@ -4,11 +4,11 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = mockturtle
+SPHINXPROJ    = angel
 SOURCEDIR     = .
 BUILDDIR      = _build
 
-doxygen: ../include/mockturtle/*.hpp
+doxygen: ../include/angel/*.hpp
 	doxygen Doxyfile
 
 # Put it first so that "make" without argument is like "make help".
