@@ -824,7 +824,7 @@ public:
 
     /* extract dependencies */
     auto const result = dependency_strategy.run( tt );
-    result.print();
+    //result.print();
 
     /* construct gates */
     return create_gates( tt, result.dependencies );

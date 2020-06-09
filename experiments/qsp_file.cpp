@@ -22,7 +22,7 @@ void run_experiments( std::ofstream& ofs, std::vector<std::string> const& benchm
 int main()
 {
   
-  for ( auto i = 10u; i < 11u; ++i )
+  for ( auto i = 12u; i < 16u; i+=3 )
   {
     std::string const filename1 = fmt::format("qsp_cut_functions_EPFL_{}.txt", i);
     std::ofstream ofs_EPFL( filename1 );
@@ -44,8 +44,8 @@ int main()
       ofs_k_equal << kitty::to_binary( tt ) << '\n';
     }
 
-    ofs_EPFL.close();
-    ofs_ISCAS.close();
+    //ofs_EPFL.close();
+    //ofs_ISCAS.close();
     ofs_k_equal.close();
   }
   
