@@ -1,9 +1,9 @@
-.. mockturtle documentation master file, created by
-   sphinx-quickstart on Thu Nov 30 18:28:14 2017.
+.. angel documentation master file, created by
+   sphinx-quickstart on Thu JUN 9 12:31:14 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to mockturtle's documentation!
+Welcome to angel's documentation!
 ======================================
 
 .. toctree::
@@ -17,50 +17,24 @@ Welcome to mockturtle's documentation!
    :maxdepth: 2
    :caption: Standard library
 
-   philosophy
-   network
-   implementations
-   views
-   events
+.. toctree::
+   :maxdepth: 2
+   :caption: dependency_analysis
+
+   dependency_analysis/common
+   dependency_analysis/no_deps
+   dependency_analysis/pattern_based_dependency_analysis
+   dependency_analysis/esop_based_dependency_analysis
+
 
 .. toctree::
    :maxdepth: 2
-   :caption: Algorithms
+   :caption: reordering
 
-   algorithms/cut_enumeration
-   algorithms/lut_mapping
-   algorithms/collapse_mapped
-   algorithms/node_resynthesis
-   algorithms/cut_rewriting
-   algorithms/refactoring
-   algorithms/balancing
-   algorithms/mig_algebraic_rewriting
-   algorithms/akers_synthesis
-   algorithms/resubstitution
-   algorithms/simulation
-   algorithms/equivalence_checking
-   algorithms/miter
-   algorithms/dsd_decomposition
-   algorithms/decomposition
-   algorithms/cleanup
-   algorithms/cnf
-   algorithms/reconv_cut
-   algorithms/dont_cares
-   algorithms/extract_linear
-   algorithms/linear_resynthesis
-   algorithms/gates_to_nodes
-   algorithms/xag_optimization
-   algorithms/xmg_optimization
-   algorithms/equivalence_classes
-   algorithms/circuit_validator
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Input/Output
-
-   io/lorina_readers
-   io/writers
-   io/other
+   reordering/no_reordering
+   reordering/exhaustive_reordering
+   reordering/random_reordering
+   reordering/greedy_reordering
 
 .. toctree::
    :maxdepth: 2
@@ -73,15 +47,18 @@ Welcome to mockturtle's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Properties
+   :caption: quantum_state_preparation
 
-   properties
+   quantum_state_preparation/qsp_tt_general
+   quantum_state_preparation/qsp_add
 
 .. toctree::
    :maxdepth: 2
    :caption: Utilities
 
-   utils/util_data_structures
+   utils/function_extractor
+   utils/helper_functions
+   utils/stopwatch
 
 Indices and tables
 ==================
