@@ -6,44 +6,55 @@
 namespace angel
 {
 
-class RandomReordering
+class random_reordering
 {
 public:
-    using order = std::vector<uint32_t>;
+  explicit random_reordering( uint64_t seed, uint64_t num_reordering )
+    : seed( seed )
+    , num_reordering( num_reordering )
+  {
+  }
+  
+  template<typename Fn>
+  void foreach_reordering( kitty::dynamic_truth_table const& tt, Fn&& fn, std::optional<uint32_t> initial_cost = std::nullopt ) const
+  {
+    (void)initial_cost;
 
-public:
-    explicit RandomReordering(uint32_t num_orders)
-        : seed(std::chrono::system_clock::now().time_since_epoch().count()), num_orders(num_orders)
+    fn( tt );
+
+    if ( num_reordering == 0u )
+      return;
+
+    std::vector<uint32_t> perm;
+    for ( auto i = 0u; i < tt.num_vars(); ++i )
     {
+      perm.emplace_back( i );
     }
-
-    explicit RandomReordering(uint64_t seed, uint32_t num_orders)
-        : seed(seed), num_orders(num_orders)
+    
+    std::default_random_engine random_engine( seed );
+    std::vector<std::vector<uint32_t>> orders;
+    for ( auto i = 0u; i < num_reordering; ++i )
     {
-    }
+      std::shuffle( std::begin( perm ), std::end( perm ), random_engine );
 
-    std::vector<order> run(uint32_t num_vars) const
-    {
-        order current_order;
-        for (auto i = 0u; i < num_vars; ++i)
+      if ( std::find( std::begin( orders ), std::end( orders ), perm ) == orders.end() )
+      {
+        kitty::dynamic_truth_table tt_( tt );
+        angel::reordering_on_tt_inplace( tt_, perm );
+
+        if ( tt != tt_ )
         {
-            current_order.emplace_back(i);
+          fn( tt_ );
+          orders.emplace_back( perm );
+          std::sort( std::begin( perm ), std::end( perm ) );
         }
-
-        std::default_random_engine random_engine(seed);
-
-        std::vector<order> orders;
-        for (auto i = 0u; i < num_orders; ++i)
-        {
-            std::shuffle(current_order.begin(), current_order.end(), random_engine);
-            orders.emplace_back(current_order);
-        }
-        return orders;
+      }
     }
+  }
 
-private:
-    uint64_t seed;
-    uint32_t num_orders;
-};
+protected:
+  uint64_t seed;
+  uint64_t num_reordering;
+}; 
 
 } // namespace angel

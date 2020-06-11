@@ -1,32 +1,20 @@
 #include <algorithm>
-#include <chrono>
-#include <random>
 #include <vector>
+
+#include <kitty/kitty.hpp>
 
 namespace angel
 {
 
-class NoReordering
+class no_reordering
 {
 public:
-    using order = std::vector<uint32_t>;
-
-public:
-    explicit NoReordering()
-    {
-    }
-
-    std::vector<order> run(uint32_t var_count) const
-    {
-        order current_order;
-        for (auto i = 0u; i < var_count; i++)
-        {
-            current_order.emplace_back(i);
-        }
-        std::reverse(current_order.begin(), current_order.end());
-        return {current_order};
-    }
-
-};
+  template<typename Fn>
+  void foreach_reordering( kitty::dynamic_truth_table const& tt, Fn&& fn, std::optional<uint32_t> initial_cost = std::nullopt ) const
+  {
+    (void)initial_cost;
+    fn( tt );
+  }
+}; 
 
 } // namespace angel
