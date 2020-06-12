@@ -5074,6 +5074,7 @@ inline void SimpSolver::garbageCollect()
 }
 
 #undef write_char
+#undef DD
 
 inline void function()
 {

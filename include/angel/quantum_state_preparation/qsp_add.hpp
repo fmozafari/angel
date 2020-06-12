@@ -14,6 +14,9 @@
 #include <tweedledum/networks/io_id.hpp>
 #include <unordered_set>
 
+namespace angel
+{
+
 struct qsp_add_statistics
 {
   double time{0};
@@ -32,9 +35,6 @@ struct qsp_add_statistics
     os << "[i] ancillaes: " << ancillaes << std::endl;
   }
 };
-
-namespace angel
-{
 
 struct create_bdd_param
 {
@@ -117,7 +117,7 @@ BDD create_bdd_from_tt_str( Cudd& cudd, std::string tt_str, uint32_t& num_inputs
       BDD temp;
       temp = ( ( n & 1 ) == 1 ) ? bddNodes[0] : !bddNodes[0];
       n >>= 1;
-      for ( auto j = 1; j < num_inputs; j++ )
+      for ( auto j = 1u; j < num_inputs; j++ )
       {
         temp &= ( ( n & 1 ) == 1 ) ? bddNodes[j] : !bddNodes[j];
         n >>= 1;
@@ -202,7 +202,7 @@ void count_ones_add_nodes( std::unordered_set<DdNode*>& visited,
   else
   {
     auto temp_pow = orders[cuddE( current )->index] - 1 - orders[current->index];
-    auto max_ones = pow( 2, num_vars - orders[cuddE( current )->index] );
+    //auto max_ones = pow( 2, num_vars - orders[cuddE( current )->index] );
     auto Evalue = 0;
     Evalue = node_ones[cuddE( current )->index].find( cuddE( current ) )->second;
     Eones = pow( 2, temp_pow ) * Evalue;
@@ -267,15 +267,15 @@ void extract_probabilities_and_MCgates( std::unordered_set<DdNode*>& visited,
   /* inserting childs gates */
   if ( !Cudd_IsConstant( cuddE( current ) ) )
   {
-    for ( auto i = 0; i < num_vars; i++ )
+    for ( auto i = 0u; i < num_vars; i++ )
     {
       if ( gates[cuddE( current )][i].size() != 0 )
       {
-        for ( auto j = 0; j < gates[cuddE( current )][i].size(); j++ )
+        for ( auto j = 0u; j < gates[cuddE( current )][i].size(); j++ )
         {
           auto pro = gates[cuddE( current )][i][j].first;
           std::vector<int32_t> controls;
-          for ( auto k = 0; k < gates[cuddE( current )][i][j].second.size(); k++ )
+          for ( auto k = 0u; k < gates[cuddE( current )][i][j].second.size(); k++ )
             controls.emplace_back( gates[cuddE( current )][i][j].second[k] );
           //std::copy(gates[cuddE(current)][i][j].second.begin() , gates[cuddE(current)][i][j].second.end() , controls);
           //auto controls = gates[cuddE(current)][i][j].second;
@@ -288,15 +288,15 @@ void extract_probabilities_and_MCgates( std::unordered_set<DdNode*>& visited,
 
   if ( !Cudd_IsConstant( cuddT( current ) ) )
   {
-    for ( auto i = 0; i < num_vars; i++ )
+    for ( auto i = 0u; i < num_vars; i++ )
     {
       if ( gates[cuddT( current )][i].size() != 0 )
       {
-        for ( auto j = 0; j < gates[cuddT( current )][i].size(); j++ )
+        for ( auto j = 0u; j < gates[cuddT( current )][i].size(); j++ )
         {
           auto pro = gates[cuddT( current )][i][j].first;
           std::vector<int32_t> controls;
-          for ( auto k = 0; k < gates[cuddT( current )][i][j].second.size(); k++ )
+          for ( auto k = 0u; k < gates[cuddT( current )][i][j].second.size(); k++ )
             controls.emplace_back( gates[cuddT( current )][i][j].second[k] );
           //std::copy(gates[cuddT(current)][i][j].second.begin() , gates[cuddT(current)][i][j].second.end() , controls);
 
@@ -363,7 +363,7 @@ void extract_statistics( Cudd cudd, DdNode* f_add,
   auto CNOTs = 0;
   auto Ancillaes = 0;
 
-  for( auto i = 1u; i < cudd.ReadSize(); i++ )
+  for( auto i = 1; i < cudd.ReadSize(); i++ )
   {
     total_MC_gates += gates[f_add][i].size();
 
@@ -431,6 +431,7 @@ void qsp_add( Network& network, const std::string str, qsp_add_statistics& stats
   Cudd cudd;
   auto mgr = cudd.getManager();
   auto f_bdd = detail::create_bdd( cudd, str, param, num_inputs );
+  //auto f_bdd = detail::create_bdd_from_tt_str( cudd, str, num_inputs );
   auto f_add = Cudd_BddToAdd( mgr, f_bdd.getNode() );
 
   /* 
@@ -443,7 +444,7 @@ void qsp_add( Network& network, const std::string str, qsp_add_statistics& stats
   detail::draw_dump( f_add, mgr );
   /* Generate quantum gates by traversing ADD */
   std::vector<uint32_t> orders;
-  for ( auto i = 0u; i < cudd.ReadSize(); i++ )
+  for ( auto i = 0; i < cudd.ReadSize(); i++ )
     orders.emplace_back( Cudd_ReadPerm( mgr, i ) );
   std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>> gates;
   stopwatch<>::duration_type time_add_traversal{0};

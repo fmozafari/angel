@@ -618,7 +618,7 @@ public:
       });
 
     /* ensure that re-ordering has been exectued at least once */
-    assert( best_ntk.cnot_costs < std::numeric_limits<uint64_t>::max() );
+    assert( best_ntk.num_cnots < std::numeric_limits<uint64_t>::max() );
 
     /* insert result into cache */
     cache.emplace( key_tt, best_ntk );
