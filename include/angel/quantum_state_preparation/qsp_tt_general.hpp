@@ -523,125 +523,6 @@ void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uint32_t v
   }
 }
 
-template<class DependencyAnalysisAlgorithm>
-void qsp( gates_t& qc_gates, kitty::dynamic_truth_table tt, std::vector<order_t> orders, qsp_1bench_stats& final_qsp_stats )
-{
-  const uint32_t qubits_count = tt.num_vars();
-  auto max_cnots = pow( 2, qubits_count + 1 );
-  order_t best_order( qubits_count );
-  qsp_1bench_stats best_stats;
-  gates_t best_gates;
-  stopwatch<>::duration_type time_traversal{0};
-  {
-    stopwatch t( time_traversal );
-    auto compute_atleast_once = false;
-    for ( auto order : orders )
-    {
-      kitty::dynamic_truth_table tt_copy = tt;
-      angel::reordering_on_tt_inplace( tt_copy, order );
-      if((tt_copy == tt) && compute_atleast_once)
-        continue;
-      compute_atleast_once = true;
-      //kitty::print_binary(tt_copy);
-      //std::cout<<std::endl;
-      qsp_1bench_stats qsp_stats;
-
-      typename DependencyAnalysisAlgorithm::parameter_type pt;
-      typename DependencyAnalysisAlgorithm::statistics_type st;
-      auto result_deps = compute_dependencies<DependencyAnalysisAlgorithm>( tt_copy, pt, st );
-      // result_deps.print();
-
-      std::map<uint32_t, bool> have_deps;
-      for ( auto i = 0u; i < qubits_count; i++ )
-      {
-        if ( result_deps.dependencies.find( i ) != result_deps.dependencies.end() )
-        {
-          have_deps[i] = true;
-        }
-      }
-
-      std::vector<uint32_t> zero_lines;
-      std::vector<uint32_t> one_lines;
-      extract_independent_vars( zero_lines, one_lines, tt_copy );
-
-      gates_t gates;
-      auto var_idx = qubits_count - 1;
-      std::vector<uint32_t> cs;
-
-      if ( !result_deps.dependencies.empty() )
-      {
-        MC_qg_generation( gates, qubits_count, tt_copy, var_idx, cs, result_deps.dependencies, zero_lines, one_lines );
-        gates_statistics( gates, have_deps, qubits_count, qsp_stats );
-      }
-      else
-      {
-        MC_qg_generation( gates, tt_copy, var_idx, cs, zero_lines, one_lines );
-        gates_statistics( gates, have_deps, qubits_count, qsp_stats );
-      }
-
-      if ( qsp_stats.total_cnots < max_cnots )
-      {
-        std::copy( order.begin(), order.end(), best_order.begin() );
-        best_stats = qsp_stats;
-        best_gates.clear();
-        best_gates = gates;
-        max_cnots = qsp_stats.total_cnots;
-      }
-    }
-  }
-
-  qc_gates = best_gates;
-  final_qsp_stats = best_stats;
-  final_qsp_stats.total_time = time_traversal;
-
-}
-
-template<class DependencyAnalysisAlgorithm>
-void qsp_smallest_tt( gates_t& qc_gates, kitty::dynamic_truth_table tt, qsp_1bench_stats& final_qsp_stats )
-{
-  const uint32_t qubits_count = tt.num_vars();
-  auto max_cnots = pow( 2, qubits_count + 1 );
-
-  stopwatch<>::duration_type time_traversal{0};
-  {
-    stopwatch t( time_traversal );
-    auto const [tt_min, phase, order] = kitty::exact_p_canonization( tt );
-
-    typename DependencyAnalysisAlgorithm::parameter_type pt;
-    typename DependencyAnalysisAlgorithm::statistics_type st;
-    auto result_deps = compute_dependencies<DependencyAnalysisAlgorithm>( tt_min, pt, st );
-
-    std::map<uint32_t, bool> have_deps;
-    for ( auto i = 0u; i < qubits_count; i++ )
-    {
-      if ( result_deps.dependencies.find( i ) != result_deps.dependencies.end() )
-      {
-        have_deps[i] = true;
-      }
-    }
-
-    std::vector<uint32_t> zero_lines;
-    std::vector<uint32_t> one_lines;
-    extract_independent_vars( zero_lines, one_lines, tt_min );
-
-    auto var_idx = qubits_count - 1;
-    std::vector<uint32_t> cs;
-
-    if ( !result_deps.dependencies.empty() )
-    {
-      MC_qg_generation( qc_gates, qubits_count, tt_min, var_idx, cs, result_deps.dependencies, zero_lines, one_lines );
-      gates_statistics( qc_gates, have_deps, qubits_count, final_qsp_stats );
-    }
-    else
-    {
-      MC_qg_generation( qc_gates, tt_min, var_idx, cs, zero_lines, one_lines );
-      gates_statistics( qc_gates, have_deps, qubits_count, final_qsp_stats );
-    }
-  }
-
-  final_qsp_stats.total_time = time_traversal;
-  //final_qsp_stats.total_bench += 1;
-}
 
 /**
  * \breif General quantum state preparation algorithm for any function represantstion, 
@@ -654,71 +535,12 @@ void qsp_smallest_tt( gates_t& qc_gates, kitty::dynamic_truth_table tt, qsp_1ben
  * \param tt given Boolean function corresponding to the quantum state
  * \param qsp_stats store all desired statistics of quantum state preparation process
 */
-template<class Network, class DependencyAnalysisAlgorithm, class ReorderingAlgorithm>
-void qsp_tt_general( Network& net, /*DependencyAnalysisAlgorithm deps_alg,*/ ReorderingAlgorithm orders_alg,
-                     kitty::dynamic_truth_table tt, qsp_general_stats& final_qsp_stats /*, deps_operation_stats& op_stats*/ )
-{
-  if ( kitty::is_const0( tt ) )
-  {
-    std::cout << "The tt is zero, algorithm return an empty circuit!\n";
-    final_qsp_stats.total_bench++;
-    return;
-  }
-  const uint32_t qubits_count = tt.num_vars();
-  for ( auto i = 0u; i < qubits_count; i++ )
-    net.add_qubit();
-
-  final_qsp_stats.total_bench++;
-
-  qsp_1bench_stats qsp_stats;
-
-  /* caching */
-  bool exist_in_cache = false;
-  kitty::dynamic_truth_table tt_p_min;
-  stopwatch<>::duration_type caching_time{0};
-  {
-    stopwatch t( caching_time );
-    auto const [tt_min, phase, order] = ( qubits_count < 7u ) ? kitty::exact_p_canonization( tt ) : kitty::sifting_p_canonization( tt );
-    tt_p_min = tt_min;
-    if ( final_qsp_stats.cache.find( tt_min /*tt_min._bits[0u]*/ ) != final_qsp_stats.cache.end() ) /// already exist
-    {
-      qsp_stats = final_qsp_stats.cache[tt_min];
-      exist_in_cache = true;
-    }
-  }
-  if ( exist_in_cache )
-  {
-    final_qsp_stats.total_cnots += qsp_stats.total_cnots;
-    final_qsp_stats.total_sqgs += qsp_stats.total_sqgs;
-    final_qsp_stats.gates_count.emplace_back( qsp_stats.gates_count );
-    final_qsp_stats.total_time += caching_time;
-    return;
-  }
-
-  /* doing qsp */
-  auto orders = orders_alg.run( qubits_count );
-  gates_t qc_gates;
-  qsp<DependencyAnalysisAlgorithm>( qc_gates, tt, orders, qsp_stats );
-  //qsp_smallest_tt<DependencyAnalysisAlgorithm>(qc_gates, tt, final_qsp_stats);
-
-  /* update qsp stats */
-  final_qsp_stats.total_cnots += qsp_stats.total_cnots;
-  final_qsp_stats.total_sqgs += qsp_stats.total_sqgs;
-  final_qsp_stats.gates_count.emplace_back( qsp_stats.gates_count );
-  final_qsp_stats.total_time += qsp_stats.total_time;
-  final_qsp_stats.total_time += caching_time;
-
-  /* insert into cache */
-  final_qsp_stats.cache[tt_p_min] = qsp_stats;
-
-  // print_gates(qc_gates);
-}
 
 struct state_preparation_parameters
 {
   bool verbose{false};
   bool use_upperbound{true};
-}; /* state_preparation_parameters */
+}; 
 
 struct state_preparation_statistics
 {
@@ -734,7 +556,7 @@ struct state_preparation_statistics
   {
     *this = {};
   }
-}; /* state_preparation_statistics */
+}; 
 
 struct network
 {
@@ -784,7 +606,6 @@ public:
       return it->second;
     }
     
-
     /* run state preparation for the current truth table */
     uint64_t const ub = ps.use_upperbound ? uint64_t( pow( 2u, num_variables ) - 2u ) : std::numeric_limits<uint64_t>::max();
     network best_ntk{{},ub};
@@ -872,6 +693,6 @@ protected:
   state_preparation_statistics& st;
 
   std::unordered_map<kitty::dynamic_truth_table, network, kitty::hash<kitty::dynamic_truth_table>> cache;
-}; /* state_preparation */
+}; 
 
 } // namespace angel
