@@ -94,11 +94,11 @@ BDD create_bdd_from_pla( Cudd& cudd, std::string file_name, uint32_t& num_inputs
   return output;
 }
 
-BDD create_bdd_from_tt( Cudd& cudd, std::string file_name, uint32_t& num_inputs )
+BDD create_bdd_from_tt_str( Cudd& cudd, std::string tt_str, uint32_t& num_inputs )
 {
-  std::ifstream infile( file_name );
-  std::string tt_str;
-  infile >> tt_str;
+  //std::ifstream infile( file_name );
+  //std::string tt_str;
+  //infile >> tt_str;
   std::cout << "tt: " << tt_str << std::endl;
   num_inputs = std::log2( tt_str.size() );
   auto bddNodes = new BDD[num_inputs];
@@ -142,7 +142,7 @@ BDD create_bdd( Cudd& cudd, std::string str, create_bdd_param bdd_param, uint32_
 {
   BDD bdd;
   if ( bdd_param.strategy == create_bdd_param::strategy::create_from_tt )
-    bdd = create_bdd_from_tt( cudd, str, num_inputs );
+    bdd = create_bdd_from_tt_str( cudd, str, num_inputs );
   else
     bdd = create_bdd_from_pla( cudd, str, num_inputs );
 
@@ -419,18 +419,18 @@ void extract_statistics( Cudd cudd, DdNode* f_add,
  * 
  * \tparam Network the type of generated quantum circuit
  * \param network the extracted quantum circuit for given quantum state
- * \param filename include desired quantum state for preparation in tt or pla version
+ * \param str include desired quantum state for preparation in tt or pla version
  * \param stats store all desired statistics of quantum state preparation process
  * \param param specify some parameters for qsp such as creating BDD from tt or pla
 */
 template<class Network>
-void qsp_add( Network& network, const std::string file_name, qsp_add_statistics& stats, create_bdd_param param = {} )
+void qsp_add( Network& network, const std::string str, qsp_add_statistics& stats, create_bdd_param param = {} )
 {
   uint32_t num_inputs;
   /* Create BDD */
   Cudd cudd;
   auto mgr = cudd.getManager();
-  auto f_bdd = detail::create_bdd( cudd, file_name, param, num_inputs );
+  auto f_bdd = detail::create_bdd( cudd, str, param, num_inputs );
   auto f_add = Cudd_BddToAdd( mgr, f_bdd.getNode() );
 
   /* 
