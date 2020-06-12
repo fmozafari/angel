@@ -523,7 +523,6 @@ void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uint32_t v
   }
 }
 
-
 /**
  * \breif General quantum state preparation algorithm for any function represantstion, 
  * dependency analysis algorithm, and reordering algorithm.

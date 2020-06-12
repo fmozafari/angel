@@ -1,7 +1,7 @@
 /* author: Fereshte */
 #include <catch.hpp>
 #include <angel/quantum_state_preparation/qsp_tt_general.hpp>
-#include <angel/reordering/reordering.hpp>
+#include <angel/reordering/no_reordering.hpp>
 #include <angel/dependency_analysis/esop_based_dependency_analysis.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/netlist.hpp>
