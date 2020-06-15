@@ -237,35 +237,22 @@ void print_gates( gates_t gates )
   }
 }
 
-// struct deps_operation_stats
-// {
-//   /* Be verbose */
-//   bool verbose = true;
+uint32_t extract_max_controls (std::vector< std::vector<int32_t> > mcs)
+{
+  std::vector<uint32_t> cs;
+  for(auto const& mc : mcs)
+  {
+    for(auto i=0u; i<mc.size(); i++)
+    {
+      auto it = std::find(cs.begin(), cs.end(), abs(mc[i]) );
+      if(it == cs.end())
+      {
+        cs.emplace_back(abs(mc[i]));
+      }
+    }
+  }
 
-//   /* Map pattern name to number of occurrencies */
-//   mutable std::unordered_map<std::string, uint32_t> pattern_occurrence;
-
-//   void report( std::ostream &os = std::cout ) const
-//   {
-//     for ( const auto& d : pattern_occurrence )
-//     {
-//       if ( d.second > 0u || verbose )
-//       {
-//         os << fmt::format( "[i] number of {:6s} operation: {:7d}\n", d.first, d.second );
-//       }
-//     }
-//   }
-// };
-
-// void extract_deps_operation_stats( deps_operation_stats& op_stats, dependencies_t const& deps )
-// {
-//   for( auto i = 0u; i < deps.size(); ++i )
-//   {
-//     if ( deps.find( i ) == deps.end() )
-//       continue;
-
-//     op_stats.pattern_occurrence[fmt::format( "{}-{}", deps.at( i ).first, deps.at( i ).second.size() )]++;
-//   }
-// }
+  return cs.size();
+}
 
 } // namespace angel

@@ -13,6 +13,7 @@
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/io_id.hpp>
 #include <unordered_set>
+#include "utils.hpp"
 
 namespace angel
 {
@@ -234,23 +235,23 @@ void extract_probabilities_and_MCgates( std::unordered_set<DdNode*>& visited,
   extract_probabilities_and_MCgates( visited, node_ones, gates, cuddT( current ), num_vars, orders );
 
   visited.insert( current );
-  double ep = 0;
+  double ep = 0.0;
   double dp = node_ones[current->index].find( current )->second;
-  if ( Cudd_IsConstant( cuddT( current ) ) && Cudd_V( cuddT( current ) ) ) //?? -> one probability
+  if ( Cudd_IsConstant( cuddT( current ) ) && Cudd_V( cuddT( current ) ) ) //?? ->  probability
   {
     ep = pow( 2, num_vars - 1 - orders[current->index] );
   }
-  else if ( Cudd_IsConstant( cuddT( current ) ) && !Cudd_V( cuddT( current ) ) ) //?? -> one probability
+  else if ( Cudd_IsConstant( cuddT( current ) ) && !Cudd_V( cuddT( current ) ) ) //?? ->  probability
   {
     ep = 0;
   }
   else
   {
     ep = node_ones[cuddT( current )->index].find( cuddT( current ) )->second *
-         ( pow( 2, orders[cuddT( current )->index] - orders[current->index] - 1 ) ); //?? -> one probability
+         ( pow( 2, orders[cuddT( current )->index] - orders[current->index] - 1 ) ); //?? ->  probability
   }
 
-  double p = ep / dp;
+  double p = ep / dp; /* one probability */
 
   auto const it = gates.find( current );
   if ( it == gates.end() )
@@ -262,8 +263,9 @@ void extract_probabilities_and_MCgates( std::unordered_set<DdNode*>& visited,
   if ( p != 0 )
   {
     gates[current][current->index].emplace_back( std::make_pair<double, std::vector<int32_t>>( 1 - p, {} ) );
-    std::cout << "index: " << current->index << std::endl;
+    //std::cout << "index: " << current->index << std::endl;
   }
+
   /* inserting childs gates */
   if ( !Cudd_IsConstant( cuddE( current ) ) )
   {
@@ -279,7 +281,12 @@ void extract_probabilities_and_MCgates( std::unordered_set<DdNode*>& visited,
             controls.emplace_back( gates[cuddE( current )][i][j].second[k] );
           //std::copy(gates[cuddE(current)][i][j].second.begin() , gates[cuddE(current)][i][j].second.end() , controls);
           //auto controls = gates[cuddE(current)][i][j].second;
-          controls.emplace_back( -( current->index + 1 ) );
+          if ( p != 0 && p != 1 )
+          {
+            //std::cout << "p: " << p << std::endl;
+            controls.emplace_back( -( current->index + 1 ) );
+          }
+
           gates[current][i].emplace_back( std::make_pair( pro, controls ) );
         }
       }
@@ -301,7 +308,8 @@ void extract_probabilities_and_MCgates( std::unordered_set<DdNode*>& visited,
           //std::copy(gates[cuddT(current)][i][j].second.begin() , gates[cuddT(current)][i][j].second.end() , controls);
 
           //auto controls = gates[cuddT(current)][i][j].second;
-          controls.emplace_back( current->index + 1 );
+          if ( p != 0 && p != 1 )
+            controls.emplace_back( current->index + 1 );
           gates[current][i].emplace_back( std::make_pair( pro, controls ) );
         }
       }
@@ -324,7 +332,8 @@ void extract_probabilities_and_MCgates( std::unordered_set<DdNode*>& visited,
     {
       //gates_pre[id].insert({current, std::make_tuple( 1/2.0, nullptr , nullptr ) });
       std::vector<int32_t> temp_c;
-      temp_c.emplace_back( -( current->index + 1 ) );
+      if ( p != 0 && p != 1 )
+        temp_c.emplace_back( -( current->index + 1 ) );
       gates[current][id].emplace_back( std::make_pair( 1 / 2.0, temp_c ) );
     }
   }
@@ -335,7 +344,8 @@ void extract_probabilities_and_MCgates( std::unordered_set<DdNode*>& visited,
     {
       //gates_pre[id].insert({current, std::make_tuple( 1/2.0, nullptr , nullptr ) });
       std::vector<int32_t> temp_c;
-      temp_c.emplace_back( current->index + 1 );
+      if ( p != 0 && p != 1 )
+        temp_c.emplace_back( current->index + 1 );
       gates[current][id].emplace_back( std::make_pair( 1 / 2.0, temp_c ) );
     }
   }
@@ -363,49 +373,49 @@ void extract_statistics( Cudd cudd, DdNode* f_add,
   auto CNOTs = 0;
   auto Ancillaes = 0;
 
-  for( auto i = 1; i < cudd.ReadSize(); i++ )
+  std::cout<<"var: "<<cudd.ReadSize()<<std::endl;
+
+  for ( auto i = 0; i < cudd.ReadSize(); i++ )
   {
+    
+    if(gates[f_add].size()==0)
+      break;
     total_MC_gates += gates[f_add][i].size();
-
-    if( gates[f_add][i].size() < ( pow( 2, i ) / ( 6 * ( i + 1 ) - 12 ) ) )
+    
+    
+    if ( gates[f_add][i].size() == 0 )
+      continue;
+    
+    auto max_cs = 0u;
+    std::vector< std::vector<int32_t> > MCs;
+    for ( auto j = 0u; j < gates[f_add][i].size(); j++ )
     {
-      for( auto j = 0u; j < gates[f_add][i].size(); j++ )
-      {
-        auto cs = gates[f_add][i][j].second.size();
-
-        if( cs == 1 )
-        {
-          CNOTs += 1;
-        }
-        else if( cs == 2 )
-        {
-          CNOTs += 6;
-          Ts += 7;
-        }
-        else if ( cs == 3 )
-        {
-          CNOTs += 12;
-          Ts += 15;
-          Ancillaes += 1;
-        }
-        else
-        {
-          cs += 1;
-          CNOTs += ( 6 * cs - 12 );
-          Ts += ( 8 * cs - 17 );
-          Ancillaes += ( floor( ( cs - 3 ) / 2 ) );
-        }
-      }
-      Rxs += gates[f_add][i].size() + 1;
+      if(gates[f_add][i][j].second.size()>0)
+        MCs.emplace_back(gates[f_add][i][j].second);
+      //auto cs = gates[f_add][i][j].second.size();
+      //if ( cs > max_cs )
+        //max_cs = cs;
     }
+    if(MCs.size()>0)
+      max_cs = extract_max_controls(MCs);
+    
+    if ( max_cs == 0 )
+    {
+      Rys += 1;
+    }
+    else if ( max_cs == 1 && gates[f_add][i].size() == 1 && gates[f_add][i][0].first == 0 )
+    {
+      CNOTs += 1;
+    }
+
     else
     {
-      CNOTs += pow( 2, i );
-      Rys += pow( 2, i );
+      CNOTs += pow( 2, max_cs );
+      Rys += pow( 2, max_cs );
     }
   }
 
-  stats.MC_gates += total_MC_gates;
+  stats.MC_gates += (total_MC_gates==0 ? 0 : total_MC_gates-1);
   stats.cnots += CNOTs;
   stats.sqgs += ( Rxs + Rys + Ts );
   stats.ancillaes += Ancillaes;
@@ -431,6 +441,7 @@ void qsp_add( Network& network, const std::string str, qsp_add_statistics& stats
   Cudd cudd;
   auto mgr = cudd.getManager();
   auto f_bdd = detail::create_bdd( cudd, str, param, num_inputs );
+  std::cout<<"bdd size: "<<cudd.ReadSize()<<std::endl;
   //auto f_bdd = detail::create_bdd_from_tt_str( cudd, str, num_inputs );
   auto f_add = Cudd_BddToAdd( mgr, f_bdd.getNode() );
 
