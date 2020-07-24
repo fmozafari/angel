@@ -80,67 +80,69 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
     }
 
     extractor.run( [&]( kitty::dynamic_truth_table const& tt ){
-        p0( tt ); /* baseline */
-        p1( tt ); /* patterns + no reordering */
-        p2( tt ); /* ESOPs + no reordering */
+        // p0( tt ); /* baseline */
+        // p1( tt ); /* patterns + no reordering */
+        // p2( tt ); /* ESOPs + no reordering */
 
-        p3( tt ); /* no dependencies + random reordering */
-        p4( tt ); /* patterns + random reordering */
+        // p3( tt ); /* no dependencies + random reordering */
+        // p4( tt ); /* patterns + random reordering */
         p5( tt ); /* ESOPs + random reordering */
 
-        p6( tt ); /* no dependencies + greedy reordering */
-        p7( tt ); /* patterns + greedy reordering */
-        p8( tt ); /* ESOPs + greedy reordering */
+        //p6( tt ); /* no dependencies + greedy reordering */
+        //p7( tt ); /* patterns + greedy reordering */
+        //p8( tt ); /* ESOPs + greedy reordering */
 
         //p9(tt); /* ESOPs + all orders */
 
         /* ensure that baseline has the highest costs */
-        if ( qsp0_st.num_cnots < qsp1_st.num_cnots ||
-             qsp0_st.num_cnots < qsp2_st.num_cnots ||
-             qsp0_st.num_cnots < qsp3_st.num_cnots ||
-             qsp0_st.num_cnots < qsp4_st.num_cnots ||
-             qsp0_st.num_cnots < qsp5_st.num_cnots ||
-             qsp0_st.num_cnots < qsp6_st.num_cnots ||
-             qsp0_st.num_cnots < qsp7_st.num_cnots ||
-             qsp0_st.num_cnots < qsp8_st.num_cnots )
-        {
-          std::abort();
-        }
+        // if ( qsp0_st.num_cnots < qsp1_st.num_cnots ||
+        //      qsp0_st.num_cnots < qsp2_st.num_cnots ||
+        //      qsp0_st.num_cnots < qsp3_st.num_cnots ||
+        //      qsp0_st.num_cnots < qsp4_st.num_cnots ||
+        //      qsp0_st.num_cnots < qsp5_st.num_cnots ||
+        //      qsp0_st.num_cnots < qsp6_st.num_cnots ||
+        //      qsp0_st.num_cnots < qsp7_st.num_cnots ||
+        //      qsp0_st.num_cnots < qsp8_st.num_cnots )
+        // {
+        //   std::abort();
+        // }
       });
   }
-
   exp( name, qsp0_st.num_functions, qsp0_st.num_unique_functions,
-       qsp0_st.num_cnots, angel::to_seconds( qsp0_st.time_total ),
-       qsp1_st.num_cnots, angel::to_seconds( qsp1_st.time_total ),
-       qsp2_st.num_cnots, angel::to_seconds( qsp2_st.time_total ),
+       qsp0_st.num_cnots, qsp0_st.num_sqgs, angel::to_seconds( qsp0_st.time_total ),
+       qsp1_st.num_cnots, qsp1_st.num_sqgs, angel::to_seconds( qsp1_st.time_total ),
+       qsp2_st.num_cnots, qsp2_st.num_sqgs, angel::to_seconds( qsp2_st.time_total ),
        
-       qsp3_st.num_cnots, angel::to_seconds( qsp3_st.time_total ),
-       qsp4_st.num_cnots, angel::to_seconds( qsp4_st.time_total ),
-       qsp5_st.num_cnots, angel::to_seconds( qsp5_st.time_total ),
+       qsp3_st.num_cnots, qsp3_st.num_sqgs, angel::to_seconds( qsp3_st.time_total ),
+       qsp4_st.num_cnots, qsp4_st.num_sqgs, angel::to_seconds( qsp4_st.time_total ),
+       qsp5_st.num_cnots, qsp5_st.num_sqgs, angel::to_seconds( qsp5_st.time_total ),
 
-       qsp6_st.num_cnots, angel::to_seconds( qsp6_st.time_total ),
-       qsp7_st.num_cnots, angel::to_seconds( qsp7_st.time_total ),
-       qsp8_st.num_cnots, angel::to_seconds( qsp8_st.time_total ),
-       qsp9_st.num_cnots, angel::to_seconds( qsp9_st.time_total )
+       qsp6_st.num_cnots, qsp6_st.num_sqgs, angel::to_seconds( qsp6_st.time_total ),
+       qsp7_st.num_cnots, qsp7_st.num_sqgs, angel::to_seconds( qsp7_st.time_total ),
+       qsp8_st.num_cnots, qsp8_st.num_sqgs, angel::to_seconds( qsp8_st.time_total ),
+       qsp9_st.num_cnots, qsp9_st.num_sqgs, angel::to_seconds( qsp9_st.time_total )
   );
+
 }
 
 int main()
 {  
   experiments::experiment<std::string, uint64_t, uint64_t,
-                          uint64_t, double, uint64_t, double, uint64_t, double,
-                          uint64_t, double, uint64_t, double, uint64_t, double,
-                          uint64_t, double, uint64_t, double, uint64_t, double, uint32_t, double>
+                          uint64_t, uint64_t, double, uint64_t, uint64_t, double, uint64_t, uint64_t, double,
+                          uint64_t, uint64_t, double, uint64_t, uint64_t, double, uint64_t, uint64_t, double,
+                          uint64_t, uint64_t, double, uint64_t, uint64_t, double, uint64_t, uint64_t, double, 
+                          uint32_t, uint64_t, double>
     exp( "qsp_cuts", "benchmarks", "total func", "unqique func",
-         "cnot qsp0", "time qsp0", "cnot qsp1", "time qsp1", "cnot qsp2", "time qsp2",
-         "cnot qsp3", "time qsp3", "cnot qsp4", "time qsp4", "cnot qsp5", "time qsp5",
-         "cnot qsp6", "time qsp6", "cnot qsp7", "time qsp7", "cnot qsp8", "time qsp8", "cnot qsp9", "time qsp9" );
+         "cnot qsp0", "sqgs qsp0", "time qsp0", "cnot qsp1", "sqgs qsp1", "time qsp1", "cnot qsp2", "sqgs qsp2", "time qsp2",
+         "cnot qsp3", "sqgs qsp3", "time qsp3", "cnot qsp4", "sqgs qsp4", "time qsp4", "cnot qsp5", "sqgs qsp5", "time qsp5",
+         "cnot qsp6", "sqgs qsp6", "time qsp6", "cnot qsp7", "sqgs qsp7", "time qsp7", "cnot qsp8", "sqgs qsp8", "time qsp8", 
+         "cnot qsp9", "sqgs", "time qsp9" );
   
-  for ( auto i = 4u; i < 6u; ++i )
+  for ( auto i = 4u; i < 8u; ++i )
   {
     fmt::print( "[i] run experiments for {}-input cut functions\n", i );
-    run_experiments( exp, experiments::epfl_benchmarks(), fmt::format( "EPFL benchmarks {}", i ),
-                     {.num_vars = i} );
+    // run_experiments( exp, experiments::epfl_benchmarks(), fmt::format( "EPFL benchmarks {}", i ),
+    //                  {.num_vars = i} );
     run_experiments( exp, experiments::iscas_benchmarks(), fmt::format( "ISCAS benchmarks {}", i ),
                      {.num_vars = i} );
   }

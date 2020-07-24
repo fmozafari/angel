@@ -41,7 +41,7 @@ int main()
 
   using network_type = tweedledum::netlist<tweedledum::mcmt_gate>;
   network_type network;
-  std::string tt_str = "1101111100010100";
+  std::string tt_str = "01101001";
   //std::reverse(tt_str.begin(), tt_str.end());
   angel::qsp_add_statistics stats;
   angel::qsp_add<network_type>( network, tt_str, stats );

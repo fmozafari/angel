@@ -545,9 +545,8 @@ struct state_preparation_statistics
 {
   uint64_t num_functions{0};
   uint64_t num_unique_functions{0};
-
   uint64_t num_cnots{0};
-  
+  uint64_t num_sqgs{0};
   stopwatch<>::duration_type time_cache{0};
   stopwatch<>::duration_type time_total{0};
 
@@ -560,7 +559,7 @@ struct state_preparation_statistics
 struct network
 {
   gates_t gates;
-  uint64_t num_cnots;
+  std::pair<uint32_t, uint32_t> cnots_sqgs;
 };
 
 template<class DependencyAnalysisStrategy, class ReorderingStrategy>
@@ -597,40 +596,43 @@ public:
       network empty;
       return empty;
       
-      st.num_cnots += it->second.num_cnots;
+      st.num_cnots += it->second.cnots_sqgs.first;
       if ( ps.verbose )
       {
-        fmt::print( "cached function = {} cnots = {}\n", kitty::to_hex( tt ), it->second.num_cnots );
+        fmt::print( "cached function = {} cnots = {}\n", kitty::to_hex( tt ), it->second.cnots_sqgs.first );
       }
       return it->second;
     }
     
     /* run state preparation for the current truth table */
-    uint64_t const ub = ps.use_upperbound ? uint64_t( pow( 2u, num_variables ) - 2u ) : std::numeric_limits<uint64_t>::max();
+    std::pair<uint32_t, uint32_t> upperbound = {uint64_t( pow( 2u, num_variables ) - 2u ), uint64_t( pow( 2u, num_variables ) - 1u )};
+    std::pair<uint32_t, uint32_t> max = {std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max()};
+    std::pair<uint32_t, uint32_t> const ub = ps.use_upperbound ? upperbound : max;
     network best_ntk{{},ub};
     order_strategy.foreach_reordering( tt, [this,&best_ntk]( kitty::dynamic_truth_table const& tt ){
         network ntk = synthesize_network( tt );
-        if ( ntk.num_cnots < best_ntk.num_cnots )
+        //print_gates(ntk.gates);
+        
+        if ( ntk.cnots_sqgs.first < best_ntk.cnots_sqgs.first )
         {
           best_ntk = ntk;
         }
-        return ntk.num_cnots;
+        return ntk.cnots_sqgs.first ;
       });
-
     /* ensure that re-ordering has been exectued at least once */
-    assert( best_ntk.num_cnots < std::numeric_limits<uint64_t>::max() );
+    assert( best_ntk.cnots_sqgs.first < std::numeric_limits<uint64_t>::max() );
 
     /* insert result into cache */
     cache.emplace( key_tt, best_ntk );
     if ( ps.verbose )
     {
-      fmt::print( "unique function = {} cnots = {}\n", kitty::to_hex( tt ), best_ntk.num_cnots );
+      fmt::print( "unique function = {} cnots = {}\n", kitty::to_hex( tt ), best_ntk.cnots_sqgs.first );
     }
 
     /* update statistics */
     ++st.num_unique_functions;
-    st.num_cnots += best_ntk.num_cnots;
-
+    st.num_cnots += best_ntk.cnots_sqgs.first;
+    st.num_sqgs += best_ntk.cnots_sqgs.second;
     return best_ntk;
   }
 
@@ -639,7 +641,7 @@ public:
     /* FIXME: treat const0 as a special case */
     if ( kitty::is_const0( tt ) )
     {
-      return network{{}, 0u};
+      return network{{}, std::make_pair(0u, 0u)};
     }
 
     /* extract dependencies */
@@ -653,6 +655,7 @@ public:
   template<typename Dependencies>
   network create_gates( kitty::dynamic_truth_table const& tt, Dependencies const& dependencies )
   {
+    
     uint32_t const num_variables = tt.num_vars();
     uint32_t const var_index = num_variables - 1;
 
@@ -682,7 +685,7 @@ public:
     }
     gates_statistics( gates, have_deps, num_variables, st );
 
-    return network{gates, st.total_cnots};
+    return network{gates, std::make_pair(st.total_cnots, st.total_sqgs)};
   }
 
 protected:
