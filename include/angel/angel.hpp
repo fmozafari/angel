@@ -2,7 +2,7 @@
 #include <angel/dependency_analysis/pattern_based_dependency_analysis.hpp>
 #include <angel/dependency_analysis/esop_based_dependency_analysis.hpp>
 #include <angel/dependency_analysis/no_deps.hpp>
-#include <angel/quantum_state_preparation/qsp_tt_general.hpp>
+#include <angel/quantum_state_preparation/qsp_deps.hpp>
 #include <angel/quantum_state_preparation/qsp_bdd.hpp>
 #include <angel/reordering/exhaustive_reordering.hpp>
 #include <angel/reordering/greedy_reordering.hpp>
