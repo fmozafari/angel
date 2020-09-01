@@ -18,8 +18,8 @@ void all_k_inputs_functions( Exp&& exp, uint32_t num_vars )
   {
     std::string tt_str = kitty::to_binary( tt );
     std::reverse(tt_str.begin(), tt_str.end());
-    angel::qsp_add_statistics stats;
-    angel::qsp_add<network_type>( network, tt_str, stats );
+    angel::qsp_bdd_statistics stats;
+    angel::qsp_bdd<network_type>( network, tt_str, stats );
     //stats.report();
     exp( fmt::format( "func {}", i ), stats.nodes, stats.cnots, stats.sqgs , stats.MC_gates );
     //if(i == 100)
@@ -41,10 +41,10 @@ int main()
 
   using network_type = tweedledum::netlist<tweedledum::mcmt_gate>;
   network_type network;
-  std::string tt_str = "01101001";
+  std::string tt_str = "11101000";
   //std::reverse(tt_str.begin(), tt_str.end());
-  angel::qsp_add_statistics stats;
-  angel::qsp_add<network_type>( network, tt_str, stats );
+  angel::qsp_bdd_statistics stats;
+  angel::qsp_bdd<network_type>( network, tt_str, stats );
   stats.report();
 
   return 0;

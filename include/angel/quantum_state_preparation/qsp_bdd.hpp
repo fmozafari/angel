@@ -19,7 +19,7 @@
 namespace angel
 {
 
-struct qsp_add_statistics
+struct qsp_bdd_statistics
 {
   double time{0};
   uint32_t cnots{0};
@@ -165,7 +165,7 @@ void draw_dump( DdNode* f_add, DdManager* mgr )
   Cudd_DumpDot( mgr, 1, ddnodearray, NULL, NULL, outfile ); /* dump the function to .dot file */
 }
 
-void count_ones_add_nodes( std::unordered_set<DdNode*>& visited,
+void count_ones_bdd_nodes( std::unordered_set<DdNode*>& visited,
                            std::vector<std::map<DdNode*, uint32_t>>& node_ones,
                            DdNode* f, uint32_t num_vars, std::vector<uint32_t> orders )
 {
@@ -175,8 +175,8 @@ void count_ones_add_nodes( std::unordered_set<DdNode*>& visited,
   if ( Cudd_IsConstant( current ) )
     return;
 
-  count_ones_add_nodes( visited, node_ones, cuddE( current ), num_vars, orders );
-  count_ones_add_nodes( visited, node_ones, cuddT( current ), num_vars, orders );
+  count_ones_bdd_nodes( visited, node_ones, cuddE( current ), num_vars, orders );
+  count_ones_bdd_nodes( visited, node_ones, cuddT( current ), num_vars, orders );
 
   visited.insert( current );
   uint32_t Eones = 0;
@@ -218,7 +218,7 @@ void count_ones_add_nodes( std::unordered_set<DdNode*>& visited,
   node_ones[current->index].insert( {current, Tones + Eones} );
 }
 
-void count_ones_add_nodes( std::unordered_set<DdNode*>& visited,
+void count_ones_bdd_nodes( std::unordered_set<DdNode*>& visited,
                            std::vector<std::map<DdNode*, uint32_t>>& node_ones,
                            DdNode* f, uint32_t num_vars )
 {
@@ -228,8 +228,8 @@ void count_ones_add_nodes( std::unordered_set<DdNode*>& visited,
   if ( Cudd_IsConstant( current ) )
     return;
 
-  count_ones_add_nodes( visited, node_ones, cuddE( current ), num_vars );
-  count_ones_add_nodes( visited, node_ones, cuddT( current ), num_vars );
+  count_ones_bdd_nodes( visited, node_ones, cuddE( current ), num_vars );
+  count_ones_bdd_nodes( visited, node_ones, cuddT( current ), num_vars );
 
   visited.insert( current );
   uint32_t Eones = 0;
@@ -556,13 +556,13 @@ void extract_quantum_gates( DdNode* f_add, uint32_t num_inputs, std::vector<uint
   //std::vector<std::pair<uint32_t, uint32_t>> ones_frac;
   std::unordered_set<DdNode*> visited;
   std::unordered_set<DdNode*> visited1;
-  count_ones_add_nodes( visited, node_ones, f_add, num_inputs );
+  count_ones_bdd_nodes( visited, node_ones, f_add, num_inputs );
   extract_probabilities_and_MCgates( visited1, node_ones, gates, f_add, num_inputs );
 }
 
 void extract_statistics( Cudd cudd, DdNode* f_add,
                          std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>> gates,
-                         qsp_add_statistics& stats, std::vector<uint32_t> orders )
+                         qsp_bdd_statistics& stats, std::vector<uint32_t> orders )
 {
   auto total_MC_gates = 0u;
   auto Rxs = 0;
@@ -630,7 +630,7 @@ void extract_statistics( Cudd cudd, DdNode* f_add,
  * \param param specify some parameters for qsp such as creating BDD from tt or pla
 */
 template<class Network>
-void qsp_add( Network& network, std::string str, qsp_add_statistics& stats, create_bdd_param param = {} )
+void qsp_bdd( Network& network, std::string str, qsp_bdd_statistics& stats, create_bdd_param param = {} )
 {
   uint32_t num_inputs = log2(str.size());
   /* reordering tt */
