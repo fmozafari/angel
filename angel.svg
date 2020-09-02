@@ -74,7 +74,7 @@
     <polygon class="cls-1" points="335 -10 -30 200 -30 600 335 780 700 600 700 200 335 0"/>
   </g>
   <g id="Layer_12" data-name="Layer 12">
-    <polygon class="cls-2" points="335 0 -20 200 -20 600 335 770 690 600 690 200 335 0" width="1000" height="1500" />
+    <polygon class="cls-2" points="335 20 0 200 0 600 335 750 670 600 670 200 335 0" width="1000" height="1500" />
   </g>
   <g id="Layer_13" data-name="Layer 13" >
     <path class="cls-3" d="M620.58618,547.44367" transform="translate(-0.03263 -0.1671)"/>
