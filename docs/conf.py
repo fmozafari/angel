@@ -90,7 +90,7 @@ html_theme = 'sphinx_rtd_theme'
 # documentation.
 #
 html_theme_options = {
-  'style_nav_header_background': '#16A085',
+  'style_nav_header_background': '#f7f8f8',
   'logo_only': False
 }
 html_logo = "angel.svg"
