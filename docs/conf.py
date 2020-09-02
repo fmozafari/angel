@@ -91,7 +91,8 @@ html_theme = 'sphinx_rtd_theme'
 #
 html_theme_options = {
   'style_nav_header_background': '#f7ec13',
-  'logo_only': False
+  'logo_only': False,
+  'display_version': False
 }
 html_logo = "angel.svg"
 # Add any paths that contain custom static files (such as style sheets) here,
