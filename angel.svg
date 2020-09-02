@@ -70,10 +70,10 @@
     </style>
   </defs>
   <title>angelBigge</title>
-  <g id="Layer_14" data-name="Layer 14" width="150" height="150">
+  <g id="Layer_14" data-name="Layer 14">
     <polygon class="cls-1" points="333.909 0 0.019 192.208 0 573.009 333.676 769.915 667.389 572.487 667.501 192.208 333.909 0" width="150" height="150"/>
   </g>
-  <g id="Layer_12" data-name="Layer 12" width="150" height="150" >
+  <g id="Layer_12" data-name="Layer 12">
     <polygon class="cls-2" points="330.774 55.42 44.952 219.957 44.937 545.936 330.575 714.495 616.245 545.489 616.341 219.957 330.774 55.42" width="150" height="150" />
   </g>
   <g id="Layer_13" data-name="Layer 13" >
@@ -82,8 +82,8 @@
     <path class="cls-4" d="M346.95038,391.19928a12.46906,12.46906,0,0,1,.54669,2.37207,49.86525,49.86525,0,0,1,.07513,14.036l273.014,139.83637,2.17017-326.68085Z" transform="translate(-0.03263 -0.1671)"/>
   </g>
   <g id="Layer_22" data-name="Layer 22" >
-    <polyline class="cls-2" points="357.24 389.803 347.697 393.936 346.644 398.66 354.272 401.149 357.559 399.681"/>
-    <polygon class="cls-2" points="354.639 373.351 355.692 384.266 344.585 384.649 344.011 374.021 354.639 373.351"/>
+    <polyline class="cls-2" points="357.24 389.803 347.697 393.936 346.644 398.66 354.272 401.149 357.559 399.681" width="150" height="150"/>
+    <polygon class="cls-2" points="354.639 373.351 355.692 384.266 344.585 384.649 344.011 374.021 354.639 373.351" width="150" height="150"/>
   </g>
   <g id="Layer_9" data-name="Layer 9" width="150" height="150">
     <g>
