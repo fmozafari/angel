@@ -94,7 +94,7 @@ html_theme_options = {
   'logo_only': False,
   'display_version': True
 }
-html_logo = "angel1.svg"
+html_logo = "angel4.png"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
@@ -147,7 +147,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'angel.tex', 'angel Documentation',
-     'EPFL LIS', 'manual'),
+     'EPFL LSI', 'manual'),
 ]
 
 
