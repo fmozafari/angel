@@ -6,7 +6,7 @@
 template<class Exp>
 void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std::string const& name, angel::function_extractor_params extract_ps = {} )
 {
-  using network_type = tweedledum::netlist<tweedledum::mcmt_gate>;
+  tweedledum::netlist<tweedledum::mcmt_gate> ntk;
 
   angel::function_extractor extractor{extract_ps};
 
@@ -32,43 +32,43 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
   /* prepare state preparation algorithms */
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
-  angel::state_preparation<decltype( no_deps ), decltype( no_reorder )> p0( no_deps, no_reorder, qsp0_ps, qsp0_st );
+  angel::qsp_deps<decltype(ntk), decltype( no_deps ), decltype( no_reorder )> p0( ntk, no_deps, no_reorder, qsp0_ps, qsp0_st );
 
   angel::state_preparation_parameters qsp1_ps;
   angel::state_preparation_statistics qsp1_st;
-  angel::state_preparation<decltype( pattern ), decltype( no_reorder )> p1( pattern, no_reorder, qsp1_ps, qsp1_st );
+  angel::qsp_deps<decltype(ntk), decltype( pattern ), decltype( no_reorder )> p1( ntk, pattern, no_reorder, qsp1_ps, qsp1_st );
 
   angel::state_preparation_parameters qsp2_ps;
   angel::state_preparation_statistics qsp2_st;
-  angel::state_preparation<decltype( esop ), decltype( no_reorder )> p2( esop, no_reorder, qsp2_ps, qsp2_st );
+  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( no_reorder )> p2( ntk, esop, no_reorder, qsp2_ps, qsp2_st );
 
   angel::state_preparation_parameters qsp3_ps;
   angel::state_preparation_statistics qsp3_st;
-  angel::state_preparation<decltype( no_deps ), decltype( random )> p3( no_deps, random, qsp3_ps, qsp3_st );
+  angel::qsp_deps<decltype(ntk), decltype( no_deps ), decltype( random )> p3( ntk, no_deps, random, qsp3_ps, qsp3_st );
 
   angel::state_preparation_parameters qsp4_ps;
   angel::state_preparation_statistics qsp4_st;
-  angel::state_preparation<decltype( pattern ), decltype( random )> p4( pattern, random, qsp4_ps, qsp4_st );
+  angel::qsp_deps<decltype(ntk), decltype( pattern ), decltype( random )> p4( ntk, pattern, random, qsp4_ps, qsp4_st );
 
   angel::state_preparation_parameters qsp5_ps;
   angel::state_preparation_statistics qsp5_st;
-  angel::state_preparation<decltype( esop ), decltype( random )> p5( esop, random, qsp5_ps, qsp5_st );
+  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( random )> p5( ntk, esop, random, qsp5_ps, qsp5_st );
 
   angel::state_preparation_parameters qsp6_ps;
   angel::state_preparation_statistics qsp6_st;
-  angel::state_preparation<decltype( no_deps ), decltype( greedy )> p6( no_deps, greedy, qsp6_ps, qsp6_st );
+  angel::qsp_deps<decltype(ntk), decltype( no_deps ), decltype( greedy )> p6( ntk, no_deps, greedy, qsp6_ps, qsp6_st );
 
   angel::state_preparation_parameters qsp7_ps;
   angel::state_preparation_statistics qsp7_st;
-  angel::state_preparation<decltype( pattern ), decltype( greedy )> p7( pattern, greedy, qsp7_ps, qsp7_st );
+  angel::qsp_deps<decltype(ntk), decltype( pattern ), decltype( greedy )> p7( ntk, pattern, greedy, qsp7_ps, qsp7_st );
 
   angel::state_preparation_parameters qsp8_ps;
   angel::state_preparation_statistics qsp8_st;
-  angel::state_preparation<decltype( esop ), decltype( greedy )> p8( esop, greedy, qsp8_ps, qsp8_st );
+  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( greedy )> p8( ntk, esop, greedy, qsp8_ps, qsp8_st );
 
   angel::state_preparation_parameters qsp9_ps;
   angel::state_preparation_statistics qsp9_st;
-  angel::state_preparation<decltype( esop ), decltype( all_orders )> p9( esop, all_orders, qsp9_ps, qsp9_st );
+  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( all_orders )> p9( ntk, esop, all_orders, qsp9_ps, qsp9_st );
   
   for ( const auto& benchmark : benchmarks )
   {

@@ -8,7 +8,7 @@
 template<class Exp>
 void k_equal_function(Exp&& exp, uint32_t num_vars)
 {
-  
+  tweedledum::netlist<tweedledum::mcmt_gate> ntk;
   /* dependency analysis strategies */
   typename angel::esop_deps_analysis::parameter_type esop_ps;
   typename angel::esop_deps_analysis::statistics_type esop_st;
@@ -20,7 +20,7 @@ void k_equal_function(Exp&& exp, uint32_t num_vars)
   /* prepare state preparation algorithms */
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
-  angel::state_preparation<decltype( esop ), decltype( random )> p0( esop, random, qsp0_ps, qsp0_st );
+  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( random )> p0( ntk, esop, random, qsp0_ps, qsp0_st );
 
   kitty::dynamic_truth_table tt( num_vars );
   for ( auto i = 0; i < num_vars; ++i )
@@ -36,7 +36,7 @@ void k_equal_function(Exp&& exp, uint32_t num_vars)
 template<class Exp>
 void ghz_state(Exp&& exp, uint32_t num_vars)
 {
-  
+  tweedledum::netlist<tweedledum::mcmt_gate> ntk; 
   /* dependency analysis strategies */
   typename angel::esop_deps_analysis::parameter_type esop_ps;
   typename angel::esop_deps_analysis::statistics_type esop_st;
@@ -48,7 +48,7 @@ void ghz_state(Exp&& exp, uint32_t num_vars)
   /* prepare state preparation algorithms */
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
-  angel::state_preparation<decltype( esop ), decltype( random )> p0( esop, random, qsp0_ps, qsp0_st );
+  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( random )> p0( ntk, esop, random, qsp0_ps, qsp0_st );
 
   kitty::dynamic_truth_table tt( num_vars );
   
@@ -64,7 +64,7 @@ void ghz_state(Exp&& exp, uint32_t num_vars)
 template<class Exp>
 void w_state(Exp&& exp, uint32_t num_vars)
 {
-  
+  tweedledum::netlist<tweedledum::mcmt_gate> ntk;
   /* dependency analysis strategies */
   typename angel::esop_deps_analysis::parameter_type esop_ps;
   typename angel::esop_deps_analysis::statistics_type esop_st;
@@ -76,7 +76,7 @@ void w_state(Exp&& exp, uint32_t num_vars)
   /* prepare state preparation algorithms */
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
-  angel::state_preparation<decltype( esop ), decltype( random )> p0( esop, random, qsp0_ps, qsp0_st );
+  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( random )> p0( ntk, esop, random, qsp0_ps, qsp0_st );
 
   kitty::dynamic_truth_table tt( num_vars );
   for(auto i=0; i<num_vars; i++)

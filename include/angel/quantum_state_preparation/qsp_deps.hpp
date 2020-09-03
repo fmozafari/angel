@@ -562,17 +562,27 @@ struct network
   std::pair<uint32_t, uint32_t> cnots_sqgs;
 };
 
-template<class DependencyAnalysisStrategy, class ReorderingStrategy>
-class state_preparation
+
+/**
+ * \breif Quantum State Preparation using Functional Dependency
+ * 
+ * \tparam Network the type of generated quantum circuit
+ * \tparam DependencyAnalysisStrategy specify dependency analysis strategy
+ * \tparam ReorderingStrategy specify variable reordering strategy
+*/
+
+template<class Network, class DependencyAnalysisStrategy, class ReorderingStrategy>
+class qsp_deps
 {
 public:
   using dependency_params = typename DependencyAnalysisStrategy::parameter_type;
   using dependency_stats = typename DependencyAnalysisStrategy::statistics_type;
 
 public:
-  explicit state_preparation( DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
+  explicit qsp_deps(Network& ntk, DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
                               state_preparation_parameters const& ps, state_preparation_statistics& st )
-    : dependency_strategy( dependency_strategy )
+    : ntk(ntk)
+    , dependency_strategy( dependency_strategy )
     , order_strategy( order_strategy )
     , ps( ps )
     , st( st )
@@ -689,6 +699,7 @@ public:
   }
 
 protected:
+  Network& ntk;
   DependencyAnalysisStrategy& dependency_strategy;
   ReorderingStrategy& order_strategy;
   state_preparation_parameters const& ps;
