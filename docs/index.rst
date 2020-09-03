@@ -18,8 +18,6 @@ Welcome to angel's documentation!
    :maxdepth: 2
    :caption: Quantum State Preparation
    uqs_preparation
-   dependency_analysis
-   variable_reordering
 
 Indices and tables
 ==================
