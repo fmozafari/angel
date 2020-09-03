@@ -4,8 +4,8 @@ No efficient algorithm is known for preparing arbitrary quantum states.  In the 
 
 The central idea of uniform QSP is that each uniform quantum state can be characterized by a Boolean function, which allows us to draw from the rich fund of Boolean approaches for analyzing and synthesizing circuit implementations.
 
-theorem
-  Each $n$-qubit uniform quantum state $|\phi_{f(x)}\rangle$ corresponds one-to-one to an $n$-variable Boolean function $f(x)$, such that
+Theorem
+  Each $n$-qubit uniform quantum state :math:`|\phi_{f(x)}\rangle` corresponds one-to-one to an $n$-variable Boolean function $f(x)$, such that
  
     :math:`|\phi_{f(x)}\rangle = \frac{1}{|\mathrm{Min}(f)|^{-2}} \sum_{\hat x \in \mathrm{Min}(f)} |\hat{x}\rangle`
   
