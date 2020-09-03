@@ -17,9 +17,9 @@ Welcome to angel's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Quantum State Preparation
-   UQS_Preparation
-   Dependency_analysis
-   Variable_reordering
+   uqs_preparation
+   dependency_analysis
+   variable_reordering
 
 Indices and tables
 ==================
