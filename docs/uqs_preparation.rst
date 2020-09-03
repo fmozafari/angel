@@ -7,7 +7,7 @@ The central idea of uniform QSP is that each uniform quantum state can be charac
 theorem
   Each $n$-qubit uniform quantum state $|\phi_{f(x)}\rangle$ corresponds one-to-one to an $n$-variable Boolean function $f(x)$, such that
  
-    :math: `|\phi_{f(x)}\rangle = \frac{1}{|\mathrm{Min}(f)|^{-2}} \sum_{\hat x \in \mathrm{Min}(f)} |\hat{x}\rangle`
+    :math:`|\phi_{f(x)}\rangle = \frac{1}{|\mathrm{Min}(f)|^{-2}} \sum_{\hat x \in \mathrm{Min}(f)} |\hat{x}\rangle`
   
   holds, where $\mathrm{Min}(f)$ denotes the minterms of $f$.
 \end{theorem}
