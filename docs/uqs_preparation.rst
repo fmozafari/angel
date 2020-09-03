@@ -28,6 +28,6 @@ The construction presented in the previous section is complete and allows us to 
 
 **Header:** ``angel/quantum_state_preparation/qsp_deps.hpp``
 
-.. doxygenfunction:: angel::qsp_deps
+.. doxygenclass:: angel::qsp_deps
 
 
