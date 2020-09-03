@@ -17,6 +17,9 @@ Welcome to angel's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Standard library
+   QSP
+   using_functional_decomposition
+   using_functional_dependency
 
 .. toctree::
    :maxdepth: 2
