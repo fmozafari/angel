@@ -42,22 +42,6 @@ Welcome to angel's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Generators
-
-   generators/arithmetic
-   generators/control
-   generators/modular_arithmetic
-   generators/majority
-
-.. toctree::
-   :maxdepth: 2
-   :caption: quantum_state_preparation
-
-   quantum_state_preparation/qsp_tt_general
-   quantum_state_preparation/qsp_add
-
-.. toctree::
-   :maxdepth: 2
    :caption: Utilities
 
    utils/function_extractor
