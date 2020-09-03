@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 800" transform="scale(1.1)" >
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 800"  >
   <defs>
     <style>
       .cls-1 {
@@ -71,7 +71,7 @@
   </defs>
   <title>angelBigge</title>
   <g id="Layer_14" data-name="Layer 14">
-    <polygon class="cls-1" points="333.909 0 0.019 192.208 0 573.009 333.676 769.915 667.389 572.487 667.501 192.208 333.909 0" transform="scale(1.2)"/>
+    <polygon class="cls-1" points="333.909 0 0.019 192.208 0 573.009 333.676 769.915 667.389 572.487 667.501 192.208 333.909 0"/>
   </g>
   <g id="Layer_12" data-name="Layer 12">
     <polygon class="cls-2" points="330.774 55.42 44.952 219.957 44.937 545.936 330.575 714.495 616.245 545.489 616.341 219.957 330.774 55.42"/>
