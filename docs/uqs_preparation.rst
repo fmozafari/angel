@@ -12,7 +12,7 @@ Theorem
   holds, where :math:`\mathrm{Min}(f)` denotes the minterms of :math:`f`.
 \end{theorem}
 
-This theorem states that it is possible to map uniform quantum states into Boolean functions, i.e., the column vector representation~$|\phi_{f(x)}\rangle$ of a uniform quantum state can be expressed as the superposition of those basis states :math:`|\hat x \rangle` for which :math:`f(\hat x) = 1` normalized by the square-root of the number of minterms of :math:`f`.
+This theorem states that it is possible to map uniform quantum states into Boolean functions, i.e., the column vector representation :math:`|\phi_{f(x)}\rangle` of a uniform quantum state can be expressed as the superposition of those basis states :math:`|\hat x \rangle` for which :math:`f(\hat x) = 1` normalized by the square-root of the number of minterms of :math:`f`.
 
 Functional decomposition
 ------------------------
