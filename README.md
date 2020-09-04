@@ -1,6 +1,6 @@
 # angel
 <img src="https://github.com/fmozafari/angel/blob/master/angel.svg" width="64" height="64" align="left" style="margin-right: 12pt" />
-angel is a `Quantm State Preparation` (QSP) library based on C++-17. It provides several algorithm for QSP with the purpose of CNOTs reduction and increasing speed.
+angel is a Quantm State Preparation (QSP) library based on C++-17. It provides several algorithm for QSP with the purpose of CNOTs reduction and increasing speed.
 
 Read the full documentation [here](https://libangel.readthedocs.io/en/latest/index.html).
 
