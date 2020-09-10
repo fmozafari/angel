@@ -19,6 +19,11 @@ Welcome to angel's documentation!
    :caption: Quantum State Preparation
    
    uqs_preparation
+   
+.. toctree::
+   :maxdepth: 2
+
+   references
 
 Indices and tables
 ==================
