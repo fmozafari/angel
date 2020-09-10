@@ -1,0 +1,2 @@
+.. bibliography:: refs.bib
+  :all:
