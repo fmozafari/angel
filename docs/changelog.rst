@@ -4,7 +4,7 @@ Change Log
 v1.0.0 (2020-11-10))
 -------------------
 
-* //github.com/fmozafari/angel (_`#0c481f9a <https://github.com/fmozafari/angel/commit/0c481f9ae288fb7ed1e95f65828ebc13bbd01454>`__)
+* //github.com/fmozafari/angel (`#0c481f9a <https://github.com/fmozafari/angel/commit/0c481f9ae288fb7ed1e95f65828ebc13bbd01454>`_)
 *  have_deps mapping. ([6dd2a913](https://github.com/fmozafari/angel/commit/6dd2a913abdfc3c365cb4e569145c4cf1ca8ee38))
 *  integrate conflict limit. ([d7e626a7](https://github.com/fmozafari/angel/commit/d7e626a704716f5fe25fc6c7dbbf638baee464bb))
 *  CNOT costs. ([f10a51e4](https://github.com/fmozafari/angel/commit/f10a51e46f2602b993e55b83751841877bc55f60))
