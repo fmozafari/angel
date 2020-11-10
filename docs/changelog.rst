@@ -1,6 +1,8 @@
-#### 1.0.0 (2020-11-10)
+Change Log
+==========
 
-##### Other Changes
+v1.0.0 (2020-11-10))
+-------------------
 
 * //github.com/fmozafari/angel ([0c481f9a](https://github.com/fmozafari/angel/commit/0c481f9ae288fb7ed1e95f65828ebc13bbd01454))
 *  have_deps mapping. ([6dd2a913](https://github.com/fmozafari/angel/commit/6dd2a913abdfc3c365cb4e569145c4cf1ca8ee38))
