@@ -5,6 +5,7 @@ v1.0.0 (2020-11-10)
 -------------------
 
 * Algorithms:
+   - Sift variable reordering method (`#1 <https://github.com/fmozafari/angel/commit/818c7ae127a2a355f165c165902f7626448e549a>`__)
 
 * I/O:
    -  Add experiments for Boolean functions extracted from reconvergence-driven cuts. (`7d5ccf65 <https://github.com/fmozafari/angel/commit/7d5ccf65ca18afa89bfb74757385c16c81ef2397>`__)
