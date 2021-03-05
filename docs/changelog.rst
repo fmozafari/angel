@@ -6,9 +6,11 @@ v1.0.0 (2020-11-10)
 
 * Algorithms:
    - Sift variable reordering method (`#1 <https://github.com/fmozafari/angel/commit/818c7ae127a2a355f165c165902f7626448e549a>`__)
+   - QSP using decision diagrams (`#2 <https://github.com/fmozafari/angel/commit/a8a6f48f6947fd46b87005b632171c9f08bb7f9b>`__)
 
 * I/O:
    -  Add experiments for Boolean functions extracted from reconvergence-driven cuts. (`7d5ccf65 <https://github.com/fmozafari/angel/commit/7d5ccf65ca18afa89bfb74757385c16c81ef2397>`__)
+   - Add benchmarks (`#3 <https://github.com/fmozafari/angel/commit/88faa13b7474d61944b9ae5ce04c983fbf8a9b73>`__)
 * Others:
    -  //github.com/fmozafari/angel
       (`0c481f9a <https://github.com/fmozafari/angel/commit/0c481f9ae288fb7ed1e95f65828ebc13bbd01454>`__)
