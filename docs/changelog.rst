@@ -7,6 +7,9 @@ v1.0.0 (2020-11-10)
 * Algorithms:
 
 * I/O:
+   -  Add experiments for Boolean functions extracted from
+      reconvergence-driven cuts.
+      (`7d5ccf65 <https://github.com/fmozafari/angel/commit/7d5ccf65ca18afa89bfb74757385c16c81ef2397>`__)
 
    -  //github.com/fmozafari/angel
       (`0c481f9a <https://github.com/fmozafari/angel/commit/0c481f9ae288fb7ed1e95f65828ebc13bbd01454>`__)
@@ -38,9 +41,7 @@ v1.0.0 (2020-11-10)
       (`1cda7894 <https://github.com/fmozafari/angel/commit/1cda78949b024fd46833ed617e1c7ed954447903>`__)
    -  //github.com/fmozafari/angel into hriener/ordering
       (`dcefffba <https://github.com/fmozafari/angel/commit/dcefffba85283b82a8fc1427dd5fdb641a9f4c08>`__)
-   -  quantum state preparation for Boolean functions extracted from
-      reconvergence-driven cuts.
-      (`7d5ccf65 <https://github.com/fmozafari/angel/commit/7d5ccf65ca18afa89bfb74757385c16c81ef2397>`__)
+   
    -  //github.com/fmozafari/angel
       (`bbb82d4b <https://github.com/fmozafari/angel/commit/bbb82d4bfb421d4d9a1eac1141c16cfe052bb206>`__)
 
