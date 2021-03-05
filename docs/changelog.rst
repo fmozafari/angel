@@ -7,9 +7,7 @@ v1.0.0 (2020-11-10)
 * Algorithms:
 
 * I/O:
-   - Add experiments for Boolean functions extracted from
-      reconvergence-driven cuts.
-      (`7d5ccf65 <https://github.com/fmozafari/angel/commit/7d5ccf65ca18afa89bfb74757385c16c81ef2397>`__)
+   -  Add experiments for Boolean functions extracted from reconvergence-driven cuts. (`7d5ccf65 <https://github.com/fmozafari/angel/commit/7d5ccf65ca18afa89bfb74757385c16c81ef2397>`__)
 * Others:
    -  //github.com/fmozafari/angel
       (`0c481f9a <https://github.com/fmozafari/angel/commit/0c481f9ae288fb7ed1e95f65828ebc13bbd01454>`__)
