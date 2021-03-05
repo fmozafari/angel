@@ -1,8 +1,12 @@
 Change Log
 ==========
 
-v1.0.0 (2020-11-10))
+v1.0.0 (2020-11-10)
 -------------------
+
+* Algorithms:
+
+* I/O:
 
 -  //github.com/fmozafari/angel
    (`0c481f9a <https://github.com/fmozafari/angel/commit/0c481f9ae288fb7ed1e95f65828ebc13bbd01454>`__)
