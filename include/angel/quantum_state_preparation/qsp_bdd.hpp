@@ -646,7 +646,7 @@ void qsp_bdd( Network& network, std::string str, qsp_bdd_statistics& stats, crea
   stats.nodes += Cudd_DagSize( f_add ) - 2; // it consider 2 nodes for "0" and "1"
   stats.time += to_seconds( time_add_traversal );
   detail::extract_statistics( cudd, f_add, gates, stats, orders );
-  detail::extract_gates_representation( cudd, f_add, gates, orders );
+  //detail::extract_gates_representation( cudd, f_add, gates );
 }
 
 } // namespace angel

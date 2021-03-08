@@ -656,7 +656,7 @@ public:
 
     /* extract dependencies */
     auto const result = dependency_strategy.run( tt );
-    //result.print();
+    result.print();
 
     /* construct gates */
     return create_gates( tt, result.dependencies );
@@ -671,6 +671,7 @@ public:
 
     std::vector<uint32_t> zero_lines, one_lines;
     extract_independent_vars( zero_lines, one_lines, tt );
+    //std::cout<<"zero lines: "<<zero_lines.size()<<"  one lines: "<<one_lines.size()<<std::endl;
 
     gates_t gates;
     std::vector<uint32_t> cs;
@@ -693,7 +694,9 @@ public:
         have_deps[i] = true;
       }
     }
+    //print_gates(gates);
     gates_statistics( gates, have_deps, num_variables, st );
+
 
     return network{gates, std::make_pair(st.total_cnots, st.total_sqgs)};
   }
