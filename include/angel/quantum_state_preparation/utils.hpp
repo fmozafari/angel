@@ -4,7 +4,6 @@
 
 #include <fmt/format.h>
 
-#include <cmath>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -20,7 +19,7 @@ struct qsp_1bench_stats
   std::pair<uint32_t, uint32_t> gates_count = std::make_pair( 0, 0 );
 };
 
-uint32_t compute_upperbound_cost( std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines, uint32_t num_vars, uint32_t var_index )
+inline uint32_t compute_upperbound_cost( std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines, uint32_t num_vars, uint32_t var_index )
 {
   auto const_lines = 0;
   for ( auto const& zero : zero_lines )
@@ -40,7 +39,7 @@ uint32_t compute_upperbound_cost( std::vector<uint32_t> zero_lines, std::vector<
   return cost;
 }
 
-std::pair<uint32_t, uint32_t> esop_gate_cost( std::vector<std::vector<uint32_t>> const& esop )
+inline std::pair<uint32_t, uint32_t> esop_gate_cost( std::vector<std::vector<uint32_t>> const& esop )
 {
   assert( esop.size() > 0u );
   uint32_t cnots_count = 0;
@@ -106,7 +105,7 @@ std::pair<uint32_t, uint32_t> esop_gate_cost( std::vector<std::vector<uint32_t>>
   return (cnots_count > cnots_count2) ? std::make_pair(cnots_count2, sqgs_count2) : std::make_pair(cnots_count, sqgs_count);
 }
 
-std::pair<uint32_t, uint32_t> uniform_gate_cost( std::vector<std::vector<uint32_t>> const& us )
+inline std::pair<uint32_t, uint32_t> uniform_gate_cost( std::vector<std::vector<uint32_t>> const& us )
 {
   std::vector<uint32_t> controls_idx;
   for(auto const& u : us)
@@ -127,7 +126,7 @@ std::pair<uint32_t, uint32_t> uniform_gate_cost( std::vector<std::vector<uint32_
 }
 
 /* with dependencies */
-void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_dependencies,
+inline void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_dependencies,
                        uint32_t const num_vars, qsp_1bench_stats& stats )
 {
   auto total_sqgs = 0u;
@@ -216,7 +215,7 @@ void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& have_depen
 }
 
 using gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>;
-void print_gates( gates_t gates )
+inline void print_gates( gates_t gates )
 {
   for ( auto const& target : gates )
   {
@@ -241,17 +240,17 @@ void print_gates( gates_t gates )
   }
 }
 
-uint32_t extract_max_controls (std::vector< std::vector<int32_t> > mcs)
+inline uint32_t extract_max_controls (std::vector< std::vector<uint32_t> > mcs)
 {
   std::vector<uint32_t> cs;
   for(auto const& mc : mcs)
   {
     for(auto i=0u; i<mc.size(); i++)
     {
-      auto it = std::find(cs.begin(), cs.end(), abs(mc[i]) );
+      auto it = std::find(cs.begin(), cs.end(), mc[i]/2 );
       if(it == cs.end())
       {
-        cs.emplace_back(abs(mc[i]));
+        cs.emplace_back(mc[i]/2);
       }
     }
   }

@@ -1,4 +1,5 @@
 /* author: Fereshte */
+
 #include <catch.hpp>
 #include <angel/utils/partial_truth_table.hpp>
 #include <kitty/constructors.hpp>
@@ -108,3 +109,4 @@ TEST_CASE( "Compute on_set", "[partial_truth_table]" )
   CHECK( on_set( tt8 ).size() == kitty::count_ones( tt8 ) );
 
 }
+

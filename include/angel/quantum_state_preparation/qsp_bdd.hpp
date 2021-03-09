@@ -16,8 +16,20 @@
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/io_id.hpp>
 #include <unordered_set>
+#include <unordered_map>
+#include <iostream>
+
 namespace angel
 {
+/* gates construction
+  std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>>
+  map -> for each node
+  std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>
+  vector1 -> include all qubits
+  vector2 -> gates for each qubit
+  inner vector -> controls
+  */
+using gates_dd_t = std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<uint32_t>>>>>;
 
 struct qsp_bdd_statistics
 {
@@ -109,13 +121,13 @@ BDD create_bdd_from_tt_str( Cudd& cudd, std::string tt_str, uint32_t num_inputs 
   int sig = 1;
 
   /* 
-    zero index in tt_str consist the bigest minterm of tt 
-    so we read it from last element
+    zero index in tt_str consist the smallest minterm of tt 
+    and we read it from first element
   */
 
   for ( auto i = 0u; i < tt_str.size(); i++ )
   {
-    if ( tt_str[tt_str.size() - i - 1] == '1' )
+    if ( tt_str[i] == '1' )
     {
       auto n = i;
       BDD temp;
@@ -219,7 +231,7 @@ void count_ones_bdd_nodes( std::unordered_set<DdNode*>& visited,
 void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& visited,
                                                  std::vector<std::map<DdNode*, uint32_t>> node_ones,
                                                  std::vector<uint32_t> controls,
-                                                 std::vector<std::vector<std::pair<double, std::vector<uint32_t>>>>& gates,
+                                                 gates_dd_t & gates,
                                                  DdNode* f, uint32_t num_vars )
 {
   auto current = f;
@@ -252,7 +264,7 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
   /* inserting current single-qubit G(p) gate */
   if ( p != 1 )
   {
-    gates[current->index].emplace_back( std::pair<double, std::vector<uint32_t>>( p, controls ) );
+    gates[current][current->index].emplace_back( std::pair{ p, controls } );
   }
 
   std::vector<uint32_t> controls_left;
@@ -262,12 +274,12 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
     controls_left.emplace_back( controls[k] );
     controls_right.emplace_back( controls[k] );
   }
-
-  if ( p != 0 && p != 1 )
-  {
+   
+  //if ( p != 0 && p != 1 )
+  //{
     controls_left.emplace_back( current->index * 2 + 1 );
     controls_right.emplace_back( current->index * 2 );
-  }
+  //}
 
   /* left child  */
   if ( Cudd_IsConstant( cuddE( current ) ) && !Cudd_V( cuddE( current ) ) )
@@ -276,7 +288,7 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
   {
     for ( auto i = current->index + 1; i < num_vars; i++ )
     {
-      gates[i].emplace_back( std::pair<double, std::vector<uint32_t>>( 1.0 / 2.0, controls_left ) );
+      gates[current][i].emplace_back( std::pair{ 1.0 / 2.0, controls_left } );
     }
   }
   else
@@ -284,7 +296,7 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
 
     for ( auto i = current->index + 1; i < cuddE( current )->index; i++ )
     {
-      gates[i].emplace_back( std::pair<double, std::vector<uint32_t>>( 1.0 / 2.0, controls_left ) );
+      gates[current][i].emplace_back( std::pair{ 1.0 / 2.0, controls_left } );
     }
   }
 
@@ -295,14 +307,14 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
   {
     for ( auto i = current->index + 1; i < num_vars; i++ )
     {
-      gates[i].emplace_back( std::pair<double, std::vector<uint32_t>>( 1.0 / 2.0, controls_right ) );
+      gates[current][i].emplace_back( std::pair{ 1.0 / 2.0, controls_right } );
     }
   }
   else
   {
     for ( auto i = current->index + 1; i < cuddT( current )->index; i++ )
     {
-      gates[i].emplace_back( std::pair<double, std::vector<uint32_t>>( 1.0 / 2.0, controls_right ) );
+      gates[current][i].emplace_back( std::pair{ 1.0 / 2.0, controls_right } );
     }
   }
 
@@ -313,17 +325,9 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
 
 void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& visited,
                                                   std::vector<std::map<DdNode*, uint32_t>> node_ones,
-                                                  std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>>& gates,
+                                                  gates_dd_t & gates,
                                                   DdNode* f, uint32_t num_vars )
 {
-  /* gates construction
-  std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>>
-  map -> for each node
-  std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>
-  vector1 -> include all qubits
-  vector2 -> gates for each qubit
-  inner vector -> controls
-  */
   auto current = f;
   if ( visited.count( current ) )
     return;
@@ -355,13 +359,13 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
   auto const it = gates.find( current );
   if ( it == gates.end() )
   {
-    gates.emplace( current, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>( num_vars ) );
+    gates.emplace( current, std::vector<std::vector<std::pair<double, std::vector<uint32_t>>>>( num_vars ) );
   }
 
   /* inserting current single-qubit G(p) gate */
   if ( p != 1 )
   {
-    gates[current][current->index].emplace_back( std::make_pair<double, std::vector<int32_t>>( p + 0.0, {} ) );
+    gates[current][current->index].emplace_back( std::pair{ p + 0.0, std::vector<uint32_t>{} } );
   }
 
   /* inserting childs gates */
@@ -374,17 +378,12 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
         for ( auto j = 0u; j < gates[cuddE( current )][i].size(); j++ )
         {
           auto pro = gates[cuddE( current )][i][j].first;
-          std::vector<int32_t> controls;
+          std::vector<uint32_t> controls;
           for ( auto k = 0u; k < gates[cuddE( current )][i][j].second.size(); k++ )
             controls.emplace_back( gates[cuddE( current )][i][j].second[k] );
-          //std::copy(gates[cuddE(current)][i][j].second.begin() , gates[cuddE(current)][i][j].second.end() , controls);
-          //auto controls = gates[cuddE(current)][i][j].second;
-          if ( p != 0 && p != 1 )
-          {
+          //if ( p != 0 && p != 1 )
             controls.emplace_back( current->index * 2 + 1 );
-          }
-
-          gates[current][i].emplace_back( std::make_pair( pro, controls ) );
+          gates[current][i].emplace_back( std::pair{ pro, controls } );
         }
       }
     }
@@ -399,14 +398,13 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
         for ( auto j = 0u; j < gates[cuddT( current )][i].size(); j++ )
         {
           auto pro = gates[cuddT( current )][i][j].first;
-          std::vector<int32_t> controls;
+          std::vector<uint32_t> controls;
           for ( auto k = 0u; k < gates[cuddT( current )][i][j].second.size(); k++ )
             controls.emplace_back( gates[cuddT( current )][i][j].second[k] );
-          //std::copy(gates[cuddT(current)][i][j].second.begin() , gates[cuddT(current)][i][j].second.end() , controls);
-          //auto controls = gates[cuddT(current)][i][j].second;
-          if ( p != 0 && p != 1 )
-            controls.emplace_back( current->index * 2 ); //??
-          gates[current][i].emplace_back( std::make_pair( pro, controls ) );
+          //std::copy(gates[cuddT(current)][i][j].second.begin() , gates[cuddT(current)][i][j].second.end() , controls.begin());
+          //if ( p != 0 && p != 1 )
+            controls.emplace_back( current->index * 2 ); 
+          gates[current][i].emplace_back( std::pair{ pro, controls } );
         }
       }
     }
@@ -425,63 +423,26 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
   {
     if ( E_num_value != 0 )
     {
-      std::vector<int32_t> temp_c;
-      if ( p != 0 && p != 1 )
+      std::vector<uint32_t> temp_c;
+      //if ( p != 0 && p != 1 )
         temp_c.emplace_back( current->index * 2 + 1 );
-      gates[current][i].emplace_back( std::make_pair( 1 / 2.0, temp_c ) );
+      gates[current][i].emplace_back( std::pair{ 1 / 2.0, temp_c } );
     }
   }
   for ( auto i = current->index + 1; i < Tdown; i++ )
   {
     if ( T_num_value != 0 )
     {
-      std::vector<int32_t> temp_c;
-      if ( p != 0 && p != 1 )
+      std::vector<uint32_t> temp_c;
+      //if ( p != 0 && p != 1 )
         temp_c.emplace_back( current->index * 2 );
-      gates[current][i].emplace_back( std::make_pair( 1 / 2.0, temp_c ) );
-    }
-  }
-}
-
-void extract_gates_representation_new(
-    std::vector<std::vector<std::pair<double, std::vector<uint32_t>>>> gates )
-{
-
-  std::ofstream file_out;
-  file_out.open( "test.txt" );
-
-  std::cout << "size: " << gates.size() << std::endl;
-
-  for ( auto i = 0; i < gates.size(); i++ )
-  {
-
-    if ( gates[i].size() == 0 )
-      continue;
-    std::cout << "i: " << i << std::endl;
-    for ( auto k = 0u; k < gates[i].size(); k++ )
-    {
-      double p = gates[i][k].first;
-      double angle = 2 * acos( sqrt( p ) );
-      double angle_degree = ( angle * 180 ) / M_PI;
-      std::string str = "MC_Ry((" + std::to_string( i ) + "," + std::to_string( angle ) + "), [";
-      std::string cs;
-      for ( auto l = 0u; l < gates[i][k].second.size(); l++ )
-      {
-        int32_t c = gates[i][k].second[l];
-        cs = cs + ( c % 2 == 0 ? '1' : '0' );
-        str += std::to_string( c / 2 ) + " ";
-      }
-      str += "])  ";
-      str += cs;
-      file_out << str << "\n";
-      std::cout << str;
-      std::cout << "\n";
+      gates[current][i].emplace_back( std::pair{ 1 / 2.0, temp_c } );
     }
   }
 }
 
 void extract_statistics( Cudd cudd, DdNode* f_add,
-                         std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>> gates,
+                         gates_dd_t gates,
                          qsp_bdd_statistics& stats, std::vector<uint32_t> orders )
 {
   auto total_MC_gates = 0u;
@@ -503,7 +464,7 @@ void extract_statistics( Cudd cudd, DdNode* f_add,
       continue;
 
     auto max_cs = 0u;
-    std::vector<std::vector<int32_t>> MCs;
+    std::vector<std::vector<uint32_t>> MCs;
 
     for ( auto j = 0u; j < gates[f_add][orders[i]].size(); j++ )
     {
@@ -536,13 +497,13 @@ void extract_statistics( Cudd cudd, DdNode* f_add,
 }
 
 void extract_gates_representation( DdNode* f_add, uint32_t num_inputs,
-                                   std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>> gates )
+                                   gates_dd_t gates )
 {
 
   std::ofstream file_out;
   file_out.open( "test.txt" );
 
-  std::cout << "size: " << gates[f_add].size() << std::endl;
+  std::cout << "#qubits: " << gates[f_add].size() << std::endl;
 
   for ( auto i = 0; i < num_inputs; i++ )
   {
@@ -559,17 +520,18 @@ void extract_gates_representation( DdNode* f_add, uint32_t num_inputs,
       double p = gates[f_add][i][k].first;
       double angle = 2 * acos( sqrt( p ) );
       double angle_degree = ( angle * 180 ) / M_PI;
-      std::string str = "MC_Ry((" + std::to_string( i ) + "," + std::to_string( angle ) + "), [";
+      std::string str = "MC_Ry(" + std::to_string( i ) + "," + std::to_string( angle ) + "), [";
       std::string cs;
       for ( auto l = 0u; l < gates[f_add][i][k].second.size(); l++ )
       {
 
-        int32_t c = gates[f_add][i][k].second[l];
-        cs = cs + ( c % 2 == 0 ? '1' : '0' );
-        str += std::to_string( c / 2 ) + " ";
+        uint32_t c = gates[f_add][i][k].second[l];
+        //cs = cs + ( c % 2 == 0 ? '1' : '0' );
+        //str += std::to_string( c / 2 ) + " ";
+        str += std::to_string(c) + " ";
       }
-      str += "])  ";
-      str += cs;
+      str += "]  ";
+      //str += cs;
       file_out << str << "\n";
 
       std::cout << str << "\n";
@@ -578,7 +540,7 @@ void extract_gates_representation( DdNode* f_add, uint32_t num_inputs,
 }
 
 void extract_quantum_gates( DdNode* f_add, uint32_t num_inputs, std::vector<uint32_t> orders,
-                            std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>>& gates )
+                            gates_dd_t & gates )
 {
   std::vector<std::map<DdNode*, uint32_t>> node_ones( num_inputs );
   std::unordered_set<DdNode*> visited;
@@ -586,10 +548,6 @@ void extract_quantum_gates( DdNode* f_add, uint32_t num_inputs, std::vector<uint
   count_ones_bdd_nodes( visited, node_ones, f_add, num_inputs );
   extract_probabilities_and_MCgates_bottom_up( visited1, node_ones, gates, f_add, num_inputs );
   extract_gates_representation( f_add, num_inputs, gates );
-  //std::vector<std::vector<std::pair<double, std::vector<uint32_t>>>> gates_new(num_inputs);
-  //std::vector<uint32_t> controls;
-  //extract_probabilities_and_MCgates_top_down( visited1, node_ones, controls, gates_new, f_add, num_inputs );
-  //extract_gates_representation_new(gates_new);
 }
 
 } // namespace detail
@@ -635,7 +593,7 @@ void qsp_bdd( Network& network, std::string str, qsp_bdd_statistics& stats, crea
   detail::draw_dump( f_add, mgr );
 
   /* Generate quantum gates by traversing ADD */
-  std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>> gates;
+  gates_dd_t gates;
   stopwatch<>::duration_type time_add_traversal{ 0 };
   {
     stopwatch t( time_add_traversal );
