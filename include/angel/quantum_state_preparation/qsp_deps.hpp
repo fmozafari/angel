@@ -554,6 +554,13 @@ struct state_preparation_statistics
   {
     *this = {};
   }
+  void report( std::ostream& os = std::cout ) const
+  {
+    os << fmt::format( "[i] total number of CNOTs = {}\n", num_cnots);
+    os << fmt::format( "[i] total number of single-qubit gates = {}\n", num_sqgs);
+    os << fmt::format( "[i] Time = {}\n", to_seconds(time_total));
+  }
+
 }; 
 
 struct network
