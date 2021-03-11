@@ -91,7 +91,7 @@ struct qsp_general_stats
 
 
 /* with esop based dependencies */
-void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
+inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
                        esop_based_dependencies_t dependencies, std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines )
 {
   /*-----co factors-------*/
@@ -234,7 +234,7 @@ void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_t
 }
 
 /* with pattern based dependencies */
-void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
+inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
                        pattern_based_dependencies_t dependencies, std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines )
 {
   /*-----co factors-------*/
@@ -405,7 +405,7 @@ void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_t
 }
 
 /* without dependencies */
-void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
+inline void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
                        std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines )
 {
   /*-----co factors-------*/
