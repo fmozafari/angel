@@ -4,7 +4,6 @@
 #include <angel/dependency_analysis/common.hpp>
 #include <angel/utils/helper_functions.hpp>
 #include <angel/utils/stopwatch.hpp>
-
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/npn.hpp>
 #include <kitty/hash.hpp>
