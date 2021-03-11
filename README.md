@@ -6,7 +6,7 @@ Read the full documentation [here](https://libangel.readthedocs.io/en/latest/ind
 
 ## Example
 
-The following code prepares GHZ(3) state by utilizing dependencies between qubits. To prepare the state varible reordering and dependency analysis methods are specified. Finally, the number of CNOTs and single-qubit gates reports. 
+The following code prepares GHZ(3) state by utilizing dependencies between qubits. To prepare the state variable reordering and dependency analysis methods are specified. Finally, the number of CNOTs and single-qubit gates reports. 
 
 ```c++
 #include <tweedledum/gates/mcmt_gate.hpp>
