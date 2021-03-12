@@ -1,3 +1,10 @@
+[![Actions Status](https://github.com/fmozafari/angel/workflows/Linux%20CI/badge.svg)](https://github.com/fmozafari/angel/actions)
+[![Actions Status](https://github.com/fmozafari/angel/workflows/MacOS%20CI/badge.svg)](https://github.com/fmozafari/angel/actions)
+[![Actions Status](https://github.com/fmozafari/angel/workflows/Windows%20CI/badge.svg)](https://github.com/fmozafari/angel/actions)
+[![Coverage Status](https://coveralls.io/repos/github/fmozafari/angel/badge.svg?branch=master)](https://coveralls.io/github/fmozafari/angel?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/libangel/badge/?version=latest)](https://libangel.readthedocs.io/en/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # angel
 <img src="https://github.com/fmozafari/angel/blob/master/angel.svg" width="64" height="64" align="left" style="margin-right: 12pt" />
 angel is a Quantm State Preparation (QSP) library based on C++-17. It provides several algorithm for QSP with the purpose of CNOTs reduction and increasing speed.
