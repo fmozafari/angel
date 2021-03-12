@@ -13,7 +13,7 @@ Read the full documentation [here](https://libangel.readthedocs.io/en/latest/ind
 
 ## Example
 
-The following code prepares the GHZ(3) state by utilizing dependencies between qubits. To prepare the state, variable reordering and dependency analysis methods are specified. Finally, the number of CNOTs and single-qubit gates are reported. 
+The following code shows the uniform quantum state preparation for the GHZ(3) state. To prepare the state, variable reordering and dependency analysis methods are utilized. The number of CNOTs and the number of single-qubit gates are reported. 
 
 ```c++
 #include <tweedledum/gates/mcmt_gate.hpp>
@@ -23,7 +23,7 @@ The following code prepares the GHZ(3) state by utilizing dependencies between q
 #include <angel/quantum_state_preparation/qsp_deps.hpp>
 #include <angel/reordering/no_reordering.hpp>
 
-tweedledum::netlist<tweedledum::mcmt_gate> network;
+/* representing uniform quantum state as a truth table */
 kitty::dynamic_truth_table tt( 3 );
 kitty::create_from_binary_string( tt, "10000001" );
 
@@ -31,14 +31,18 @@ kitty::create_from_binary_string( tt, "10000001" );
 angel::no_reordering no_reorder;
 
 /* dependency analysis method */
-typename angel::esop_deps_analysis::parameter_type esop_ps;
-typename angel::esop_deps_analysis::statistics_type esop_st;
+angel::esop_deps_analysis::parameter_type esop_ps;
+angel::esop_deps_analysis::statistics_type esop_st;
 angel::esop_deps_analysis esop( esop_ps, esop_st );
 
+/* initialize the uniform quantum state preparation method */
 angel::state_preparation_parameters qsp_ps;
 angel::state_preparation_statistics qsp_st;
-angel::qsp_deps<decltype( network ), decltype( esop ), decltype( no_reorder )> qsp( network, esop, no_reorder, qsp_ps, qsp_st );
-qsp( tt );
+tweedledum::netlist<tweedledum::mcmt_gate> network;
+angel::qsp_deps<decltype( network ), decltype( esop ), decltype( no_reorder )> uqsp( network, esop, no_reorder, qsp_ps, qsp_st );
+
+/* run the uniform quantum state preparation */
+uqsp( tt );
 qsp_st.report();
 ```
 
