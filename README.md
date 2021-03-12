@@ -39,7 +39,8 @@ angel::esop_deps_analysis esop( esop_ps, esop_st );
 angel::state_preparation_parameters qsp_ps;
 angel::state_preparation_statistics qsp_st;
 tweedledum::netlist<tweedledum::mcmt_gate> network;
-angel::qsp_deps<decltype( network ), decltype( esop ), decltype( no_reorder )> uqsp( network, esop, no_reorder, qsp_ps, qsp_st );
+angel::qsp_deps<decltype( network ), decltype( esop ), decltype( no_reorder )> 
+                             uqsp( network, esop, no_reorder, qsp_ps, qsp_st );
 
 /* run the uniform quantum state preparation */
 uqsp( tt );
