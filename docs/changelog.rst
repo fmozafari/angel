@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-v1.0.0 (2020-11-10)
+v1.0.0 (Not yet released)
 -------------------
 
 * Algorithms:
@@ -13,18 +13,8 @@ v1.0.0 (2020-11-10)
    -  Add experiments for Boolean functions extracted from reconvergence-driven cuts. (`#5 <https://github.com/fmozafari/angel/commit/7d5ccf65ca18afa89bfb74757385c16c81ef2397>`__)
    - Add benchmarks (`#3 <https://github.com/fmozafari/angel/commit/88faa13b7474d61944b9ae5ce04c983fbf8a9b73>`__)
 * Others:
-   -  integrate conflict limit.
-      (`#12 <https://github.com/fmozafari/angel/commit/d7e626a704716f5fe25fc6c7dbbf638baee464bb>`__)
-   -  CNOT costs.
-      (`#11 <https://github.com/fmozafari/angel/commit/f10a51e46f2602b993e55b83751841877bc55f60>`__)
-   -  special cases.
-      (`#10 <https://github.com/fmozafari/angel/commit/b21bff63df69a5b38fa404cace9ceaf8e47d6f8c>`__)
-   -  map ESOP cover.
-      (`#9 <https://github.com/fmozafari/angel/commit/2438c7dc4e7d2e2e4cbe44b8da0bd2e8ac6953c7>`__)
-   -  exact\_esop\_cover\_from\_divisors.
+   -  algorithm for exact\_esop\_cover\_from\_divisors.
       (`#8 <https://github.com/fmozafari/angel/commit/67e3ea77be083858441199ba07c8e7487a1b821d>`__)
-   -  add\_xor\_clause.
-      (`#7 <https://github.com/fmozafari/angel/commit/4ea3f9559ae8af784085cd5211f1f4ad949b7bbb>`__)
    -  extract SOP covers.
       (`#6 <https://github.com/fmozafari/angel/commit/01699dabf7370824ac3b6d17ae54412cda6c48e1>`__)
    
