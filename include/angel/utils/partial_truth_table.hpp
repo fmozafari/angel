@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include <bitset>
 
 namespace angel
 {
