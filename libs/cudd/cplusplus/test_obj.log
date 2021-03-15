@@ -1,0 +1,20 @@
+TAP version 13
+1..2
+sed: illegal option -- r
+usage: sed script [-Ealn] [-i extension] [file ...]
+       sed [-Ealn] [-i extension] [-e script] ... [-f script_file] ... [file ...]
+sed: illegal option -- r
+usage: sed script [-Ealn] [-i extension] [file ...]
+       sed [-Ealn] [-i extension] [-e script] ... [-f script_file] ... [file ...]
+# comparing ./cplusplus/test.tst to ./cplusplus/test.out
+ok 1 BDD ADD ZDD basic test
+PASS: cplusplus/test_obj.test 1 BDD ADD ZDD basic test
+sed: illegal option -- r
+usage: sed script [-Ealn] [-i extension] [file ...]
+       sed [-Ealn] [-i extension] [-e script] ... [-f script_file] ... [file ...]
+sed: illegal option -- r
+usage: sed script [-Ealn] [-i extension] [file ...]
+       sed [-Ealn] [-i extension] [-e script] ... [-f script_file] ... [file ...]
+# comparing ./cplusplus/multi.tst to ./cplusplus/multi.out
+ok 2 multi-threaded multiple managers
+PASS: cplusplus/test_obj.test 2 multi-threaded multiple managers
