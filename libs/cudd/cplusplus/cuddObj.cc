@@ -931,6 +931,7 @@ ADD::IsZero() const
 
 
 ZDD::ZDD(Capsule *cap, DdNode *bddNode) : DD(cap,bddNode) {}
+ZDD::ZDD(Cudd const & manager, DdNode *bddNode) : DD(manager,bddNode) {}
 ZDD::ZDD() : DD() {}
 ZDD::ZDD(const ZDD &from) : DD(from) {}
 

@@ -903,15 +903,14 @@ zp2(
 	return(0);
 
     (void) fprintf(zdd->out, "ID = 0x%" PRIxPTR "\tindex = %u\tr = %u\t",
-	(ptruint)f / (ptruint) sizeof(DdNode), f->index, f->ref);
+	(ptruint)f , f->index, f->ref);
 
     n = cuddT(f);
     if (Cudd_IsConstantInt(n)) {
 	(void) fprintf(zdd->out, "T = %d\t\t", (n == base));
 	T = 1;
     } else {
-	(void) fprintf(zdd->out, "T = 0x%" PRIxPTR "\t", (ptruint) n /
-		       (ptruint) sizeof(DdNode));
+	(void) fprintf(zdd->out, "T = 0x%" PRIxPTR "\t", (ptruint) n );
 	T = 0;
     }
 
@@ -920,8 +919,7 @@ zp2(
 	(void) fprintf(zdd->out, "E = %d\n", (n == base));
 	E = 1;
     } else {
-	(void) fprintf(zdd->out, "E = 0x%" PRIxPTR "\n", (ptruint) n /
-		      (ptruint) sizeof(DdNode));
+	(void) fprintf(zdd->out, "E = 0x%" PRIxPTR "\n", (ptruint) n );
 	E = 0;
     }
 
