@@ -23,7 +23,7 @@ void k_equal_function( Exp&& exp, uint32_t num_vars )
   angel::qsp_deps<decltype( ntk ), decltype( esop ), decltype( random )> p0( ntk, esop, random, qsp0_ps, qsp0_st );
 
   kitty::dynamic_truth_table tt( num_vars );
-  for ( auto i = 0; i < num_vars; ++i )
+  for ( auto i = 0u; i < num_vars; ++i )
   {
     kitty::create_equals( tt, i );
     p0( tt );
@@ -89,7 +89,7 @@ void w_state( Exp&& exp, uint32_t num_vars )
   angel::qsp_deps<decltype( ntk ), decltype( no_deps ), decltype( no_reorder )> p0( ntk, no_deps, no_reorder, qsp0_ps, qsp0_st );
 
   kitty::dynamic_truth_table tt( num_vars );
-  for ( auto i = 0; i < num_vars; i++ )
+  for ( auto i = 0u; i < num_vars; i++ )
   {
     kitty::set_bit( tt, 1 << i );
   }

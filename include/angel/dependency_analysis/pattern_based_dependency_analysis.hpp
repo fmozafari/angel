@@ -24,9 +24,9 @@
  */
 
 /*!
-  \file dependency_analysis.hpp
+  \file pattern_based_dependency_analysis.hpp
 
-  \brief Dependency analysis algorithm
+  \brief Pattern dependency analysis algorithm
 
   \author Fereshte Mozafari
   \author Heinz Riener

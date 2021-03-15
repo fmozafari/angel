@@ -26,7 +26,7 @@ public:
       return;
 
     std::vector<uint32_t> perm;
-    for ( auto i = 0u; i < tt.num_vars(); ++i )
+    for ( auto i = 0; i < tt.num_vars(); ++i )
     {
       perm.emplace_back( i );
     }

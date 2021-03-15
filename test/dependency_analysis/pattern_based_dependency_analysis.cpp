@@ -9,7 +9,7 @@
 TEST_CASE( "extract dependencies using pattern based dependency analysis" , "[pattern_based_dependency_analysis]" )
 {
   kitty::dynamic_truth_table tt{4u};
-  kitty::create_from_binary_string(tt, "000000100010110"); /* W(4) state that include one ~XOR deps for last line  */
+  kitty::create_from_binary_string(tt, "0000000100010110"); /* W(4) state that include one ~XOR deps for last line  */
 
   {
     angel::pattern_deps_analysis_params ps;
