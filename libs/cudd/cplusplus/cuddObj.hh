@@ -387,7 +387,6 @@ class ZDD : public DD {
     friend class Cudd;
 public:
     ZDD(Capsule *cap, DdNode *bddNode);
-    ZDD(Cudd const & manager, DdNode *ddNode);
     ZDD();
     ZDD(const ZDD &from);
     ~ZDD();
