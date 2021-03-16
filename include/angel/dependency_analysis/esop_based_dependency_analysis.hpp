@@ -44,7 +44,7 @@
 #include <kitty/properties.hpp>
 
 #include <fmt/format.h>
-
+#include <optional>
 #include <map>
 #include <vector>
 
