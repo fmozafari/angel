@@ -34,12 +34,12 @@
 #pragma once
 
 #include "cubes.hpp"
-#include "easy.hpp"
 
 #include <kitty/kitty.hpp>
 #include <bill/sat/solver.hpp>
 #include <bill/sat/tseytin.hpp>
 #include <algorithm>
+#include <iostream>
 
 namespace easy
 {
