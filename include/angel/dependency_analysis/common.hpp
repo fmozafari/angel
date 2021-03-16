@@ -48,7 +48,7 @@ struct dependency_analysis_types
   enum class pattern_kind
   {
     /* const */
-    CONST = 1,
+    CONSTP = 1,
     /* unary */
     EQUAL = 2,
     /* nary */
@@ -73,7 +73,7 @@ struct dependency_analysis_types
   {
     switch( kind )
     {
-    case pattern_kind::CONST:
+    case pattern_kind::CONSTP:
       return "CONST";
     case pattern_kind::EQUAL:
       return "EQUAL";

@@ -165,12 +165,12 @@ public:
       /* skip constants */
       if ( kitty::is_const0( columns[i].tt ) )
       {
-        result.dependencies[i] = std::make_pair( dependency_analysis_types::pattern_kind::CONST, std::vector<uint32_t>{ 0 } );
+        result.dependencies[i] = std::make_pair( dependency_analysis_types::pattern_kind::CONSTP, std::vector<uint32_t>{ 0 } );
         continue;
       }
       else if ( kitty::is_const0( ~columns[i].tt ) )
       {
-        result.dependencies[i] = std::make_pair( dependency_analysis_types::pattern_kind::CONST, std::vector<uint32_t>{ 1 } );
+        result.dependencies[i] = std::make_pair( dependency_analysis_types::pattern_kind::CONSTP, std::vector<uint32_t>{ 1 } );
         continue;
       }
 

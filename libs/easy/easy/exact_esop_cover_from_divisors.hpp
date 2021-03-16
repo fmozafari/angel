@@ -39,7 +39,6 @@
 #include <bill/sat/solver.hpp>
 #include <bill/sat/tseytin.hpp>
 #include <algorithm>
-#include <iostream>
 #include <vector>
 
 namespace easy
