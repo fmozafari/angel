@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <vector>
-
+#include <optional>
 #include <kitty/kitty.hpp>
 
 namespace angel
