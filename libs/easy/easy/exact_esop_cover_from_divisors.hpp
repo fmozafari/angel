@@ -38,6 +38,7 @@
 #include <kitty/kitty.hpp>
 #include <bill/sat/solver.hpp>
 #include <bill/sat/tseytin.hpp>
+#include <bill/sat/xor_clauses.hpp>
 #include <algorithm>
 #include <vector>
 #include <optional>
@@ -272,7 +273,7 @@ public:
         {
           clause.push_back( z( l, i ) );
         }
-        bill::add_xor_clause( solver, clause, bill::lit_type::polarities( !kitty::get_bit( target, l ) ) );
+        solver.add_clause( bill::add_xor_clause( solver, clause, bill::lit_type::polarities( !kitty::get_bit( target, l ) ) ) );
       }
 
       /* at most one cube is allowed to be empty */
