@@ -1,5 +1,6 @@
 #pragma once
-
+#define _USE_MATH_DEFINES
+#include <cmath> 
 #include "utils.hpp"
 #include <angel/dependency_analysis/common.hpp>
 #include <angel/utils/helper_functions.hpp>
@@ -13,8 +14,7 @@
 #include <map>
 #include <unordered_map>
 #include <vector>
-#define _USE_MATH_DEFINES
-#include <cmath> 
+
 
 namespace angel
 {
