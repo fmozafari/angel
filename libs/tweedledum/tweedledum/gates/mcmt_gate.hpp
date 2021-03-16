@@ -87,7 +87,7 @@ public:
 		return __builtin_popcount(controls_);
 	}
 
-	constexpr auto num_targets() const
+	auto num_targets() const
 	{
 		assert(!is_meta());
 		return __builtin_popcount(targets_);
