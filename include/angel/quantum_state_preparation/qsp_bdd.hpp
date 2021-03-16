@@ -1,5 +1,7 @@
 /* Author: Fereshte */
 #pragma once
+#define _USE_MATH_DEFINES
+#include <cmath> 
 #include "utils.hpp"
 #include <angel/utils/helper_functions.hpp>
 #include <angel/utils/stopwatch.hpp>
