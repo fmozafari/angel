@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "cubes.hpp"
+#include <easy/cubes.hpp>
 
 #include <kitty/kitty.hpp>
 #include <bill/sat/solver.hpp>
