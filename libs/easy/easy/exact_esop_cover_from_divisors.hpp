@@ -40,6 +40,7 @@
 #include <bill/sat/tseytin.hpp>
 #include <algorithm>
 #include <vector>
+#include <optional>
 
 namespace easy
 {
