@@ -33,7 +33,16 @@
 
 #pragma once
 
-#warning "DEPRECATED: the functions in this file are marked as deprecated.  Most recent implementation can be found in https://github.com/hriener/easy/ in the file src/esop/constructors.hpp"
+// https://stackoverflow.com/questions/471935/user-warnings-on-msvc-and-gcc
+// Use: #pragma message WARN("My message")
+#if _MSC_VER
+#   define FILE_LINE_LINK __FILE__ "(" STRINGISE(__LINE__) ") : "
+#   define WARN(exp) (FILE_LINE_LINK "WARNING: " exp)
+#else//__GNUC__ - may need other defines for different compilers
+#   define WARN(exp) ("WARNING: " exp)
+#endif
+
+#pragma message WARN( "DEPRECATED: the functions in this file are marked as deprecated.  Most recent implementation can be found in https://github.com/hriener/easy/ in the file src/esop/constructors.hpp" )
 
 #include <unordered_map>
 #include <unordered_set>
