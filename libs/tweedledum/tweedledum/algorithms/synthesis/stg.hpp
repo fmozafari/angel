@@ -1,3 +1,4 @@
+#if 0
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
@@ -199,3 +200,4 @@ struct stg_from_spectrum {
 };
 
 } /* namespace tweedledum */
+#endif
