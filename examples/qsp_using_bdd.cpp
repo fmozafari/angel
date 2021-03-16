@@ -2,6 +2,7 @@
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/netlist.hpp>
 
+
 int main()
 {
   using network_type = tweedledum::netlist<tweedledum::mcmt_gate>;
