@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../gates/gate_lib.hpp"
-#include "../utils/angle.hpp"
+#include "../gates/gate_set.hpp"
 
 #include <fmt/format.h>
 #include <fstream>
@@ -17,6 +17,16 @@ namespace tweedledum {
  *
  * An overloaded variant exists that writes the network into a file.
  *
+ * **Required gate functions:**
+ * - `foreach_control`
+ * - `foreach_target`
+ * - `op`
+ *
+ * **Required network functions:**
+ * - `foreach_cnode`
+ * - `foreach_cqubit`
+ * - `num_qubits`
+ *
  * \param network A quantum network
  * \param os Output stream
  * \param color_marked_gates Flag to draw marked nodes in red
@@ -27,80 +37,85 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 	if (color_marked_gates) {
 		os << "DEFINE mark color=red:style=thick\n";
 	}
-	network.foreach_io([&](io_id id, auto const& name) {
-		if (id.is_qubit()) {
-			os << fmt::format("id{} W {} {}\n", id, name, name);
-		} else {
-			os << fmt::format("id{} W {} {} cwire\n", id, name, name);
-		}
+	network.foreach_cqubit([&](auto id, auto const& name) {
+		os << fmt::format("q{} W {} {}\n", id, name, name);
 	});
 
-	network.foreach_gate([&](auto const& node) {
+	network.foreach_cgate([&](auto& node) {
 		auto prefix = "";
-		if (node.gate.is(gate_lib::mcx)) {
+		if (node.gate.is(gate_set::mcx)) {
 			prefix = "+";
 		}
 		node.gate.foreach_target([&](auto qubit) {
-			os << fmt::format("{}id{} ", prefix, qubit);
+			os << fmt::format("{}q{} ", prefix, qubit);
 		});
 		switch (node.gate.operation()) {
-		case gate_lib::cx:
+		case gate_set::pauli_x:
+			os << 'N';
+			break;
+
+		case gate_set::cx:
 			os << 'C';
 			break;
 
-		case gate_lib::mcx:
+		case gate_set::mcx:
 			break;
 
-		case gate_lib::cz:
-		case gate_lib::mcz:
+		case gate_set::pauli_z:
+		case gate_set::cz:
+		case gate_set::mcz:
 			os << 'Z';
 			break;
 
-		case gate_lib::hadamard:
+		case gate_set::hadamard:
 			os << 'H';
 			break;
 
-		case gate_lib::rx: {
-			angle rotation_angle = node.gate.rotation_angle();
-			if (rotation_angle == angles::pi) {
-				os << 'N';
-			} else {
-				os << "G $R_{x}$";
-			}
-		} break;
+		case gate_set::phase:
+			os << "G $P$";
+			break;
 
-		case gate_lib::rz: {
-			angle rotation_angle = node.gate.rotation_angle();
-			if (rotation_angle == angles::pi_quarter) {
-				os << "G $T$";
-			} else if (rotation_angle == -angles::pi_quarter) {
-				os << "G $T^{\\dagger}$";
-			} else if (rotation_angle == angles::pi_half) {
-				os << "G $S$";
-			} else if (rotation_angle == -angles::pi_half) {
-				os << "G $S^{\\dagger}$";
-			} else if (rotation_angle == angles::pi) {
-				os << 'Z';
-			} else {
-				os << "G $R_{z}$";
-			}
-		} break;
+		case gate_set::phase_dagger:
+			os << "G $P^{\\dagger}$";
+			break;
 
-		case gate_lib::swap:
-			os << "SWAP";
+		case gate_set::t:
+			os << "G $T$";
+			break;
+
+		case gate_set::t_dagger:
+			os << "G $T^{\\dagger}$";
+			break;
+
+		case gate_set::rotation_x:
+			os << "G $R_{x}$";
+			break;
+
+		case gate_set::rotation_z:
+			os << "G $R_{z}$";
 			break;
 
 		default:
 			break;
 		}
 		node.gate.foreach_control([&](auto qubit) {
-			os << fmt::format(" {}id{}", qubit.is_complemented() ? "-" : "", qubit); 
+			os << fmt::format(" {}q{}", qubit.is_complemented() ? "-" : "", qubit); 
 		});
 		os << '\n';
 	});
 }
 
 /*! \brief Writes network in qpic format into a file
+ *
+ * **Required gate functions:**
+ * - `foreach_control`
+ * - `foreach_target`
+ * - `op`
+ *
+ * **Required network functions:**
+ * - `foreach_cnode`
+ * - `foreach_cqubit`
+ * - `num_qubits`
  *
  * \param network A quantum network
  * \param filename Filename

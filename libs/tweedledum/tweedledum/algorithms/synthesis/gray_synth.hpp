@@ -1,11 +1,12 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/gate_lib.hpp"
-#include "../../networks/io_id.hpp"
+#include "../../gates/gate_set.hpp"
+#include "../../networks/qubit.hpp"
 #include "../../utils/bit_matrix_cm.hpp"
 #include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/dynamic_bitset.hpp"
@@ -44,8 +45,8 @@ class gray_synth_ftor {
 	};
 
 public:
-	gray_synth_ftor(Network& network, std::vector<io_id> const& qubits,
-	                parity_terms<uint32_t> const& parities, gray_synth_params params)
+	gray_synth_ftor(Network& network, std::vector<qubit_id> const& qubits,
+	                parity_terms const& parities, gray_synth_params params)
 	    : network_(network)
 	    , qubits_(qubits)
 	    , parities_(parities)
@@ -127,7 +128,7 @@ public:
 			qubits_states.emplace_back((1u << i));
 			auto rotation_angle = parities_.extract_term(qubits_states[i]);
 			if (rotation_angle != 0.0) {
-				network_.add_gate(gate_base(gate_lib::rz, rotation_angle),
+				network_.add_gate(gate_base(gate_set::rotation_z, rotation_angle),
 				                  qubits_[i]);
 			}
 		}
@@ -137,7 +138,7 @@ public:
 			network_.add_gate(gate::cx, qubits_[control], qubits_[target]);
 			auto rotation_angle = parities_.extract_term(qubits_states[target]);
 			if (rotation_angle != 0.0) {
-				network_.add_gate(gate_base(gate_lib::rz, rotation_angle),
+				network_.add_gate(gate_base(gate_set::rotation_z, rotation_angle),
 				                  qubits_[target]);
 			}
 		}
@@ -185,8 +186,8 @@ private:
 
 private:
 	Network& network_;
-	std::vector<io_id> qubits_;
-	parity_terms<uint32_t> parities_;
+	std::vector<qubit_id> qubits_;
+	parity_terms parities_;
 	matrix_type parity_matrix_;
 	std::vector<state_type> state_stack_;
 	gray_synth_params parameters_;
@@ -196,9 +197,7 @@ private:
 
 /*! \brief Gray synthesis for {CNOT, Rz} networks.
  *
- * This is the in-place variant of ``gray_synth``, in which the network is passed as a parameter
- * and can potentially already contain some gates. The parameter ``qubits`` provides a qubit
- * mapping to the existing qubits in the network.
+ * A specialzed variant of `gray_synth` which accepts a existing network (possibly with gates).
  *
  * \param network  A quantum network
  * \param qubits   The subset of qubits the linear reversible circuit acts upon
@@ -207,13 +206,9 @@ private:
  *                 See `gray_synth_params` for details.
  */
 template<class Network>
-void gray_synth(Network& network, std::vector<io_id> const& qubits,
-                parity_terms<uint32_t> const& parities, gray_synth_params params = {})
+void gray_synth(Network& network, std::vector<qubit_id> const& qubits,
+                parity_terms const& parities, gray_synth_params params = {})
 {
-	assert(qubits.size() <= 32u);
-	if (parities.num_terms() == 0u) {
-		return;
-	}
 	detail::gray_synth_ftor synthesizer(network, qubits, parities, params);
 	synthesizer.synthesize();
 }
@@ -224,6 +219,10 @@ void gray_synth(Network& network, std::vector<io_id> const& qubits,
 
    This algorithm is based on the work in :cite:`AAM17`.
 
+   The following code shows how to apply the algorithm to the example in the
+   original paper.
+
+   .. code-block:: c++
    \endverbatim
  *
  * \param num_qubits Number of qubits
@@ -238,14 +237,16 @@ void gray_synth(Network& network, std::vector<io_id> const& qubits,
  * \algreturns {CNOT, Rz} network
  */
 template<class Network>
-Network gray_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities, gray_synth_params params = {})
+Network gray_synth(uint32_t num_qubits, parity_terms const& parities, gray_synth_params params = {})
 {
 	assert(num_qubits <= 32);
 	Network network;
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	gray_synth(network, network.wiring_map(), parities, params);
+	std::vector<qubit_id> qubits(num_qubits);
+	std::iota(qubits.begin(), qubits.end(), 0u);
+	gray_synth(network, qubits, parities, params);
 	return network;
 }
 

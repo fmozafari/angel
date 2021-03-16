@@ -1,11 +1,12 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../utils/angle.hpp"
-#include "gate_lib.hpp"
+#include "gate_set.hpp"
 
 #include <cstdint>
 #include <fmt/format.h>
@@ -17,193 +18,123 @@ namespace tweedledum {
 class gate_base {
 public:
 #pragma region Constructors
-	constexpr gate_base(gate_lib operation)
+	constexpr gate_base(gate_set operation, angle rotation_angle = 0.0)
 	    : operation_(operation)
-	    , theta_(angles::zero)
-	    , phi_(angles::zero)
-	    , lambda_(angles::zero)
-	{
-		assert(!(is_single_qubit() && is_gate()));
-	}
-
-	constexpr gate_base(gate_lib operation, angle theta, angle phi, angle lambda)
-	    : operation_(operation)
-	    , theta_(theta)
-	    , phi_(phi)
-	    , lambda_(lambda)
+	    , rotation_angle_(rotation_angle)
 	{}
 
-	constexpr gate_base(gate_lib operation, angle rotation_angle)
-	    : operation_(operation)
-	    , theta_(angles::zero)
-	    , phi_(angles::zero)
-	    , lambda_(rotation_angle)
-	{
-		switch (operation_) {
-		case gate_lib::rz:
-		case gate_lib::crz:
-		case gate_lib::mcrz:
-			break;
-
-		case gate_lib::ry:
-		case gate_lib::cry:
-		case gate_lib::mcry:
-			theta_ = rotation_angle;
-			lambda_ = angles::zero;
-			break;
-
-		case gate_lib::rx:
-		case gate_lib::crx:
-		case gate_lib::mcrx:
-			theta_ = rotation_angle;
-			phi_ = -angles::pi_half;
-			lambda_ = angles::pi_half;
-			break;
-
-		default:
-			assert(0 && "This constructor is for arbitrary rotation gates");
-			break;
-		}
-	}
+	// gate_base(gate_set operation, angle rotation_angle)
+	//     : operation_(operation)
+	//     , rotation_angle_(rotation_angle)
+	// {
+	// 	assert(validate_angle());
+	// }
 #pragma endregion
 
 #pragma region Operation properties
 	/*! \brief Returns the adjoint operation. */
-	constexpr gate_lib adjoint() const
+	constexpr auto adjoint() const
 	{
 		return detail::gates_info[static_cast<uint8_t>(operation_)].adjoint;
 	}
 
-	/*! \brief Returns whether `this` operation is ajoint to `other`. */
-	bool is_op_adjoint(gate_base const& other) const
-	{
-		if (adjoint() != other.operation_) {
-			return false;
-		}
-		switch (operation_) {
-		case gate_lib::rz:
-		case gate_lib::crz:
-		case gate_lib::mcrz:
-		case gate_lib::ry:
-		case gate_lib::cry:
-		case gate_lib::mcry:
-		case gate_lib::rx:
-		case gate_lib::crx:
-		case gate_lib::mcrx:
-			if (rotation_angle() + other.rotation_angle() != angles::zero) {
-				return false;
-			}
-		default:
-			break;
-		}
-		return true;
-	}
-
-	/*! \brief Returns true if this gate is the operation ``operation``. */
-	constexpr bool is(gate_lib op) const
-	{
-		return operation() == op;
-	}
-
-	template<typename... OPs>
-	constexpr bool is_one_of(gate_lib op) const
-	{
-		return is(op);
-	}
-
-	/*! \brief Returns true if this gate is one of the operations ``{op0, op1, .. , opN}``. */
-	template<typename... OPs>
-	constexpr bool is_one_of(gate_lib op0, OPs... opN) const
-	{
-		return is(op0) || is_one_of(opN...);
-	}
-
 	/*! \brief Returns true if this is a meta gate. */
-	constexpr bool is_meta() const
+	constexpr auto is_meta() const
 	{
-		return (operation_ < gate_lib::identity || operation_ == gate_lib::num_defined_ops);
+		return (operation_ < gate_set::identity || operation_ == gate_set::num_defined_ops);
 	}
 
 	/*! \brief Returns true if this gate is a quantum unitary operation. */
-	constexpr bool is_gate() const
+	constexpr auto is_unitary_gate() const
 	{
-		return (!is_meta());
-	}
-
-	/*! \brief Returns true if this gate acts on one I/Os. */
-	constexpr bool is_one_io() const
-	{
-		return (operation_ >= gate_lib::input && operation_ <= gate_lib::rz);
-	}
-
-	/*! \brief Returns true if this gate acts on two I/Os. */
-	constexpr bool is_two_io() const
-	{
-		return (operation_ >= gate_lib::crx && operation_ <= gate_lib::measurement);
+		return (operation_ >= gate_set::identity && operation_ <= gate_set::mcz);
 	}
 
 	/*! \brief Returns true if this gate acts on a single qubit. */
-	// TODO: Is MEASUREMENT single-qubit? It acts on two I/Os, but only one qubit.
-	constexpr bool is_single_qubit() const
+	constexpr auto is_single_qubit() const
 	{
-		return (operation_ >= gate_lib::identity && operation_ <= gate_lib::rz);
+		return (operation_ >= gate_set::input && operation_ <= gate_set::t_dagger);
 	}
 
-	/*! \brief Returns true if this gate acts on two _qubits_. */
-	constexpr bool is_double_qubit() const
+	/*! \brief Returns true if this gate acts on two qubits. */
+	constexpr auto is_double_qubit() const
 	{
-		return (operation_ >= gate_lib::crx && operation_ <= gate_lib::swap);
+		return (operation_ == gate_set::cx || operation_ == gate_set::cz);
 	}
 
 	/*! \brief Returns true if this gate is a rotation around x axis. */
-	constexpr bool is_x_rotation() const
+	constexpr auto is_x_rotation() const
 	{
 		return detail::gates_info[static_cast<uint8_t>(operation_)].rotation_axis == 'x';
 	}
 
-	/*! \brief Returns true if this gate is a rotation around y axis. */
-	constexpr bool is_y_rotation() const
-	{
-		return detail::gates_info[static_cast<uint8_t>(operation_)].rotation_axis == 'y';
-	}
-
 	/*! \brief Returns true if this gate is a rotation around z axis. */
-	constexpr bool is_z_rotation() const
+	constexpr auto is_z_rotation() const
 	{
 		return detail::gates_info[static_cast<uint8_t>(operation_)].rotation_axis == 'z';
 	}
 
-	/*! \brief Returns the operation. (see ``gate_lib``) */
-	constexpr gate_lib operation() const
+	/*! \brief Returns true if this gate is the operation ``operation``. */
+	constexpr auto is(gate_set operation) const
+	{
+		return operation_ == operation;
+	}
+
+	template<typename... OPs>
+	constexpr auto is_one_of(gate_set operation) const
+	{
+		return is(operation);
+	}
+
+	/*! \brief Returns true if this gate is one of the operations ``{op0, op1, .. , opN}``. */
+	template<typename... OPs>
+	constexpr auto is_one_of(gate_set op0, OPs... opN) const
+	{
+		return is(op0) || is_one_of(opN...);
+	}
+
+	/*! \brief Returns the operation. (see ``gate_set``) */
+	constexpr auto operation() const
 	{
 		return operation_;
-	}
-
-	/*! \brief Return gate symbol. (see ``gate_lib``) */
-	std::string symbol() const
-	{
-		return detail::gates_info[static_cast<uint8_t>(operation_)].symbol;
-	}
-
-	constexpr char rotation_axis() const
-	{
-		return detail::gates_info[static_cast<uint8_t>(operation_)].rotation_axis;
 	}
 #pragma endregion
 
 #pragma region Angle information
 	/* !brief Return the rotation angle */
-	constexpr angle rotation_angle() const
+	constexpr auto rotation_angle() const
 	{
-		// assert(is_single_qubit());
-		if (is_z_rotation()) {
-			return lambda_;
-		}
-		return theta_;
+		assert(!is_meta());
+		return rotation_angle_;
 	}
 #pragma endregion
 
 #pragma region Overloads
+	/* When one of the rotation angles is defined numerically, the resulting rotation angle
+	 * will be numerically defined.
+	 *
+	 * The sum of two symbolically defined angles is done using modulo-8 sum.
+	 */
+	gate_base& operator+=(gate_base const& rhs)
+	{
+		assert((is_z_rotation() && rhs.is_z_rotation())
+		       || (is_x_rotation() && rhs.is_x_rotation()));
+
+		rotation_angle_ += rhs.rotation_angle_;
+		update_operation();
+		return *this;
+	}
+
+	friend gate_base operator+(gate_base lhs, gate_base const& rhs)
+	{
+		assert((lhs.is_z_rotation() && rhs.is_z_rotation())
+		       || (lhs.is_x_rotation() && rhs.is_x_rotation()));
+
+		lhs.rotation_angle_ += rhs.rotation_angle_;
+		lhs.update_operation();
+		return lhs;
+	}
+
 	friend std::ostream& operator<<(std::ostream& out, gate_base const& operation)
 	{
 		out << detail::gates_info[static_cast<uint8_t>(operation.operation_)].name;
@@ -212,39 +143,99 @@ public:
 #pragma endregion
 
 private:
-	gate_lib operation_;
-	angle theta_;
-	angle phi_;
-	angle lambda_;
+	constexpr bool validate_angle() const
+	{
+		switch (operation_) {
+		case gate_set::t:
+			return rotation_angle_ == symbolic_angles::one_eighth;
+
+		case gate_set::phase:
+			return rotation_angle_ == symbolic_angles::one_quarter;
+
+		case gate_set::pauli_z:
+		case gate_set::cz:
+		case gate_set::mcz:
+		case gate_set::pauli_x:
+		case gate_set::cx:
+		case gate_set::mcx:
+		case gate_set::hadamard:
+			return rotation_angle_ == symbolic_angles::one_half;
+
+		case gate_set::phase_dagger:
+			return rotation_angle_ == symbolic_angles::three_fourth;
+
+		case gate_set::t_dagger:
+			return rotation_angle_ == symbolic_angles::seven_eighth;
+
+		default:
+			break;
+		}
+		return true;
+	}
+
+	void update_operation()
+	{
+		switch (rotation_angle_.symbolic_value()) {
+		case symbolic_angles::zero:
+			operation_ = gate_set::identity;
+			break;
+
+		case symbolic_angles::one_eighth:
+			operation_ = gate_set::t;
+			break;
+
+		case symbolic_angles::one_quarter:
+			operation_ = gate_set::phase;
+			break;
+
+		case symbolic_angles::three_eighth:
+		case symbolic_angles::five_eighth:
+			operation_ = gate_set::rotation_z;
+			break;
+
+		case symbolic_angles::one_half:
+			operation_ = gate_set::pauli_z;
+			break;
+
+		case symbolic_angles::three_fourth:
+			operation_ = gate_set::phase_dagger;
+			break;
+
+		case symbolic_angles::seven_eighth:
+			operation_ = gate_set::t_dagger;
+			break;
+
+		default:
+			assert(0);
+			break;
+		}
+	}
+
+private:
+	gate_set operation_;
+	angle rotation_angle_;
 };
 
 namespace gate {
 
 /* Single-qubit gates */
-constexpr gate_base identity(gate_lib::identity, angles::zero, angles::zero, angles::zero);
-constexpr gate_base hadamard(gate_lib::hadamard, angles::pi_half, angles::zero, angles::pi);
-constexpr gate_base pauli_x(gate_lib::rx, angles::pi, angles::zero, angles::pi);
-constexpr gate_base pauli_y(gate_lib::ry, angles::pi, angles::pi_half, angles::pi_half);
-constexpr gate_base t(gate_lib::rz, angles::zero, angles::zero, angles::pi_quarter);
-constexpr gate_base phase(gate_lib::rz, angles::zero, angles::zero, angles::pi_half);
-constexpr gate_base pauli_z(gate_lib::rz, angles::zero, angles::zero, angles::pi);
-constexpr gate_base phase_dagger(gate_lib::rz, angles::zero, angles::zero, -angles::pi_half);
-constexpr gate_base t_dagger(gate_lib::rz, angles::zero, angles::zero, -angles::pi_quarter);
+constexpr auto identity = gate_base(gate_set::identity, symbolic_angles::zero);
+constexpr auto hadamard = gate_base(gate_set::hadamard, symbolic_angles::one_half);
+constexpr auto pauli_x = gate_base(gate_set::pauli_x, symbolic_angles::one_half);
+constexpr auto t = gate_base(gate_set::t, symbolic_angles::one_eighth);
+constexpr auto phase = gate_base(gate_set::phase, symbolic_angles::one_quarter);
+constexpr auto pauli_z = gate_base(gate_set::pauli_z, symbolic_angles::one_half);
+constexpr auto phase_dagger = gate_base(gate_set::phase_dagger, symbolic_angles::three_fourth);
+constexpr auto t_dagger = gate_base(gate_set::t_dagger, symbolic_angles::seven_eighth);
 
 /* Double-qubit unitary gates */
-constexpr gate_base cx(gate_lib::cx, angles::pi, angles::zero, angles::pi);
-constexpr gate_base cy(gate_lib::mcz, angles::pi, angles::pi_half, angles::pi_half);
-constexpr gate_base cz(gate_lib::cz, angles::zero, angles::zero, angles::pi);
-constexpr gate_base swap(gate_lib::swap);
+constexpr auto cx = gate_base(gate_set::cx, symbolic_angles::one_half);
+constexpr auto cz = gate_base(gate_set::cz, symbolic_angles::one_half);
 
 /* Multiple-qubit unitary gates */
-constexpr gate_base mcx(gate_lib::mcx, angles::pi, angles::zero, angles::pi);
-constexpr gate_base mcy(gate_lib::mcz, angles::pi, angles::pi_half, angles::pi_half);
-constexpr gate_base mcz(gate_lib::mcz, angles::zero, angles::zero, angles::pi);
+constexpr auto mcx = gate_base(gate_set::mcx, symbolic_angles::one_half);
+constexpr auto mcz = gate_base(gate_set::mcz, symbolic_angles::one_half);
 
-/* Single-qubit, single-cbit gate */
-constexpr gate_base measurement(gate_lib::measurement);
-
-} // namespace gate
+} // namespace operation
 
 } // namespace tweedledum

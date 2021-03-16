@@ -1,6 +1,7 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -117,17 +118,10 @@ public:
 	{
 		return storage_.empty();
 	}
-#pragma endregion
 
-#pragma region Properties
 	constexpr auto is_square() const
 	{
-		return storage_.is_square();
-	}
-
-	constexpr auto is_identity() const
-	{
-		return storage_.is_identity();
+		return num_rows() == num_columns();
 	}
 #pragma endregion
 

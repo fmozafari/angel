@@ -11,12 +11,6 @@
 #include <fstream>
 #include <kitty/kitty.hpp>
 #include <map>
-#include <tweedledum/algorithms/synthesis/linear_synth.hpp>
-#include <tweedledum/gates/gate_base.hpp>
-#include <tweedledum/gates/gate_lib.hpp>
-#include <tweedledum/gates/io3_gate.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/io_id.hpp>
 #include <unordered_set>
 #include <unordered_map>
 #include <iostream>

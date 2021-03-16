@@ -1,11 +1,12 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Mathias Soeken, Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../../networks/netlist.hpp"
-#include "../../networks/io_id.hpp"
+#include "../../networks/qubit.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -30,11 +31,11 @@ struct dbs_params {
 
 namespace detail {
 
-inline auto decompose(std::vector<uint32_t>& permutation, uint8_t var)
+auto decompose(std::vector<uint32_t>& perm, uint8_t var)
 {
-	std::vector<uint32_t> left(permutation.size(), 0);
-	std::vector<uint32_t> right(permutation.size(), 0);
-	std::vector<uint8_t> visited(permutation.size(), 0);
+	std::vector<uint32_t> left(perm.size(), 0);
+	std::vector<uint32_t> right(perm.size(), 0);
+	std::vector<uint8_t> visited(perm.size(), 0);
 
 	uint32_t row = 0u;
 	while (true) {
@@ -56,35 +57,35 @@ inline auto decompose(std::vector<uint32_t>& permutation, uint8_t var)
 		visited[row] = 1;
 
 		/* assign 1 to var on right side */
-		right[permutation[row] | (1 << var)] = permutation[row];
+		right[perm[row] | (1 << var)] = perm[row];
 
 		/* assign 0 to var on left side */
-		right[permutation[row] & ~(1 << var)] = permutation[row] ^ (1 << var);
+		right[perm[row] & ~(1 << var)] = perm[row] ^ (1 << var);
 
-		row = std::distance(permutation.begin(),
-		                    std::find(permutation.begin(), permutation.end(), permutation[row] ^ (1 << var)));
+		row = std::distance(perm.begin(),
+		                    std::find(perm.begin(), perm.end(), perm[row] ^ (1 << var)));
 	}
 
-	std::vector<uint32_t> perm_old = permutation;
-	for (uint32_t row = 0; row < permutation.size(); ++row) {
-		permutation[left[row]] = right[perm_old[row]];
+	std::vector<uint32_t> perm_old = perm;
+	for (uint32_t row = 0; row < perm.size(); ++row) {
+		perm[left[row]] = right[perm_old[row]];
 	}
 
 	return std::make_pair(left, right);
 }
 
-inline auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const& permutation)
+auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const& perm)
 {
 	kitty::dynamic_truth_table tt(num_vars);
-	for (uint32_t row = 0; row < permutation.size(); ++row) {
-		if (permutation[row] != row) {
+	for (uint32_t row = 0; row < perm.size(); ++row) {
+		if (perm[row] != row) {
 			kitty::set_bit(tt, row);
 		}
 	}
 
-	std::vector<io_id> base;
+	std::vector<qubit_id> base;
 	for (auto element : kitty::min_base_inplace(tt)) {
-		base.emplace_back(element, true);
+		base.push_back(element);
 	}
 	return std::make_pair(kitty::shrink_to(tt, base.size()), base);
 }
@@ -101,11 +102,11 @@ inline auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const&
    .. code-block:: c++
 
       std::vector<uint32_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-      auto network = dbs<netlist<io3_gate>>(permutation, stg_from_spectrum());
+      auto network = dbs<netlist<mcst_gate>>(permutation, stg_from_spectrum());
 
    \endverbatim
  *
- * \param permutation A vector of different integers 
+ * \param perm A permutation
  * \param stg_synth Synthesis function for single-target gates
  * \param params Parameters (see ``dbs_params``)
  * 
@@ -114,24 +115,24 @@ inline auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const&
  * \algreturns Quantum or reversible circuit
  */
 template<class Network, class STGSynthesisFn>
-Network dbs(std::vector<uint32_t> permutation, STGSynthesisFn&& stg_synth, dbs_params params = {})
+Network dbs(std::vector<uint32_t> perm, STGSynthesisFn&& stg_synth, dbs_params params = {})
 {
 	Network network;
-	const uint32_t num_qubits = std::log2(permutation.size());
+	const uint32_t num_qubits = std::log2(perm.size());
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
 
-	std::list<std::pair<kitty::dynamic_truth_table, std::vector<io_id>>> gates;
+	std::list<std::pair<kitty::dynamic_truth_table, std::vector<qubit_id>>> gates;
 	auto pos = gates.begin();
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
-		const auto [left, right] = detail::decompose(permutation, i);
+		const auto [left, right] = detail::decompose(perm, i);
 
 		auto [tt_l, vars_l] = detail::control_function_abs(num_qubits, left);
-		vars_l.emplace_back(i, true);
+		vars_l.push_back(i);
 
 		auto [tt_r, vars_r] = detail::control_function_abs(num_qubits, right);
-		vars_r.emplace_back(i, true);
+		vars_r.push_back(i);
 
 		// TODO merge middle gates
 		if (!kitty::is_const0(tt_l)) {

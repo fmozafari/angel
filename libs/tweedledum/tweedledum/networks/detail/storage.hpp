@@ -1,10 +1,11 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../io_id.hpp"
+#include "../qubit.hpp"
 
 #include <array>
 #include <cstdint>
@@ -16,139 +17,200 @@
 namespace tweedledum {
 namespace detail {
 
-/*! \brief Use to 'point' to a node
- *
- * Users may define their own `link` structure, which may hold more information than just an index
- *
- * NOTE:  When casted to `uint32_t`, this type should return a valid index within the vector
- * holding the vertecies of the graph
+/*! \brief 
  */
-struct link {
+template<int PointerFieldSize = 0>
+struct node_pointer {
+private:
+	static constexpr auto length = sizeof(uint32_t) * 8;
+
+public:
 	static constexpr auto max = std::numeric_limits<uint32_t>::max();
 
-	constexpr link()
-	    : index(max)
+	node_pointer()
+	    : data(max)
 	{}
 
-	constexpr explicit link(uint32_t index)
-	    : index(index)
+	node_pointer(uint32_t data)
+	    : data(data)
 	{}
 
-	operator uint32_t() const
+	node_pointer(uint32_t index, uint32_t weight)
+	    : weight(weight)
+	    , index(index)
+	{}
+
+	union {
+		uint32_t data;
+		struct {
+			uint32_t weight : PointerFieldSize;
+			uint32_t index : length - PointerFieldSize;
+		};
+	};
+
+	bool operator==(node_pointer const& other) const
 	{
-		return index;
+		return data == other.data;
 	}
+};
 
-private:
-	uint32_t index;
+template<>
+struct node_pointer<0> {
+	static constexpr auto max = std::numeric_limits<uint32_t>::max();
+
+	node_pointer()
+	    : data(max)
+	{}
+
+	node_pointer(uint32_t data)
+	    : data(data)
+	{}
+
+	union {
+		uint32_t data;
+		uint32_t index;
+	};
+
+	bool operator==(node_pointer const& other) const
+	{
+		return data == other.data;
+	}
 };
 
 } // namespace detail
 
-// NOTE:  This is used to wrap `gates` in the `netlist` represention of a quantum circuit.
-template<typename GateType, int DataSize = 0, typename LinkType = detail::link>
-struct wrapper_vertex {
-	using link_type = LinkType;
+union cauint32_t {
+	uint32_t w{0};
+	struct {
+		uint32_t b0 : 8;
+		uint32_t b1 : 8;
+		uint32_t b2 : 8;
+		uint32_t b3 : 8;
+	};
+};
+
+/*! \brief 
+ */
+template<typename GateType, int DataSize = 0>
+struct wrapper_node {
+	using pointer_type = detail::node_pointer<0>;
 
 	GateType gate;
-	mutable std::array<uint32_t, DataSize> data;
+	mutable std::array<cauint32_t, DataSize> data;
 
-	wrapper_vertex(GateType const& gate_)
-	    : gate(gate_)
+	wrapper_node(GateType const& g)
+	    : gate(g)
 	{}
 
-	bool operator==(wrapper_vertex const& other) const
+	bool operator==(wrapper_node const& other) const
 	{
 		return gate == other.gate;
 	}
 };
 
-template<typename GateType, int DataSize = 0, typename LinkType = detail::link>
-struct node {
-	using link_type = LinkType;
+/*! \brief 
+ */
+template<typename GateType, int PointerFieldSize = 1, int DataSize = 0>
+struct regular_node {
+	using pointer_type = detail::node_pointer<PointerFieldSize>;
 
 	GateType gate;
-	std::array<link_type, GateType::max_num_io> children;
-	mutable std::array<uint32_t, DataSize> data;
+	std::array<std::vector<pointer_type>, GateType::max_num_qubits> qubit;
+	mutable std::array<cauint32_t, DataSize> data;
 
-	node(GateType const& gate_)
-	    : gate(gate_)
+	regular_node(GateType const& g)
+	    : gate(g)
 	{}
 
-	bool operator==(node const& other) const
+	bool operator==(regular_node const& other) const
 	{
 		return gate == other.gate;
 	}
 };
 
-template<typename VertexType>
+/*! \brief 
+ */
+template<typename GateType, int PointerFieldSize = 1, int DataSize = 0>
+struct uniform_node {
+	using pointer_type = detail::node_pointer<PointerFieldSize>;
+
+	GateType gate;
+	std::array<std::array<pointer_type, 2>, GateType::max_num_qubits> qubit;
+	mutable std::array<cauint32_t, DataSize> data;
+
+	uniform_node(GateType const& g)
+	    : gate(g)
+	{}
+
+	bool operator==(uniform_node const& other) const
+	{
+		return gate == other.gate;
+	}
+};
+
+/*! \brief 
+ */
+template<typename NodeType>
 struct storage {
-	storage(std::string_view name_ = {})
-	    : name(name_)
-	    , num_qubits(0)
-	    , gate_set(0)
+	storage()
 	{
 		nodes.reserve(1024u);
 	}
 
-	std::string name;
-	uint32_t num_qubits;
-	uint32_t gate_set;
-	uint32_t default_value;
+	storage(uint32_t size)
+	{
+		nodes.reserve(size);
+	}
+
 	std::vector<uint32_t> inputs;
-	std::vector<VertexType> nodes;
-	std::vector<VertexType> outputs;
-	std::vector<io_id> wiring_map;
-	std::vector<uint8_t> io_marks;
+	std::vector<NodeType> nodes;
+	std::vector<NodeType> outputs;
+	std::vector<uint32_t> rewiring_map;
 };
 
-class labels_map {
+/*! \brief 
+ */
+class qlabels_map {
 public:
-	void map(io_id id, std::string const& label)
+	auto map(qubit_id qid, std::string const& qlabel)
 	{
-		label_to_id_.emplace(label, id);
-		id_to_label_.emplace_back(label, id);
+		qlabel_to_qid_.emplace(qlabel, qid);
+		qid_to_qlabel_.emplace_back(qlabel);
 	}
 
-	void remap(io_id id, std::string const& label)
+	auto to_qid(std::string const& qlabel) const
 	{
-		label_to_id_.emplace(label, id);
-		id_to_label_.at(id) = std::make_pair(label, id);
+		return qlabel_to_qid_.at(qlabel);
 	}
 
-	io_id to_id(std::string const& label) const
+	auto to_qlabel(qubit_id qid) const
 	{
-		return label_to_id_.at(label);
-	}
-
-	std::string to_label(io_id id) const
-	{
-		return id_to_label_.at(id).first;
+		return qid_to_qlabel_.at(qid);
 	}
 
 	auto cbegin() const
 	{
-		return id_to_label_.cbegin();
+		return qid_to_qlabel_.cbegin();
 	}
 
 	auto cend() const
 	{
-		return id_to_label_.cend();
+		return qid_to_qlabel_.cend();
 	}
 
 	auto begin()
 	{
-		return id_to_label_.begin();
+		return qid_to_qlabel_.begin();
 	}
 
 	auto end()
 	{
-		return id_to_label_.end();
+		return qid_to_qlabel_.end();
 	}
 
 private:
-	std::unordered_map<std::string, io_id> label_to_id_;
-	std::vector<std::pair<std::string, io_id>> id_to_label_;
+	std::unordered_map<std::string, qubit_id> qlabel_to_qid_;
+	std::vector<std::string> qid_to_qlabel_;
 };
 
 } // namespace tweedledum

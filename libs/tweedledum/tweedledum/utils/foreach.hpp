@@ -1,6 +1,7 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -102,11 +103,10 @@ Iterator foreach_element_if(Iterator begin, Iterator end, Pred&& predicate, Fn&&
 		}
 		return begin;
 	} else if constexpr (is_callable_with_index_v<Fn, ElementType, bool>) {
-		uint32_t index = counter_offset;
+		uint32_t index{counter_offset};
 		while (begin != end) {
 			if (!predicate(*begin)) {
 				++begin;
-				++index;
 				continue;
 			}
 			if (!fn(*begin++, index++)) {
@@ -125,11 +125,10 @@ Iterator foreach_element_if(Iterator begin, Iterator end, Pred&& predicate, Fn&&
 		}
 		return begin;
 	} else if constexpr (is_callable_with_index_v<Fn, ElementType, void>) {
-		uint32_t index = counter_offset;
+		uint32_t index{counter_offset};
 		while (begin != end) {
 			if (!predicate(*begin)) {
 				++begin;
-				++index;
 				continue;
 			}
 			fn(*begin++, index++);

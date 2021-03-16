@@ -1,12 +1,13 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt, Fereshte Mozafari
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/gate_lib.hpp"
+#include "../../gates/gate_set.hpp"
 #include "../../gates/gate_base.hpp"
-#include "../../networks/io_id.hpp"
+#include "../../networks/qubit.hpp"
 #include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/dynamic_bitset.hpp"
 
@@ -26,7 +27,7 @@ class cnot_patel_ftor {
 	using qubit_pair_type = std::pair<uint32_t, uint32_t>;
 
 public:
-	cnot_patel_ftor(network_type& network, std::vector<io_id> const& qubits,
+	cnot_patel_ftor(network_type& network, std::vector<qubit_id> const& qubits,
 	                matrix_type const& matrix, uint32_t partition_size)
 	    : network_(network)
 	    , qubits_(qubits)
@@ -79,9 +80,6 @@ private:
 					pattern |= (matrix_.at(row, column) << subrow_column);
 					subrow_column += 1;
 				}
-				if (pattern == 0) {
-					continue;
-				}
 				if (patterns_table.find(pattern) != patterns_table.end()) {
 					matrix_.row(row) ^= matrix_.row(patterns_table[pattern]);
 					gates.emplace_back(patterns_table[pattern], row);
@@ -112,7 +110,7 @@ private:
 
 private:
 	network_type& network_;
-	std::vector<io_id> qubits_;
+	std::vector<qubit_id> qubits_;
 	matrix_type matrix_;
 	uint32_t partition_size_;
 };
@@ -131,9 +129,7 @@ struct cnot_patel_params {
 
 /*! \brief CNOT Patel synthesis for linear circuits
  *
- * This is the in-place variant of ``cnot_patel``, in which the network is passed as a parameter
- * and can potentially already contain some gates. The parameter ``qubits`` provides a qubit
- * mapping to the existing qubits in the network.
+ * A specialzed variant of `cnot_patel` which accepts a existing network (possibly with gates).
  *
  * \param network A quantum network
  * \param qubits  The subset of qubits the linear reversible circuit acts upon.
@@ -142,14 +138,13 @@ struct cnot_patel_params {
  *                See `cnot_patel_params` for details.
  */
 template<class Network, class Matrix>
-void cnot_patel(Network& network, std::vector<io_id> const& qubits, Matrix const& matrix,
+void cnot_patel(Network& network, std::vector<qubit_id> const& qubits, Matrix const& matrix,
                 cnot_patel_params params = {})
 {
 	assert(network.num_qubits() >= qubits.size());
 	assert(matrix.is_square());
 	assert(qubits.size() == matrix.num_rows());
-	assert(params.best_partition_size
-	       || (params.partition_size < 32u && params.partition_size <= matrix.num_rows()));
+	assert(params.best_partition_size || (params.partition_size >= 1 && params.partition_size <= 32));
 
 	// Abbreviations:
 	//   - ps : partition size
@@ -160,9 +155,8 @@ void cnot_patel(Network& network, std::vector<io_id> const& qubits, Matrix const
 	}
 
 	auto const min_ps = params.best_partition_size ? 1u : params.partition_size;
-	auto const max_ps = params.best_partition_size ? matrix.num_rows() : params.partition_size;
+	auto const max_ps = params.best_partition_size ? 32u : params.partition_size;
 	auto const old_num_gates = network.num_gates();
-	(void)old_num_gates; /* var not used in Release mode */
 	auto best_num_gates = std::numeric_limits<uint32_t>::max();
 
 	if (params.allow_rewiring == true) {
@@ -235,7 +229,7 @@ void cnot_patel(Network& network, std::vector<io_id> const& qubits, Matrix const
       parameters.allow_rewiring = false;
       parameters.best_partition_size = false;
       parameters.partition_size = 2u;
-      auto network = cnot_patel<netlist<io3_gate>>(matrix, parameters);
+      auto network = cnot_patel<netlist<mcst_gate>>(matrix, parameters);
 
    \endverbatim
  *
@@ -258,7 +252,9 @@ Network cnot_patel(Matrix const& matrix, cnot_patel_params params = {})
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	cnot_patel(network, network.wiring_map(), matrix, params);
+	std::vector<qubit_id> qubits(num_qubits);
+	std::iota(qubits.begin(), qubits.end(), 0u);
+	cnot_patel(network, qubits, matrix, params);
 	return network;
 }
 

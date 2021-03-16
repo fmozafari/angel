@@ -1,12 +1,13 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/gate_lib.hpp"
+#include "../../gates/gate_set.hpp"
 #include "../../gates/gate_base.hpp"
-#include "../../networks/io_id.hpp"
+#include "../../networks/qubit.hpp"
 #include "../../utils/parity_terms.hpp"
 
 #include <algorithm>
@@ -22,7 +23,7 @@ namespace tweedledum {
 namespace detail {
 
 template<class Network>
-void linear_synth_binary(Network& network, std::vector<io_id> const& qubits, parity_terms<uint32_t> parities)
+void linear_synth_binary(Network& network, std::vector<qubit_id> const& qubits, parity_terms parities)
 {
 	const auto num_qubits = qubits.size();
 
@@ -34,7 +35,7 @@ void linear_synth_binary(Network& network, std::vector<io_id> const& qubits, par
 		qubits_states.emplace_back((1u << i));
 		auto rotation_angle = parities.extract_term(qubits_states[i]);
 		if (rotation_angle != 0.0) {
-			network.add_gate(gate_base(gate_lib::rz, rotation_angle), qubits[i]);
+			network.add_gate(gate_base(gate_set::rotation_z, rotation_angle), qubits[i]);
 		}
 	}
 
@@ -50,7 +51,7 @@ void linear_synth_binary(Network& network, std::vector<io_id> const& qubits, par
 				network.add_gate(gate::cx, qubits[j], qubits[first_num]);
 				auto rotation_angle = parities.extract_term(qubits_states[first_num]);
 				if (rotation_angle != 0.0) {
-					network.add_gate(gate_base(gate_lib::rz,
+					network.add_gate(gate_base(gate_set::rotation_z,
 					                           rotation_angle),
 					                 qubits[first_num]);
 				}
@@ -65,7 +66,7 @@ void linear_synth_binary(Network& network, std::vector<io_id> const& qubits, par
 }
 
 template<class Network>
-void linear_synth_gray(Network& network, std::vector<io_id> const& qubits, parity_terms<uint32_t> parities)
+void linear_synth_gray(Network& network, std::vector<qubit_id> const& qubits, parity_terms parities)
 {
 	const auto num_qubits = qubits.size();
 
@@ -83,7 +84,7 @@ void linear_synth_gray(Network& network, std::vector<io_id> const& qubits, parit
 		qubits_states.emplace_back((1u << i));
 		auto rotation_angle = parities.extract_term(qubits_states[i]);
 		if (rotation_angle != 0.0) {
-			network.add_gate(gate_base(gate_lib::rz, rotation_angle), qubits[i]);
+			network.add_gate(gate_base(gate_set::rotation_z, rotation_angle), qubits[i]);
 		}
 	}
 
@@ -96,7 +97,7 @@ void linear_synth_gray(Network& network, std::vector<io_id> const& qubits, parit
 			network.add_gate(gate::cx, qubits[temp], qubits[i]);
 			auto rotation_angle = parities.extract_term(qubits_states[i]);
 			if (rotation_angle != 0.0) {
-				network.add_gate(gate_base(gate_lib::rz, rotation_angle),
+				network.add_gate(gate_base(gate_set::rotation_z, rotation_angle),
 				                 qubits[i]);
 			}
 		}
@@ -105,7 +106,7 @@ void linear_synth_gray(Network& network, std::vector<io_id> const& qubits, parit
 		network.add_gate(gate::cx, qubits[temp], qubits[i]);
 		auto rotation_angle = parities.extract_term(qubits_states[i]);
 		if (rotation_angle != 0.0) {
-			network.add_gate(gate_base(gate_lib::rz, rotation_angle), qubits[i]);
+			network.add_gate(gate_base(gate_set::rotation_z, rotation_angle), qubits[i]);
 		}
 	}
 }
@@ -122,10 +123,8 @@ struct linear_synth_params {
 
 /*! \brief Linear synthesis for small {CNOT, Rz} networks
  *
- * This is the in-place variant of ``linear_synth``, in which the network is passed as a parameter
- * and can potentially already contain some gates. The parameter ``qubits`` provides a qubit
- * mapping to the existing qubits in the network.
- * 
+ * A specialzed variant of `linear_synth` which accepts a existing network (possibly with gates)
+ *
  * \param network  A quantum network
  * \param qubits   The subset of qubits the linear reversible circuit acts upon
  * \param parities List of parities and rotation angles to synthesize
@@ -133,8 +132,8 @@ struct linear_synth_params {
  *                 See `linear_synth_params` for details.
  */
 template<class Network>
-void linear_synth(Network& network, std::vector<io_id> const& qubits,
-                  parity_terms<uint32_t> const& parities, linear_synth_params params = {})
+void linear_synth(Network& network, std::vector<qubit_id> const& qubits,
+                  parity_terms const& parities, linear_synth_params params = {})
 {
 	assert(qubits.size() <= 6);
 	switch (params.strategy) {
@@ -163,7 +162,7 @@ void linear_synth(Network& network, std::vector<io_id> const& qubits,
  * \algreturns {CNOT, Rz} network
  */
 template<class Network>
-Network linear_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities,
+Network linear_synth(uint32_t num_qubits, parity_terms const& parities,
                      linear_synth_params params = {})
 {
 	assert(num_qubits <= 6);
@@ -171,7 +170,9 @@ Network linear_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	linear_synth(network, network.wiring_map(), parities, params);
+	std::vector<qubit_id> qubits(num_qubits);
+	std::iota(qubits.begin(), qubits.end(), 0u);
+	linear_synth(network, qubits, parities, params);
 	return network;
 }
 

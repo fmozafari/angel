@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "angle.hpp"
-#include "hash.hpp"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -17,11 +17,11 @@ namespace tweedledum {
 
 /*! \brief
  */
-template<typename Term = uint32_t>
 class parity_terms {
 public:
 #pragma region Types and constructors
-	parity_terms() = default;
+	parity_terms()
+	{}
 #pragma endregion
 
 #pragma region Properties
@@ -48,9 +48,9 @@ public:
 	 *
 	 * If the term already exist it increments the rotation angle
 	 */
-	void add_term(Term term, angle rotation_angle)
+	void add_term(uint32_t term, angle rotation_angle)
 	{
-		assert(rotation_angle != angles::zero);
+		assert(rotation_angle != 0.0);
 		auto search = term_to_angle_.find(term);
 		if (search != term_to_angle_.end()) {
 			search->second += rotation_angle;
@@ -60,21 +60,18 @@ public:
 	}
 
 	/*! \brief Extract parity term. */
-	angle extract_term(Term term)
+	auto extract_term(uint32_t term)
 	{
-		auto search = term_to_angle_.find(term);
-		if (search != term_to_angle_.end()) {
-			angle const result = search->second; 
-			term_to_angle_.erase(search);
-			return result;
-		} else {
-			return angles::zero;
+		auto node_handle = term_to_angle_.extract(term);
+		if (node_handle.empty()) {
+			return angle(0.0);
 		}
+		return node_handle.mapped();
 	}
 #pragma endregion
 
 private:
-	std::unordered_map<Term, angle, hash<Term>> term_to_angle_;
+	std::unordered_map<uint32_t, angle> term_to_angle_;
 };
 
 } // namespace tweedledum

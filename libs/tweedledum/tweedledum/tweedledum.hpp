@@ -1,8 +1,8 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
-#pragma once
 
 #include "algorithms/decomposition/barenco.hpp"
 #include "algorithms/decomposition/dt.hpp"
@@ -11,10 +11,9 @@
 #include "algorithms/synthesis/gray_synth.hpp"
 #include "algorithms/synthesis/linear_synth.hpp"
 #include "algorithms/synthesis/stg.hpp"
-#include "algorithms/synthesis/tbs.hpp"
-#include "gates/gate_lib.hpp"
+#include "gates/gate_set.hpp"
 #include "gates/mcmt_gate.hpp"
-#include "gates/io3_gate.hpp"
+#include "gates/mcst_gate.hpp"
 #include "gates/gate_base.hpp"
 #include "io/qasm.hpp"
 #include "io/quil.hpp"

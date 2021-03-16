@@ -1,6 +1,7 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -75,29 +76,6 @@ struct bit_matrix {
 	constexpr auto empty() const
 	{
 		return lines_.empty() || num_bits_per_line_ == 0;
-	}
-#pragma endregion
-
-#pragma region Properties
-	constexpr auto is_square() const
-	{
-		return num_bits_per_line_ == lines_.size();
-	}
-
-	constexpr auto is_identity() const
-	{
-		if (!is_square()) {
-			return false;
-		}
-		for (auto i = 0; i < lines_.size(); ++i) {
-			if (lines_[i][i] != 1) {
-				return false;
-			}
-			if (lines_[i].count() > 1) {
-				return false;
-			}
-		}
-		return true;
 	}
 #pragma endregion
 
