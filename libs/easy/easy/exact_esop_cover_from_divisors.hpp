@@ -38,6 +38,7 @@
 #include <kitty/kitty.hpp>
 #include <bill/sat/solver.hpp>
 #include <bill/sat/tseytin.hpp>
+#include <bill/sat/xor_clauses.hpp>
 #include <algorithm>
 #include <vector>
 #include <optional>
