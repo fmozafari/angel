@@ -13,6 +13,8 @@
 #include <map>
 #include <unordered_map>
 #include <vector>
+#define _USE_MATH_DEFINES
+#include <cmath> 
 
 namespace angel
 {
