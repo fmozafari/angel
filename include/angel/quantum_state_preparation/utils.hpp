@@ -1,5 +1,7 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <cmath> 
 #include <angel/utils/stopwatch.hpp>
 
 #include <fmt/format.h>
