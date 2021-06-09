@@ -129,11 +129,6 @@ if (NOT TARGET rang)
   target_include_directories(rang INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/rang)
 endif()
 
-if (NOT TARGET tweedledee)
-  add_library(tweedledee INTERFACE)
-  target_include_directories(tweedledee INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledee)
-endif()
-
 if (NOT TARGET cudd)
   add_library(cudd_includes INTERFACE)
   target_include_directories(cudd_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cudd)
@@ -142,5 +137,11 @@ if (NOT TARGET cudd)
   target_include_directories(cudd_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cudd/st)
   target_include_directories(cudd_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cudd/cudd)
   add_subdirectory(cudd)
+endif()
+
+# Eigen 3.3.8
+if (NOT TARGET eigen)
+  add_library(eigen INTERFACE)
+  target_include_directories(eigen SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/eigen)
 endif()
 
