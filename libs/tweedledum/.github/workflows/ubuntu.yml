@@ -4,6 +4,12 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [master]
+    paths:
+      - '**/CMakeLists.txt'
+      - '**.cpp'
+      - '**.h'
+      - 'tests/**'
+      - 'external/**'
 
 jobs:
   build-ubuntu:
@@ -11,7 +17,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        gcc: [8, 9, 10]
+        gcc: [9, 10]
 
     steps:
     - uses: actions/checkout@v2
@@ -39,4 +45,4 @@ jobs:
     - name: Run tests
       working-directory: build
       run: |
-        ./test/run_tests
+        ./tests/run_tests

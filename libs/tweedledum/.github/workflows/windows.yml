@@ -4,6 +4,12 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [master]
+    paths:
+      - '**/CMakeLists.txt'
+      - '**.cpp'
+      - '**.h'
+      - 'tests/**'
+      - 'external/**'
 
 jobs:
   build-windows:
@@ -33,4 +39,4 @@ jobs:
 
     - name: Run tests
       run: |
-        .\build\test\run_tests.exe
+        .\build\tests\run_tests.exe

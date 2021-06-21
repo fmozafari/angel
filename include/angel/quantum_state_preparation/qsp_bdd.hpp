@@ -5,6 +5,7 @@
 #include "utils.hpp"
 #include <angel/utils/helper_functions.hpp>
 #include <angel/utils/stopwatch.hpp>
+#include <angel/quantum_circuit/create_quantum_circuit.hpp>>
 #include <cplusplus/cuddObj.hh>
 #include <cudd/cudd.h>
 #include <cudd/cuddInt.h>
@@ -595,6 +596,8 @@ void qsp_bdd( Network& network, std::string str, qsp_bdd_statistics& stats, crea
     stopwatch t( time_add_traversal );
     detail::extract_quantum_gates( f_add, num_inputs, orders, gates );
   }
+
+  create_qc_forBDD(network, gates[f_add]);
 
   /* extract statistics */
   stats.nodes += Cudd_DagSize( f_add ) - 2; // it consider 2 nodes for "0" and "1"

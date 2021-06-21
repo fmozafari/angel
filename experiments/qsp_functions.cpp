@@ -1,7 +1,7 @@
 #include <angel/angel.hpp>
 #include <kitty/kitty.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/IR/Circuit.h>
+#include <tweedledum/IR/Instruction.h>
 
 #include "experiments.hpp"
 

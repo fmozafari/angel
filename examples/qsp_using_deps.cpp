@@ -1,8 +1,6 @@
 #include <angel/angel.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/netlist.hpp>
-#include <tweedledum/io/qasm.hpp>
-
+#include <tweedledum/IR/Circuit.h>
+#include <tweedledum/IR/Instruction.h>
 #include <kitty/kitty.hpp>
 #include <iostream>
 #include<fstream>
@@ -11,7 +9,7 @@ using namespace angel;
 
 int main()
 {
-    tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+    tweedledum::Circuit ntk;
     std::string truth_table{"1100" "0000" "0011" "0111"};
     //std::string truth_table{"10000001"};
     //std::ifstream file_inp;

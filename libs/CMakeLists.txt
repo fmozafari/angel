@@ -1,8 +1,4 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-if (NOT TARGET tweedledum)
-  add_library(tweedledum INTERFACE)
-  target_include_directories(tweedledum INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum)
-endif()
 
 if (NOT TARGET bill)
   add_library(bill INTERFACE)
@@ -139,9 +135,25 @@ if (NOT TARGET cudd)
   add_subdirectory(cudd)
 endif()
 
+if (NOT TARGET tweedledum_lib)
+  include(ExternalProject)
+  ExternalProject_Add(tweedledum 
+  SOURCE_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum
+  INSTALL_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/install
+  STEP_TARGETS build)
+  add_library(tweedledum_lib INTERFACE)
+  target_include_directories(tweedledum_lib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/include)
+  find_library(TWEEDLEDUM_LIB NAMES tweedledum)
+  target_link_libraries(tweedledum_lib INTERFACE ${TWEEDLEDUM_LIB})
+endif()
+
 # Eigen 3.3.8
 if (NOT TARGET eigen)
   add_library(eigen INTERFACE)
   target_include_directories(eigen SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/eigen)
 endif()
+
+
+
+
 

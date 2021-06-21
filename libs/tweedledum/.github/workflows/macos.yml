@@ -4,6 +4,12 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [master]
+    paths:
+      - '**/CMakeLists.txt'
+      - '**.cpp'
+      - '**.h'
+      - 'tests/**'
+      - 'external/**'
 
 jobs:
   build-macos:
@@ -32,4 +38,4 @@ jobs:
     - name: Run tests
       working-directory: build
       run: |
-        ./test/run_tests
+        ./tests/run_tests
