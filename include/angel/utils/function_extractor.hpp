@@ -32,9 +32,9 @@
 
 #pragma once
 
-#include <mockturtle/mockturtle.hpp>
-#include <lorina/lorina.hpp>
 #include <kitty/kitty.hpp>
+#include <lorina/lorina.hpp>
+#include <mockturtle/mockturtle.hpp>
 
 namespace angel
 {
@@ -51,7 +51,7 @@ class function_extractor
 {
 public:
   explicit function_extractor( function_extractor_params ps = {} )
-    : ps( ps )
+      : ps( ps )
   {
   }
 
@@ -68,28 +68,30 @@ public:
     mockturtle::fanout_view fanout_aig( depth_aig );
 
     mockturtle::cut_manager<decltype( fanout_aig )> mgr( ps.num_vars );
-    fanout_aig.foreach_gate( [&]( const auto& n ){
-        auto const leaves = mockturtle::reconv_driven_cut( mgr, fanout_aig, n );
+    fanout_aig.foreach_gate( [&]( const auto& n )
+                             {
+                               auto const leaves = mockturtle::reconv_driven_cut( mgr, fanout_aig, n );
 
-        mockturtle::cut_view cut{fanout_aig, leaves, aig.make_signal( n )};
+                               mockturtle::cut_view cut{ fanout_aig, leaves, aig.make_signal( n ) };
 
-        mockturtle::default_simulator<kitty::dynamic_truth_table> sim( leaves.size() );
-        if ( ps.exact_size && leaves.size() != ps.num_vars )
-          return;
+                               mockturtle::default_simulator<kitty::dynamic_truth_table> sim( leaves.size() );
+                               if ( ps.exact_size && leaves.size() != ps.num_vars )
+                                 return;
 
-        auto const result = mockturtle::simulate_nodes<kitty::dynamic_truth_table>( cut, sim );
+                               auto const result = mockturtle::simulate_nodes<kitty::dynamic_truth_table>( cut, sim );
 
-        cut.foreach_po( [&]( const auto& s ){
-            auto const tt = result[cut.get_node( s )];
+                               cut.foreach_po( [&]( const auto& s )
+                                               {
+                                                 auto const tt = result[cut.get_node( s )];
 
-            auto const it = tts.find( tt );
-            if ( it == std::end( tts ) )
-            {
-              tts.insert( tt );
-              fn( tt );
-            }
-          });
-      });
+                                                 auto const it = tts.find( tt );
+                                                 if ( it == std::end( tts ) )
+                                                 {
+                                                   tts.insert( tt );
+                                                   fn( tt );
+                                                 }
+                                               } );
+                             } );
   }
 
 protected:
@@ -99,4 +101,4 @@ protected:
   std::set<kitty::dynamic_truth_table> tts;
 }; /* function_extractor */
 
-} /* angel */
+} // namespace angel

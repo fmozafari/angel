@@ -8,7 +8,8 @@
 #include <iostream>
 #include <type_traits>
 
-namespace angel {
+namespace angel
+{
 
 /*! \brief Stopwatch interface
  *
@@ -33,43 +34,43 @@ namespace angel {
    \endverbatim
  */
 template<class Clock = std::chrono::steady_clock>
-class stopwatch {
+class stopwatch
+{
 public:
-	using clock = Clock;
-	using duration_type = typename Clock::duration;
-	using time_point_type = typename Clock::time_point;
+  using clock = Clock;
+  using duration_type = typename Clock::duration;
+  using time_point_type = typename Clock::time_point;
 
-	/*! \brief Default constructor.
+  /*! \brief Default constructor.
 	 *
 	 * Starts tracking time.
 	 */
-	explicit stopwatch(duration_type& duration)
-	    : duration(duration)
-	    , begin(clock::now())
-	{}
+  explicit stopwatch( duration_type& duration )
+      : duration( duration ), begin( clock::now() )
+  {
+  }
 
-
-	/*! \brief .
+  /*! \brief .
 	 *
 	 * Stops tracking time and updates duration.
 	 */
-	void stop()
-	{
-		duration += (clock::now() - begin);
-	}
+  void stop()
+  {
+    duration += ( clock::now() - begin );
+  }
 
-	/*! \brief Default deconstructor.
+  /*! \brief Default deconstructor.
 	 *
 	 * Stops tracking time and updates duration.
 	 */
-	~stopwatch()
-	{
-		duration += (clock::now() - begin);
-	}
+  ~stopwatch()
+  {
+    duration += ( clock::now() - begin );
+  }
 
 private:
-	duration_type& duration;
-	time_point_type begin;
+  duration_type& duration;
+  time_point_type begin;
 };
 
 /*! \brief Calls a function and tracks time.
@@ -92,10 +93,10 @@ private:
  * \param fn Callable object with no arguments
  */
 template<class Fn, class Clock = std::chrono::steady_clock>
-inline std::invoke_result_t<Fn> call_with_stopwatch(typename Clock::duration& duration, Fn&& fn)
+inline std::invoke_result_t<Fn> call_with_stopwatch( typename Clock::duration& duration, Fn&& fn )
 {
-	stopwatch<Clock> t(duration);
-	return fn();
+  stopwatch<Clock> t( duration );
+  return fn();
 }
 
 /*! \brief Constructs an object and calls time.
@@ -115,17 +116,17 @@ inline std::invoke_result_t<Fn> call_with_stopwatch(typename Clock::duration& du
    \endverbatim
  */
 template<class T, class... Args, class Clock = std::chrono::steady_clock>
-inline T make_with_stopwatch(typename Clock::duration& duration, Args... args)
+inline T make_with_stopwatch( typename Clock::duration& duration, Args... args )
 {
-	stopwatch<Clock> t(duration);
-	return T{std::forward<Args>(args)...};
+  stopwatch<Clock> t( duration );
+  return T{ std::forward<Args>( args )... };
 }
 
 /*! \brief Utility function to convert duration into seconds. */
 template<class Duration>
-inline double to_seconds(Duration const& duration)
+inline double to_seconds( Duration const& duration )
 {
-	return std::chrono::duration_cast<std::chrono::duration<double>>(duration).count();
+  return std::chrono::duration_cast<std::chrono::duration<double>>( duration ).count();
 }
 
 } // namespace angel

@@ -5,6 +5,7 @@
 #include <angel/dependency_analysis/common.hpp>
 #include <angel/utils/helper_functions.hpp>
 #include <angel/utils/stopwatch.hpp>
+#include <angel/quantum_circuit/create_quantum_circuit.hpp>
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/npn.hpp>
 #include <kitty/hash.hpp>
@@ -524,17 +525,6 @@ inline void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uin
   }
 }
 
-/**
- * \breif General quantum state preparation algorithm for any function represantstion, 
- * dependency analysis algorithm, and reordering algorithm.
- * 
- * \tparam Network the type of generated quantum circuit
- * \tparam DependencyAnalysisAlgorithm specifies the method of extracting dependencies. By default, we don't have any dependencies.
- * \tparam ReorderingAlgorithm the way of extracting variable orders
- * \param net the extracted quantum circuit for given quantum state
- * \param tt given Boolean function corresponding to the quantum state
- * \param qsp_stats store all desired statistics of quantum state preparation process
-*/
 
 struct state_preparation_parameters
 {
@@ -564,9 +554,10 @@ struct state_preparation_statistics
 
 }; 
 
-struct network
+struct GatesSeq
 {
   gates_t gates;
+  std::vector<uint32_t> order;
   std::pair<uint32_t, uint32_t> cnots_sqgs;
 };
 
@@ -574,20 +565,15 @@ struct network
 /**
  * \breif Quantum State Preparation using Functional Dependency
  * 
- * \tparam Network the type of generated quantum circuit
  * \tparam DependencyAnalysisStrategy specify dependency analysis strategy
  * \tparam ReorderingStrategy specify variable reordering strategy
 */
 
-template<class Network, class DependencyAnalysisStrategy, class ReorderingStrategy>
-class qsp_deps
+template<class DependencyAnalysisStrategy, class ReorderingStrategy>
+class qsp_depsClass
 {
 public:
-  using dependency_params = typename DependencyAnalysisStrategy::parameter_type;
-  using dependency_stats = typename DependencyAnalysisStrategy::statistics_type;
-
-public:
-  explicit qsp_deps(Network& ntk, DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
+  explicit qsp_depsClass(GatesSeq& ntk, DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
                               state_preparation_parameters const& ps, state_preparation_statistics& st )
     : ntk(ntk)
     , dependency_strategy( dependency_strategy )
@@ -597,22 +583,22 @@ public:
   {
   }
 
-  network operator()( kitty::dynamic_truth_table const& tt )
+  GatesSeq operator()( kitty::dynamic_truth_table const& tt )
   {
     stopwatch t( st.time_total );
     uint32_t const num_variables = tt.num_vars();
 
     ++st.num_functions;
 
-    /* check if there is a network in the cache for this truth table */
+    /* check if there is a GatesSeq in the cache for this truth table */
     auto const [key_tt, _1, _2] = call_with_stopwatch( st.time_cache, [&]{
         return num_variables <= 7u ? kitty::exact_p_canonization( tt ) : kitty::sifting_p_canonization( tt );
       });
     auto const it = cache.find( key_tt );
     if ( it != std::end( cache ) )
     {
-      network empty;
-      return empty;
+      //GatesSeq empty;
+      //return empty;
       
       st.num_cnots += it->second.cnots_sqgs.first;
       if ( ps.verbose )
@@ -626,10 +612,10 @@ public:
     std::pair<uint32_t, uint32_t> upperbound = {uint64_t( pow( 2u, num_variables ) - 2u ), uint64_t( pow( 2u, num_variables ) - 1u )};
     std::pair<uint32_t, uint32_t> max = {std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max()};
     std::pair<uint32_t, uint32_t> const ub = ps.use_upperbound ? upperbound : max;
-    network best_ntk{{},ub};
-    order_strategy.foreach_reordering( tt, [this,&best_ntk]( kitty::dynamic_truth_table const& tt ){
-        network ntk = synthesize_network( tt );
-        //print_gates(ntk.gates);
+    GatesSeq best_ntk{{},{},ub};
+    
+    order_strategy.foreach_reordering( tt, [this,&best_ntk]( kitty::dynamic_truth_table const& tt, std::vector<uint32_t> const& perm ){
+        GatesSeq ntk = synthesize_network( tt, perm );
         
         if ( ntk.cnots_sqgs.first < best_ntk.cnots_sqgs.first )
         {
@@ -654,12 +640,12 @@ public:
     return best_ntk;
   }
 
-  network synthesize_network( kitty::dynamic_truth_table const& tt )
+  GatesSeq synthesize_network( kitty::dynamic_truth_table const& tt, std::vector<uint32_t> const& perm )
   {
     /* FIXME: treat const0 as a special case */
     if ( kitty::is_const0( tt ) )
     {
-      return network{{}, std::make_pair(0u, 0u)};
+      return GatesSeq{{}, perm, std::make_pair(0u, 0u)};
     }
 
     /* extract dependencies */
@@ -667,11 +653,11 @@ public:
     result.print();
 
     /* construct gates */
-    return create_gates( tt, result.dependencies );
+    return create_gates( tt, result.dependencies, perm );
   }
 
   template<typename Dependencies>
-  network create_gates( kitty::dynamic_truth_table const& tt, Dependencies const& dependencies )
+  GatesSeq create_gates( kitty::dynamic_truth_table const& tt, Dependencies const& dependencies, std::vector<uint32_t> const& perm )
   {
     
     uint32_t const num_variables = tt.num_vars();
@@ -705,18 +691,43 @@ public:
     //print_gates(gates);
     gates_statistics( gates, have_deps, num_variables, st );
 
+    
 
-    return network{gates, std::make_pair(st.total_cnots, st.total_sqgs)};
+    return GatesSeq{gates, perm, std::make_pair(st.total_cnots, st.total_sqgs)};
   }
 
 protected:
-  Network& ntk;
+  GatesSeq& ntk;
   DependencyAnalysisStrategy& dependency_strategy;
   ReorderingStrategy& order_strategy;
   state_preparation_parameters const& ps;
   state_preparation_statistics& st;
 
-  std::unordered_map<kitty::dynamic_truth_table, network, kitty::hash<kitty::dynamic_truth_table>> cache;
+  std::unordered_map<kitty::dynamic_truth_table, GatesSeq, kitty::hash<kitty::dynamic_truth_table>> cache;
 }; 
+
+/**
+ * \breif General quantum state preparation algorithm for any function represantstion, 
+ * dependency analysis algorithm, and reordering algorithm.
+ * 
+ * \tparam Network the type of generated quantum circuit
+ * \tparam DependencyAnalysisAlgorithm specifies the method of extracting dependencies. By default, we don't have any dependencies.
+ * \tparam ReorderingAlgorithm the way of extracting variable orders
+ * \param tt given Boolean function corresponding to the quantum state
+ * \param ps store all desired parameters of quantum state preparation process
+ * \param st store all desired statistics of quantum state preparation process
+*/
+template<class Network, class DependencyAnalysisStrategy, class ReorderingStrategy>
+void qsp_deps(Network& ntk, DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
+              kitty::dynamic_truth_table const& tt, state_preparation_parameters const& ps, state_preparation_statistics& st)
+{
+  GatesSeq gates_seq;
+  qsp_depsClass<DependencyAnalysisStrategy, ReorderingStrategy> qsp (gates_seq, dependency_strategy, order_strategy, ps, st);
+  GatesSeq gates_network = qsp(tt);
+  print_gates(gates_network.gates, gates_network.order);
+  for(auto i=0; i<gates_network.order.size(); i++)
+  std::cout<<gates_network.order[i]<<"  ";
+  create_qc_for_MCgates(ntk, gates_network.gates, gates_network.order);
+}
 
 } // namespace angel

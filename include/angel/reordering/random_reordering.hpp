@@ -20,16 +20,16 @@ public:
   {
     (void)initial_cost;
 
-    fn( tt );
-
-    if ( num_reordering == 0u )
-      return;
-
     std::vector<uint32_t> perm;
-    for ( auto i = 0; i < tt.num_vars(); ++i )
+    for ( int32_t i = tt.num_vars()-1; i >= 0; i-- )
     {
       perm.emplace_back( i );
     }
+
+    fn( tt, perm );
+
+    if ( num_reordering == 0u )
+      return;
     
     std::default_random_engine random_engine( seed );
     std::vector<std::vector<uint32_t>> orders;
@@ -44,7 +44,7 @@ public:
 
         if ( tt != tt_ )
         {
-          fn( tt_ );
+          fn( tt_, perm );
           orders.emplace_back( perm );
           std::sort( std::begin( perm ), std::end( perm ) );
         }

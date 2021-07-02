@@ -5,7 +5,7 @@
 #include "utils.hpp"
 #include <angel/utils/helper_functions.hpp>
 #include <angel/utils/stopwatch.hpp>
-#include <angel/quantum_circuit/create_quantum_circuit.hpp>>
+#include <angel/quantum_circuit/create_quantum_circuit.hpp>
 #include <cplusplus/cuddObj.hh>
 #include <cudd/cudd.h>
 #include <cudd/cuddInt.h>
@@ -26,7 +26,7 @@ namespace angel
   vector2 -> gates for each qubit
   inner vector -> controls
   */
-using gates_dd_t = std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<uint32_t>>>>>;
+using gates_dd_t = std::map<DdNode*, std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>>;
 
 struct qsp_bdd_statistics
 {
@@ -118,15 +118,14 @@ BDD create_bdd_from_tt_str( Cudd& cudd, std::string tt_str, uint32_t num_inputs 
   int sig = 1;
 
   /* 
-    zero index in tt_str consist the smallest minterm of tt 
-    and we read it from first element
+    zero index in tt_str consist the biggest minterm of tt 
   */
 
-  for ( auto i = 0u; i < tt_str.size(); i++ )
+  for ( int32_t i = tt_str.size()-1; i >= 0; i-- )
   {
     if ( tt_str[i] == '1' )
     {
-      auto n = i;
+      auto n = (tt_str.size()-1) - i;
       BDD temp;
       temp = ( ( n & 1 ) == 1 ) ? bddNodes[0] : !bddNodes[0];
       n >>= 1;
@@ -261,7 +260,8 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
   /* inserting current single-qubit G(p) gate */
   if ( p != 1 )
   {
-    gates[current][current->index].emplace_back( std::pair{ p, controls } );
+    double angle = 2 * acos( sqrt( p ));
+    gates[current][current->index].emplace_back( std::pair{ angle, controls } );
   }
 
   std::vector<uint32_t> controls_left;
@@ -285,7 +285,8 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
   {
     for ( auto i = current->index + 1; i < num_vars; i++ )
     {
-      gates[current][i].emplace_back( std::pair{ 1.0 / 2.0, controls_left } );
+      double angle = 2 * acos( sqrt( 1.0 / 2.0 ));
+      gates[current][i].emplace_back( std::pair{ angle, controls_left } );
     }
   }
   else
@@ -293,7 +294,8 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
 
     for ( auto i = current->index + 1; i < cuddE( current )->index; i++ )
     {
-      gates[current][i].emplace_back( std::pair{ 1.0 / 2.0, controls_left } );
+      double angle = 2 * acos( sqrt( 1.0 / 2.0 ));
+      gates[current][i].emplace_back( std::pair{ angle, controls_left } );
     }
   }
 
@@ -304,14 +306,16 @@ void extract_probabilities_and_MCgates_top_down( std::unordered_set<DdNode*>& vi
   {
     for ( auto i = current->index + 1; i < num_vars; i++ )
     {
-      gates[current][i].emplace_back( std::pair{ 1.0 / 2.0, controls_right } );
+      double angle = 2 * acos( sqrt( 1.0 / 2.0 ));
+      gates[current][i].emplace_back( std::pair{ angle, controls_right } );
     }
   }
   else
   {
     for ( auto i = current->index + 1; i < cuddT( current )->index; i++ )
     {
-      gates[current][i].emplace_back( std::pair{ 1.0 / 2.0, controls_right } );
+      double angle = 2 * acos( sqrt( 1.0 / 2.0 ));
+      gates[current][i].emplace_back( std::pair{ angle, controls_right } );
     }
   }
 
@@ -356,13 +360,17 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
   auto const it = gates.find( current );
   if ( it == gates.end() )
   {
-    gates.emplace( current, std::vector<std::vector<std::pair<double, std::vector<uint32_t>>>>( num_vars ) );
+    std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>> temp;
+    for(auto i=0u; i<num_vars; i++)
+      temp[i]= {};
+    gates.emplace( current, temp );
   }
 
   /* inserting current single-qubit G(p) gate */
   if ( p != 1 )
   {
-    gates[current][current->index].emplace_back( std::pair{ p + 0.0, std::vector<uint32_t>{} } );
+    double angle = 2 * acos( sqrt( p ));
+    gates[current][current->index].emplace_back( std::pair{ angle, std::vector<uint32_t>{} } );
   }
 
   /* inserting childs gates */
@@ -423,7 +431,8 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
       std::vector<uint32_t> temp_c;
       //if ( p != 0 && p != 1 )
         temp_c.emplace_back( current->index * 2 + 1 );
-      gates[current][i].emplace_back( std::pair{ 1 / 2.0, temp_c } );
+        double angle = 2 * acos( sqrt( 1.0 / 2.0 ));
+      gates[current][i].emplace_back( std::pair{ angle, temp_c } );
     }
   }
   for ( auto i = current->index + 1; i < Tdown; i++ )
@@ -433,7 +442,8 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
       std::vector<uint32_t> temp_c;
       //if ( p != 0 && p != 1 )
         temp_c.emplace_back( current->index * 2 );
-      gates[current][i].emplace_back( std::pair{ 1 / 2.0, temp_c } );
+      double angle = 2 * acos( sqrt( 1.0 / 2.0 ));
+      gates[current][i].emplace_back( std::pair{ angle, temp_c } );
     }
   }
 }
@@ -475,7 +485,7 @@ void extract_statistics( Cudd cudd, DdNode* f_add,
     {
       Rys += 1;
     }
-    else if ( max_cs == 1 && gates[f_add][orders[i]].size() == 1 && gates[f_add][orders[i]][0].first == 0 )
+    else if ( max_cs == 1 && gates[f_add][orders[i]].size() == 1 && gates[f_add][orders[i]][0].first == M_PI )
     {
       CNOTs += 1;
     }
@@ -514,8 +524,8 @@ void extract_gates_representation( DdNode* f_add, uint32_t num_inputs,
     std::cout << "i: " << i << std::endl;
     for ( auto k = 0u; k < gates[f_add][i].size(); k++ )
     {
-      double p = gates[f_add][i][k].first;
-      double angle = 2 * acos( sqrt( p ) );
+      //double p = gates[f_add][i][k].first;
+      double angle = gates[f_add][i][k].first;
       double angle_degree = ( angle * 180 ) / M_PI;
       std::string str = "MC_Ry(" + std::to_string( i ) + "," + std::to_string( angle ) + "), [";
       std::string cs;
@@ -597,7 +607,7 @@ void qsp_bdd( Network& network, std::string str, qsp_bdd_statistics& stats, crea
     detail::extract_quantum_gates( f_add, num_inputs, orders, gates );
   }
 
-  create_qc_forBDD(network, gates[f_add]);
+  create_qc_for_MCgates(network, gates[f_add], orders);
 
   /* extract statistics */
   stats.nodes += Cudd_DagSize( f_add ) - 2; // it consider 2 nodes for "0" and "1"

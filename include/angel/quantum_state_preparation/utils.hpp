@@ -217,11 +217,11 @@ inline void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& hav
 }
 
 using gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>;
-inline void print_gates( gates_t gates )
+inline void print_gates( gates_t gates, std::vector<uint32_t> order )
 {
   for ( auto const& target : gates )
   {
-    std::cout << fmt::format( "target idx: {}\n", target.first );
+    std::cout << fmt::format( "target idx: {}\n", order[target.first] );
     auto gs = target.second;
     for ( auto const& g : gs )
     {
@@ -230,11 +230,11 @@ inline void print_gates( gates_t gates )
       {
         if ( c % 2 == 0 )
         {
-          std::cout << fmt::format( "{} ", c / 2 );
+          std::cout << fmt::format( "{} ", order[c / 2] );
         }
         else
         {
-          std::cout << fmt::format( "-{} ", c / 2 );
+          std::cout << fmt::format( "-{} ", order[c / 2] );
         }
       }
       std::cout << std::endl;
