@@ -1,21 +1,21 @@
 #pragma once
 
+#include <bitset>
+#include <fstream>
+#include <iostream>
 #include <kitty/bit_operations.hpp>
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/operations.hpp>
 #include <kitty/operators.hpp>
 #include <kitty/print.hpp>
-#include <iostream>
-#include <fstream>
 #include <math.h>
-#include <bitset>
 
 namespace angel
 {
 
 inline constexpr std::uint32_t ilog2( std::uint32_t const n )
 {
-  return ( n > 1 ) ?  1+log2( n >> 1 ) : 0;
+  return ( n > 1 ) ? 1 + log2( n >> 1 ) : 0;
 }
 
 inline std::uint32_t next_pow2( std::uint32_t n )
@@ -64,9 +64,7 @@ public:
 
 public:
   explicit partial_truth_table( uint32_t const num_bits )
-    : _num_bits( num_bits )
-    , _bits( kitty::dynamic_truth_table( ilog2( next_pow2( num_bits ) ) ) )
-    , _mask( kitty::dynamic_truth_table( ilog2( next_pow2( num_bits ) ) ) )
+      : _num_bits( num_bits ), _bits( kitty::dynamic_truth_table( ilog2( next_pow2( num_bits ) ) ) ), _mask( kitty::dynamic_truth_table( ilog2( next_pow2( num_bits ) ) ) )
   {
     /* initialize the mask */
     for ( auto i = _num_bits; i < _mask.num_bits(); ++i )
@@ -75,9 +73,7 @@ public:
   }
 
   explicit partial_truth_table( kitty::dynamic_truth_table const& tt, uint32_t num_bits )
-    : _num_bits( num_bits )
-    , _bits( tt )
-    , _mask( tt )
+      : _num_bits( num_bits ), _bits( tt ), _mask( tt )
   {
     assert( 1 << tt.num_vars() >= num_bits );
     for ( uint32_t index = 0u; index < _num_bits; ++index )
@@ -155,29 +151,29 @@ public:
     return _num_bits;
   }
 
-  std::pair<kitty::dynamic_truth_table,kitty::dynamic_truth_table> to_isop() const
+  std::pair<kitty::dynamic_truth_table, kitty::dynamic_truth_table> to_isop() const
   {
-    return {_bits, _mask};
+    return { _bits, _mask };
   }
 
   bool is_const() const
   {
-      auto const tt = kitty::binary_and( _bits, _mask ); 
-      return ( kitty::is_const0( tt ) || kitty::is_const0( ~tt ) );
+    auto const tt = kitty::binary_and( _bits, _mask );
+    return ( kitty::is_const0( tt ) || kitty::is_const0( ~tt ) );
   }
 
   bool is_const0() const
   {
-      auto const tt = kitty::binary_and( _bits, _mask ); 
-      return ( kitty::is_const0( tt ) );
+    auto const tt = kitty::binary_and( _bits, _mask );
+    return ( kitty::is_const0( tt ) );
   }
 
   bool is_const1() const
   {
-      //auto const tt = kitty::binary_and( _bits, _mask ); 
-      //return ( kitty::is_const0( ~tt ) );
-      auto const tt = kitty::binary_or( _bits, ~_mask );
-      return ( kitty::is_const0( ~tt ) );
+    //auto const tt = kitty::binary_and( _bits, _mask );
+    //return ( kitty::is_const0( ~tt ) );
+    auto const tt = kitty::binary_or( _bits, ~_mask );
+    return ( kitty::is_const0( ~tt ) );
   }
 
 public:
@@ -223,6 +219,5 @@ inline std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const
   }
   return rows;
 }
-
 
 } // namespace angel

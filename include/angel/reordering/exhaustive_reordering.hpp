@@ -15,7 +15,7 @@ public:
     (void)initial_cost;
     
     std::vector<uint32_t> perm;
-    for ( auto i = 0u; i < tt.num_vars(); ++i )
+    for ( int32_t i = tt.num_vars()-1; i >= 0; i-- )
     {
       perm.emplace_back( i );
     }
@@ -24,7 +24,7 @@ public:
     {
       kitty::dynamic_truth_table tt_( tt );
       angel::reordering_on_tt_inplace( tt_, perm );
-      fn( tt_ );
+      fn( tt_, perm );
     }
     while ( std::next_permutation( std::begin( perm ), std::end( perm ) ) );
   }

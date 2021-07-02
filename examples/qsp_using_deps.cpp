@@ -1,8 +1,7 @@
 #include <angel/angel.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/netlist.hpp>
-#include <tweedledum/io/qasm.hpp>
-
+#include <tweedledum/IR/Circuit.h>
+#include <tweedledum/IR/Instruction.h>
+#include <tweedledum/Utils/Visualization/string_utf8.h>
 #include <kitty/kitty.hpp>
 #include <iostream>
 #include<fstream>
@@ -11,13 +10,19 @@ using namespace angel;
 
 int main()
 {
-    tweedledum::netlist<tweedledum::mcmt_gate> ntk;
-    std::string truth_table{"1100" "0000" "0011" "0111"};
+    using network_type = tweedledum::Circuit;
+    network_type network;
+    
+    std::string truth_table{"1100" "0011" "0000" "1111"}; // right side -> LSB
     //std::string truth_table{"10000001"};
-    //std::ifstream file_inp;
-    //file_inp.open("../examples/test.txt");
-    //std::string truth_table;
-    //file_inp>> truth_table;
+
+    /* read from file */
+    /*
+    std::ifstream file_inp;
+    file_inp.open("../examples/test.txt");
+    std::string truth_table;
+    file_inp>> truth_table;
+    */
     
     int32_t const num_vars = std::log2( truth_table.size() );
     kitty::dynamic_truth_table tt(num_vars);
@@ -44,9 +49,10 @@ int main()
 
     angel::state_preparation_parameters qsp_ps;
     angel::state_preparation_statistics qsp_st;
-    angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( random )> qsp( ntk, esop, random, qsp_ps, qsp_st );
-    qsp(tt);
+    angel::qsp_deps<decltype(network), decltype( esop ), decltype( random )>( network, esop, random, tt, qsp_ps, qsp_st);
+  
     qsp_st.report();
+    tweedledum::print(network);
     
     return 0;
 }

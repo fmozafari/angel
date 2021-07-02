@@ -1,0 +1,42 @@
+name: Windows
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - '**/CMakeLists.txt'
+      - '**.cpp'
+      - '**.h'
+      - 'tests/**'
+      - 'external/**'
+
+jobs:
+  build-windows:
+    name: Build and run tests
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ilammy/msvc-dev-cmd@v1.5.0
+
+    - name: Configure CMake
+      env:
+          CC: cl.exe
+          CXX: cl.exe
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DTWEEDLEDUM_TESTS=ON -DTWEEDLEDUM_PYBINDS=ON
+
+    - name: Build tests
+      working-directory: build
+      run: nmake run_tests
+
+    - name: Build python lib
+      working-directory: build
+      run: nmake _tweedledum
+
+    - name: Run tests
+      run: |
+        .\build\tests\run_tests.exe

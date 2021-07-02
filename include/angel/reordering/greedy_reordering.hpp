@@ -18,11 +18,13 @@ public:
 
     uint32_t const num_variables = tt.num_vars();
 
-    fn( first_tt );
+    std::vector<uint32_t> perm;
+    for ( int32_t i = tt.num_vars()-1; i >= 0; i-- )
+    {
+      perm.emplace_back( i );
+    }
 
-    std::vector<uint8_t> perm( num_variables );
-    std::iota( perm.begin(), perm.end(), 0u );
-    std::reverse( perm.begin(), perm.end() );
+    fn( first_tt, perm );
 
     uint32_t best_cost = initial_cost ? *initial_cost : fn( tt );
     bool forward = true;
@@ -40,16 +42,17 @@ public:
         if ( next_tt == first_tt || next_tt == tt )
           continue;
 
-        uint32_t const cost = fn( next_tt );
+        std::swap( perm[i], perm[i + 1] );
+        uint32_t const cost = fn( next_tt, perm );
         if ( cost < best_cost )
         {
           best_cost = cost;
           tt = next_tt;
-          std::swap( perm[i], perm[i + 1] );
+          //std::swap( perm[i], perm[i + 1] );
           local_improvement = true;
         }
-
-        // fmt::print( "[i] function = {} reordered to {}\n", kitty::to_hex( tt ), kitty::to_hex( next_tt ) );
+        else
+          std::swap( perm[i], perm[i + 1] );
 
         if ( local_improvement )
         {

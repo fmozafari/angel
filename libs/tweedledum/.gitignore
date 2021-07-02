@@ -1,0 +1,36 @@
+**/.DS_Store
+**/.ipynb_checkpoints/
+_*/
+
+.vscode/
+.idea/
+
+build/
+examples/**
+!examples/CMakeLists.txt
+experiments/*/
+
+# Bunch of python crap to ignore:
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C/C++ share libs extensions
+*.so
+
+# Distribution / packaging
+env/
+develop-eggs/
+dist/
+downloads/
+eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+*.egg
+
+# might want to remove this later
+MANIFEST
