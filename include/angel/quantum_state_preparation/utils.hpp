@@ -215,10 +215,12 @@ inline void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& hav
 using gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>;
 inline void print_gates( gates_t gates, std::vector<uint32_t> order )
 {
-  for ( auto const& target : gates )
+  std::reverse(order.begin(), order.end());
+  for(int32_t i = order.size()-1 ; i>=0 ; i--)
+  //for ( auto const& target : gates )
   {
-    std::cout << fmt::format( "target idx: {}\n", order[target.first] );
-    auto gs = target.second;
+    std::cout << fmt::format( "target idx: {}\n", order[i] );
+    auto gs = gates[i];
     for ( auto const& g : gs )
     {
       std::cout << fmt::format( "angle: {} controls: ", ( g.first / M_PI ) * 180 );

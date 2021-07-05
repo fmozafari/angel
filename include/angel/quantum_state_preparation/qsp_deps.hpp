@@ -621,6 +621,10 @@ public:
         {
           best_ntk = ntk;
         }
+        if ( ntk.cnots_sqgs.first == best_ntk.cnots_sqgs.first && best_ntk.gates.size()==0 )
+        {
+          best_ntk = ntk;
+        }
         return ntk.cnots_sqgs.first ;
       });
     /* ensure that re-ordering has been exectued at least once */
@@ -658,8 +662,7 @@ public:
 
   template<typename Dependencies>
   GatesSeq create_gates( kitty::dynamic_truth_table const& tt, Dependencies const& dependencies, std::vector<uint32_t> const& perm )
-  {
-    
+  {   
     uint32_t const num_variables = tt.num_vars();
     uint32_t const var_index = num_variables - 1;
 

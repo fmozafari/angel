@@ -48,7 +48,7 @@ int main()
 
     angel::state_preparation_parameters qsp_ps;
     angel::state_preparation_statistics qsp_st;
-    angel::qsp_deps<decltype(network), decltype( esop ), decltype( random )>( network, esop, random, tt, qsp_ps, qsp_st);
+    angel::qsp_deps<decltype(network), decltype( esop ), decltype( no_reorder )>( network, esop, no_reorder, tt, qsp_ps, qsp_st);
   
     qsp_st.report();
     tweedledum::print(network);
