@@ -26,7 +26,7 @@ public:
 
     fn( first_tt, perm );
 
-    uint32_t best_cost = initial_cost ? *initial_cost : fn( tt );
+    uint32_t best_cost = initial_cost ? *initial_cost : fn( tt , perm);
     bool forward = true;
     bool improvement = true;
 

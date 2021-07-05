@@ -58,7 +58,7 @@ struct qsp_general_stats
 
     os << fmt::format( "[i] synthesis result: CNOTs / SQgates = {} / {} \n",
                        total_cnots, total_sqgs );
-    /// Compute Avg and SD for CNOTs and SQgates
+    /* Compute Avg and SD for CNOTs and SQgates */
     auto sum_f = 0; /// CNOTs: first
     auto sum_s = 0; /// SQgates: second
     for ( auto n = 0u; n < gates_count.size(); n++ )
@@ -665,7 +665,6 @@ public:
 
     std::vector<uint32_t> zero_lines, one_lines;
     extract_independent_vars( zero_lines, one_lines, tt );
-    //std::cout<<"zero lines: "<<zero_lines.size()<<"  one lines: "<<one_lines.size()<<std::endl;
 
     gates_t gates;
     std::vector<uint32_t> cs;
@@ -688,10 +687,7 @@ public:
         have_deps[i] = true;
       }
     }
-    //print_gates(gates);
     gates_statistics( gates, have_deps, num_variables, st );
-
-    
 
     return GatesSeq{gates, perm, std::make_pair(st.total_cnots, st.total_sqgs)};
   }
@@ -724,9 +720,7 @@ void qsp_deps(Network& ntk, DependencyAnalysisStrategy& dependency_strategy, Reo
   GatesSeq gates_seq;
   qsp_depsClass<DependencyAnalysisStrategy, ReorderingStrategy> qsp (gates_seq, dependency_strategy, order_strategy, ps, st);
   GatesSeq gates_network = qsp(tt);
-  print_gates(gates_network.gates, gates_network.order);
-  for(auto i=0; i<gates_network.order.size(); i++)
-  std::cout<<gates_network.order[i]<<"  ";
+  //print_gates(gates_network.gates, gates_network.order);
   create_qc_for_MCgates(ntk, gates_network.gates, gates_network.order);
 }
 

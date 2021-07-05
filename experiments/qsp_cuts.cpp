@@ -1,14 +1,16 @@
 #include <angel/angel.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/IR/Circuit.h>
+#include <tweedledum/IR/Instruction.h>
 #include "experiments.hpp"
 
 template<class Exp>
 void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std::string const& name, angel::function_extractor_params extract_ps = {} )
 {
-  tweedledum::netlist<tweedledum::mcmt_gate> ntk;
 
   angel::function_extractor extractor{extract_ps};
+
+  /* Network type */
+  tweedledum::Circuit ntk;
 
   /* dependency analysis strategies */
   typename angel::no_deps_analysis::parameter_type no_dependencies_ps;
@@ -32,43 +34,34 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
   /* prepare state preparation algorithms */
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
-  angel::qsp_deps<decltype(ntk), decltype( no_deps ), decltype( no_reorder )> p0( ntk, no_deps, no_reorder, qsp0_ps, qsp0_st );
 
   angel::state_preparation_parameters qsp1_ps;
   angel::state_preparation_statistics qsp1_st;
-  angel::qsp_deps<decltype(ntk), decltype( pattern ), decltype( no_reorder )> p1( ntk, pattern, no_reorder, qsp1_ps, qsp1_st );
 
   angel::state_preparation_parameters qsp2_ps;
   angel::state_preparation_statistics qsp2_st;
-  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( no_reorder )> p2( ntk, esop, no_reorder, qsp2_ps, qsp2_st );
 
   angel::state_preparation_parameters qsp3_ps;
   angel::state_preparation_statistics qsp3_st;
-  angel::qsp_deps<decltype(ntk), decltype( no_deps ), decltype( random )> p3( ntk, no_deps, random, qsp3_ps, qsp3_st );
 
   angel::state_preparation_parameters qsp4_ps;
   angel::state_preparation_statistics qsp4_st;
-  angel::qsp_deps<decltype(ntk), decltype( pattern ), decltype( random )> p4( ntk, pattern, random, qsp4_ps, qsp4_st );
 
   angel::state_preparation_parameters qsp5_ps;
   angel::state_preparation_statistics qsp5_st;
-  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( random )> p5( ntk, esop, random, qsp5_ps, qsp5_st );
 
   angel::state_preparation_parameters qsp6_ps;
   angel::state_preparation_statistics qsp6_st;
-  angel::qsp_deps<decltype(ntk), decltype( no_deps ), decltype( greedy )> p6( ntk, no_deps, greedy, qsp6_ps, qsp6_st );
 
   angel::state_preparation_parameters qsp7_ps;
   angel::state_preparation_statistics qsp7_st;
-  angel::qsp_deps<decltype(ntk), decltype( pattern ), decltype( greedy )> p7( ntk, pattern, greedy, qsp7_ps, qsp7_st );
 
   angel::state_preparation_parameters qsp8_ps;
   angel::state_preparation_statistics qsp8_st;
-  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( greedy )> p8( ntk, esop, greedy, qsp8_ps, qsp8_st );
 
   angel::state_preparation_parameters qsp9_ps;
   angel::state_preparation_statistics qsp9_st;
-  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( all_orders )> p9( ntk, esop, all_orders, qsp9_ps, qsp9_st );
+
   
   for ( const auto& benchmark : benchmarks )
   {
@@ -78,49 +71,66 @@ void run_experiments( Exp&& exp, std::vector<std::string> const& benchmarks, std
       fmt::print( "[e] could not parse file {}\n", experiments::benchmark_path( benchmark ) );
       continue;
     }
-
+    
     extractor.run( [&]( kitty::dynamic_truth_table const& tt ){
-        // p0( tt ); /* baseline */
-        // p1( tt ); /* patterns + no reordering */
-        // p2( tt ); /* ESOPs + no reordering */
+       std::cout<<"yes1"<<std::endl;
+       kitty::print_binary(tt);
+        
+      angel::qsp_deps<decltype(ntk), decltype( no_deps ), decltype( no_reorder )>( ntk, no_deps, no_reorder, tt, qsp0_ps, qsp0_st );
+       std::cout<<"yes2"<<std::endl;
 
-        // p3( tt ); /* no dependencies + random reordering */
-        // p4( tt ); /* patterns + random reordering */
-        p5( tt ); /* ESOPs + random reordering */
+//template<class Network, class DependencyAnalysisStrategy, class ReorderingStrategy>
+//void qsp_deps(Network& ntk, DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
+ //             kitty::dynamic_truth_table const& tt, state_preparation_parameters const& ps, state_preparation_statistics& st)
+              
 
-        //p6( tt ); /* no dependencies + greedy reordering */
-        //p7( tt ); /* patterns + greedy reordering */
-        //p8( tt ); /* ESOPs + greedy reordering */
+      angel::qsp_deps<decltype(ntk), decltype( pattern ), decltype( no_reorder )> ( ntk, pattern, no_reorder, tt, qsp1_ps, qsp1_st );
 
-        //p9(tt); /* ESOPs + all orders */
+      angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( no_reorder )> ( ntk, esop, no_reorder, tt, qsp2_ps, qsp2_st );
 
-        /* ensure that baseline has the highest costs */
-        // if ( qsp0_st.num_cnots < qsp1_st.num_cnots ||
-        //      qsp0_st.num_cnots < qsp2_st.num_cnots ||
-        //      qsp0_st.num_cnots < qsp3_st.num_cnots ||
-        //      qsp0_st.num_cnots < qsp4_st.num_cnots ||
-        //      qsp0_st.num_cnots < qsp5_st.num_cnots ||
-        //      qsp0_st.num_cnots < qsp6_st.num_cnots ||
-        //      qsp0_st.num_cnots < qsp7_st.num_cnots ||
-        //      qsp0_st.num_cnots < qsp8_st.num_cnots )
-        // {
-        //   std::abort();
-        // }
-      });
+      angel::qsp_deps<decltype(ntk), decltype( no_deps ), decltype( random )> ( ntk, no_deps, random, tt, qsp3_ps, qsp3_st );
+
+      angel::qsp_deps<decltype(ntk), decltype( pattern ), decltype( random )> ( ntk, pattern, random, tt, qsp4_ps, qsp4_st );
+
+      angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( random )> ( ntk, esop, random, tt, qsp5_ps, qsp5_st );
+
+      angel::qsp_deps<decltype(ntk), decltype( no_deps ), decltype( greedy )> ( ntk, no_deps, greedy, tt, qsp6_ps, qsp6_st );
+
+      angel::qsp_deps<decltype(ntk), decltype( pattern ), decltype( greedy )> ( ntk, pattern, greedy, tt, qsp7_ps, qsp7_st );
+
+      angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( greedy )> ( ntk, esop, greedy, tt, qsp8_ps, qsp8_st );
+
+      angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( all_orders )> ( ntk, esop, all_orders, tt, qsp9_ps, qsp9_st );
+
+      std::cout<<"yes"<<std::endl;
+
+      /* ensure that baseline has the highest costs */
+      if ( qsp0_st.num_cnots < qsp1_st.num_cnots ||
+            qsp0_st.num_cnots < qsp2_st.num_cnots ||
+            qsp0_st.num_cnots < qsp3_st.num_cnots ||
+            qsp0_st.num_cnots < qsp4_st.num_cnots ||
+            qsp0_st.num_cnots < qsp5_st.num_cnots ||
+            qsp0_st.num_cnots < qsp6_st.num_cnots ||
+            qsp0_st.num_cnots < qsp7_st.num_cnots ||
+            qsp0_st.num_cnots < qsp8_st.num_cnots )
+      {
+        std::abort();
+      }
+    });
   }
   exp( name, qsp0_st.num_functions, qsp0_st.num_unique_functions,
-       qsp0_st.num_cnots, qsp0_st.num_sqgs, angel::to_seconds( qsp0_st.time_total ),
-       qsp1_st.num_cnots, qsp1_st.num_sqgs, angel::to_seconds( qsp1_st.time_total ),
-       qsp2_st.num_cnots, qsp2_st.num_sqgs, angel::to_seconds( qsp2_st.time_total ),
-       
-       qsp3_st.num_cnots, qsp3_st.num_sqgs, angel::to_seconds( qsp3_st.time_total ),
-       qsp4_st.num_cnots, qsp4_st.num_sqgs, angel::to_seconds( qsp4_st.time_total ),
-       qsp5_st.num_cnots, qsp5_st.num_sqgs, angel::to_seconds( qsp5_st.time_total ),
+    qsp0_st.num_cnots, qsp0_st.num_sqgs, angel::to_seconds( qsp0_st.time_total ),
+    qsp1_st.num_cnots, qsp1_st.num_sqgs, angel::to_seconds( qsp1_st.time_total ),
+    qsp2_st.num_cnots, qsp2_st.num_sqgs, angel::to_seconds( qsp2_st.time_total ),
+    
+    qsp3_st.num_cnots, qsp3_st.num_sqgs, angel::to_seconds( qsp3_st.time_total ),
+    qsp4_st.num_cnots, qsp4_st.num_sqgs, angel::to_seconds( qsp4_st.time_total ),
+    qsp5_st.num_cnots, qsp5_st.num_sqgs, angel::to_seconds( qsp5_st.time_total ),
 
-       qsp6_st.num_cnots, qsp6_st.num_sqgs, angel::to_seconds( qsp6_st.time_total ),
-       qsp7_st.num_cnots, qsp7_st.num_sqgs, angel::to_seconds( qsp7_st.time_total ),
-       qsp8_st.num_cnots, qsp8_st.num_sqgs, angel::to_seconds( qsp8_st.time_total ),
-       qsp9_st.num_cnots, qsp9_st.num_sqgs, angel::to_seconds( qsp9_st.time_total )
+    qsp6_st.num_cnots, qsp6_st.num_sqgs, angel::to_seconds( qsp6_st.time_total ),
+    qsp7_st.num_cnots, qsp7_st.num_sqgs, angel::to_seconds( qsp7_st.time_total ),
+    qsp8_st.num_cnots, qsp8_st.num_sqgs, angel::to_seconds( qsp8_st.time_total ),
+    qsp9_st.num_cnots, qsp9_st.num_sqgs, angel::to_seconds( qsp9_st.time_total )
   );
 
 }
@@ -138,13 +148,13 @@ int main()
          "cnot qsp6", "sqgs qsp6", "time qsp6", "cnot qsp7", "sqgs qsp7", "time qsp7", "cnot qsp8", "sqgs qsp8", "time qsp8", 
          "cnot qsp9", "sqgs", "time qsp9" );
   
-  for ( auto i = 4u; i < 8u; ++i )
+  for ( auto i = 4u; i < 5u; ++i )
   {
     fmt::print( "[i] run experiments for {}-input cut functions\n", i );
-    // run_experiments( exp, experiments::epfl_benchmarks(), fmt::format( "EPFL benchmarks {}", i ),
-    //                  {.num_vars = i} );
-    run_experiments( exp, experiments::iscas_benchmarks(), fmt::format( "ISCAS benchmarks {}", i ),
+    run_experiments( exp, experiments::epfl_benchmarks(), fmt::format( "EPFL benchmarks {}", i ),
                      {.num_vars = i} );
+    //run_experiments( exp, experiments::iscas_benchmarks(), fmt::format( "ISCAS benchmarks {}", i ),
+                    // {.num_vars = i} );
   }
 
   exp.save();

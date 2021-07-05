@@ -19,11 +19,11 @@
 namespace angel
 {
 /* gates construction
-  std::map<DdNode*, std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>>
+  std::map<DdNode*, std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>>
   map -> for each node
-  std::vector<std::vector<std::pair<double, std::vector<int32_t>>>>
-  vector1 -> include all qubits
-  vector2 -> gates for each qubit
+  std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>
+  map -> for each qubit
+  vector -> gates for each qubit
   inner vector -> controls
   */
 using gates_dd_t = std::map<DdNode*, std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>>;

@@ -10,8 +10,7 @@ using namespace angel;
 
 int main()
 {
-    using network_type = tweedledum::Circuit;
-    network_type network;
+    tweedledum::Circuit network;
     
     std::string truth_table{"1100" "0011" "0000" "1111"}; // right side -> LSB
     //std::string truth_table{"10000001"};
