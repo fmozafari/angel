@@ -8,7 +8,7 @@
 template<class Exp>
 void k_equal_function( Exp&& exp, uint32_t num_vars )
 {
-  tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+  tweedledum::Circuit ntk;
   /* dependency analysis strategies */
   typename angel::esop_deps_analysis::parameter_type esop_ps;
   typename angel::esop_deps_analysis::statistics_type esop_st;
@@ -20,13 +20,13 @@ void k_equal_function( Exp&& exp, uint32_t num_vars )
   /* prepare state preparation algorithms */
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
-  angel::qsp_deps<decltype( ntk ), decltype( esop ), decltype( random )> p0( ntk, esop, random, qsp0_ps, qsp0_st );
+  
 
   kitty::dynamic_truth_table tt( num_vars );
   for ( auto i = 0u; i < num_vars; ++i )
   {
     kitty::create_equals( tt, i );
-    p0( tt );
+    angel::qsp_deps<decltype( ntk ), decltype( esop ), decltype( random )> ( ntk, esop, random, tt, qsp0_ps, qsp0_st );
   }
 
   exp( fmt::format( "{:2d}-equals-k functions", num_vars ), qsp0_st.num_functions, qsp0_st.num_unique_functions,
@@ -36,7 +36,7 @@ void k_equal_function( Exp&& exp, uint32_t num_vars )
 template<class Exp>
 void ghz_state( Exp&& exp, uint32_t num_vars )
 {
-  tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+  tweedledum::Circuit ntk;
   /* dependency analysis strategies */
   typename angel::esop_deps_analysis::parameter_type esop_ps;
   typename angel::esop_deps_analysis::statistics_type esop_st;
@@ -53,14 +53,14 @@ void ghz_state( Exp&& exp, uint32_t num_vars )
   /* prepare state preparation algorithms */
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
-  angel::qsp_deps<decltype( ntk ), decltype( no_deps ), decltype( no_reorder )> p0( ntk, no_deps, no_reorder, qsp0_ps, qsp0_st );
+  
 
   kitty::dynamic_truth_table tt( num_vars );
 
   kitty::set_bit( tt, 0 );
   kitty::set_bit( tt, pow( 2, num_vars ) - 1 );
 
-  p0( tt );
+  angel::qsp_deps<decltype( ntk ), decltype( no_deps ), decltype( no_reorder )> ( ntk, no_deps, no_reorder, tt, qsp0_ps, qsp0_st );
 
   exp( fmt::format( "{:2d}-ghz state", num_vars ), qsp0_st.num_functions, qsp0_st.num_unique_functions,
        qsp0_st.num_cnots, qsp0_st.num_sqgs, angel::to_seconds( qsp0_st.time_total ) );
@@ -69,7 +69,7 @@ void ghz_state( Exp&& exp, uint32_t num_vars )
 template<class Exp>
 void w_state( Exp&& exp, uint32_t num_vars )
 {
-  tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+  tweedledum::Circuit ntk;
   /* dependency analysis strategies */
   typename angel::esop_deps_analysis::parameter_type esop_ps;
   typename angel::esop_deps_analysis::statistics_type esop_st;
@@ -86,7 +86,6 @@ void w_state( Exp&& exp, uint32_t num_vars )
   /* prepare state preparation algorithms */
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
-  angel::qsp_deps<decltype( ntk ), decltype( no_deps ), decltype( no_reorder )> p0( ntk, no_deps, no_reorder, qsp0_ps, qsp0_st );
 
   kitty::dynamic_truth_table tt( num_vars );
   for ( auto i = 0u; i < num_vars; i++ )
@@ -94,7 +93,7 @@ void w_state( Exp&& exp, uint32_t num_vars )
     kitty::set_bit( tt, 1 << i );
   }
 
-  p0( tt );
+  angel::qsp_deps<decltype( ntk ), decltype( no_deps ), decltype( no_reorder )> ( ntk, no_deps, no_reorder, tt, qsp0_ps, qsp0_st );
 
   exp( fmt::format( "{:2d}-w state", num_vars ), qsp0_st.num_functions, qsp0_st.num_unique_functions,
        qsp0_st.num_cnots, qsp0_st.num_sqgs, angel::to_seconds( qsp0_st.time_total ) );
@@ -103,7 +102,7 @@ void w_state( Exp&& exp, uint32_t num_vars )
 template<class Exp>
 void QBA_state( Exp&& exp, uint32_t num_vars )
 {
-  tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+  tweedledum::Circuit ntk;
   /* dependency analysis strategies */
   typename angel::esop_deps_analysis::parameter_type esop_ps;
   typename angel::esop_deps_analysis::statistics_type esop_st;
@@ -120,7 +119,7 @@ void QBA_state( Exp&& exp, uint32_t num_vars )
   /* prepare state preparation algorithms */
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
-  angel::qsp_deps<decltype( ntk ), decltype( esop ), decltype( random )> p0( ntk, esop, random, qsp0_ps, qsp0_st );
+  
 
   kitty::dynamic_truth_table tt( num_vars );
   for ( auto i = 0; i < pow( num_vars, 3 ); i++ )
@@ -128,7 +127,7 @@ void QBA_state( Exp&& exp, uint32_t num_vars )
     kitty::set_bit( tt, i );
   }
 
-  p0( tt );
+  angel::qsp_deps<decltype( ntk ), decltype( esop ), decltype( random )> ( ntk, esop, random, tt, qsp0_ps, qsp0_st );
 
   exp( fmt::format( "{:2d}-QBA state", num_vars ), qsp0_st.num_functions, qsp0_st.num_unique_functions,
        qsp0_st.num_cnots, qsp0_st.num_sqgs, angel::to_seconds( qsp0_st.time_total ) );

@@ -10,3 +10,4 @@
 #include <angel/reordering/random_reordering.hpp>
 #include <angel/utils/function_extractor.hpp>
 #include <angel/utils/stopwatch.hpp>
+#include <angel/quantum_circuit/create_quantum_circuit.hpp>

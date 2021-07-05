@@ -1,7 +1,6 @@
 #include <angel/angel.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/netlist.hpp>
-
+#include <tweedledum/IR/Circuit.h>
+#include <tweedledum/IR/Instruction.h>
 #include "experiments.hpp"
 
 void run_experiments( std::ofstream& ofs, std::vector<std::string> const& benchmarks, std::string const& name, angel::function_extractor_params ps = {} )
