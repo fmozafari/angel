@@ -3,8 +3,8 @@
 #include <angel/quantum_state_preparation/qsp_deps.hpp>
 #include <angel/reordering/no_reordering.hpp>
 #include <angel/dependency_analysis/esop_based_dependency_analysis.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/IR/Circuit.h>
+#include <tweedledum/IR/Instruction.h>
 #include <kitty/constructors.hpp>
 
 TEST_CASE( "Synthesize ESOPs", "[esop]" )
@@ -22,7 +22,7 @@ TEST_CASE( "Synthesize ESOPs", "[esop]" )
     "556666aa5a6969a55a6969a55a6969a5",
   };
   
-  tweedledum::netlist<tweedledum::mcmt_gate> ntk;
+  tweedledum::Circuit ntk;
   angel::no_reordering no_reorder;
   
   typename angel::esop_deps_analysis::parameter_type esop_ps;
@@ -31,12 +31,12 @@ TEST_CASE( "Synthesize ESOPs", "[esop]" )
 
   angel::state_preparation_parameters ps;
   angel::state_preparation_statistics st;  
-  angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( no_reorder )> prep( ntk, esop, no_reorder, ps, st );
+  
 
   kitty::dynamic_truth_table tt{7};
   for ( const auto& f : fs )
   {
     create_from_hex_string( tt, f );
-    prep( tt );
+    angel::qsp_deps<decltype(ntk), decltype( esop ), decltype( no_reorder )> ( ntk, esop, no_reorder, tt, ps, st );
   }
 }

@@ -23,6 +23,8 @@ inline void create_qc_for_MCgates( Network& qc, MC_gates_t gates, std::vector<ui
     c.push_back(qc.create_cbit());
   }
 
+  std::reverse( order.begin(), order.end() );
+
   /* Last element in order shows MSB */
   for(int32_t i=order.size()-1; i>=0; i--)
   {
@@ -30,14 +32,21 @@ inline void create_qc_for_MCgates( Network& qc, MC_gates_t gates, std::vector<ui
     {
       qc.apply_operator(tweedledum::Op::Ry(gates[i][0].first), {q[ order[i] ]});
     }
-      
 
     else if(i==(order.size()-2))
     {
       for(auto g : gates[i])
       { 
         if(g.first == M_PI) /* inserting CNOT */
-          qc.apply_operator(tweedledum::Op::X(), {q[ order[g.second[0]] ], q[order[i]]});
+        {
+          auto idx = g.second[0];
+          if(idx%2 == 0u)
+            qc.apply_operator(tweedledum::Op::X(), {q[ order[idx/2] ], q[order[i]]});
+          else
+            qc.apply_operator(tweedledum::Op::X(), {!q[ order[idx/2] ], q[order[i]]});
+          
+        }
+
         else
         {
           double angle = g.first;

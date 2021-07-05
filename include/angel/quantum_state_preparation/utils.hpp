@@ -192,10 +192,6 @@ inline void gates_statistics( gates_t gates, std::map<uint32_t, bool> const& hav
         std::vector<std::vector<uint32_t>> us;
         for ( auto j = 0u; j < gates[i].size(); j++ )
         {
-            // std::cout<<"i: "<<i<<"  cs: "<<gates[i][j].second.size()<<" target: "<<gates[i][j].first<<std::endl;
-            // for(auto m=0; m<gates[i][j].second.size(); m++)
-            //     std::cout<<gates[i][j].second[m]/2<<"  ";
-            // std::cout<<std::endl<<std::endl;
           us.emplace_back(gates[i][j].second);
         }    
         auto gates_cost = uniform_gate_cost(us);

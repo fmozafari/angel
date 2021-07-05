@@ -341,11 +341,11 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
   visited.insert( current );
   double ep = 0.0;
   double dp = node_ones[current->index].find( current )->second;
-  if ( Cudd_IsConstant( cuddE( current ) ) && Cudd_V( cuddE( current ) ) ) //?? ->  probability
+  if ( Cudd_IsConstant( cuddE( current ) ) && Cudd_V( cuddE( current ) ) ) 
   {
     ep = pow( 2, num_vars - 1 - current->index );
   }
-  else if ( Cudd_IsConstant( cuddE( current ) ) && !Cudd_V( cuddE( current ) ) ) //?? ->  probability
+  else if ( Cudd_IsConstant( cuddE( current ) ) && !Cudd_V( cuddE( current ) ) ) 
   {
     ep = 0.0;
   }
@@ -370,7 +370,8 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
   if ( p != 1 )
   {
     double angle = 2 * acos( sqrt( p ));
-    gates[current][current->index].emplace_back( std::pair{ angle, std::vector<uint32_t>{} } );
+    auto qubitIdx = num_vars - 1 - current->index; /* Mapping 0...n-1 to n-1...0. In BDD, MSB have index 0 */
+    gates[current][qubitIdx].emplace_back( std::pair{ angle, std::vector<uint32_t>{} } );
   }
 
   /* inserting childs gates */
@@ -378,17 +379,20 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
   {
     for ( auto i = 0u; i < num_vars; i++ )
     {
-      if ( gates[cuddE( current )][i].size() != 0 )
+      auto qubitIdx2 = num_vars -1 - i;
+      if ( gates[cuddE( current )][qubitIdx2].size() != 0 )
       {
-        for ( auto j = 0u; j < gates[cuddE( current )][i].size(); j++ )
+        for ( auto j = 0u; j < gates[cuddE( current )][qubitIdx2].size(); j++ )
         {
-          auto pro = gates[cuddE( current )][i][j].first;
+          auto pro = gates[cuddE( current )][qubitIdx2][j].first;
           std::vector<uint32_t> controls;
-          for ( auto k = 0u; k < gates[cuddE( current )][i][j].second.size(); k++ )
-            controls.emplace_back( gates[cuddE( current )][i][j].second[k] );
+          for ( auto k = 0u; k < gates[cuddE( current )][qubitIdx2][j].second.size(); k++ )
+            controls.emplace_back( gates[cuddE( current )][qubitIdx2][j].second[k] );
           //if ( p != 0 && p != 1 )
-            controls.emplace_back( current->index * 2 + 1 );
-          gates[current][i].emplace_back( std::pair{ pro, controls } );
+          auto qubitIdx = num_vars -1 - current->index;
+          controls.emplace_back( qubitIdx * 2 + 1 );
+          
+          gates[current][qubitIdx2].emplace_back( std::pair{ pro, controls } );
         }
       }
     }
@@ -398,18 +402,21 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
   {
     for ( auto i = 0u; i < num_vars; i++ )
     {
-      if ( gates[cuddT( current )][i].size() != 0 )
+      auto qubitIdx2 = num_vars -1 - i;
+      if ( gates[cuddT( current )][qubitIdx2].size() != 0 )
       {
-        for ( auto j = 0u; j < gates[cuddT( current )][i].size(); j++ )
+        for ( auto j = 0u; j < gates[cuddT( current )][qubitIdx2].size(); j++ )
         {
-          auto pro = gates[cuddT( current )][i][j].first;
+          auto pro = gates[cuddT( current )][qubitIdx2][j].first;
           std::vector<uint32_t> controls;
-          for ( auto k = 0u; k < gates[cuddT( current )][i][j].second.size(); k++ )
-            controls.emplace_back( gates[cuddT( current )][i][j].second[k] );
+          for ( auto k = 0u; k < gates[cuddT( current )][qubitIdx2][j].second.size(); k++ )
+            controls.emplace_back( gates[cuddT( current )][qubitIdx2][j].second[k] );
           //std::copy(gates[cuddT(current)][i][j].second.begin() , gates[cuddT(current)][i][j].second.end() , controls.begin());
           //if ( p != 0 && p != 1 )
-            controls.emplace_back( current->index * 2 ); 
-          gates[current][i].emplace_back( std::pair{ pro, controls } );
+          auto qubitIdx = num_vars -1 - current->index;
+          controls.emplace_back( qubitIdx * 2 );
+          
+          gates[current][qubitIdx2].emplace_back( std::pair{ pro, controls } );
         }
       }
     }
@@ -430,9 +437,11 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
     {
       std::vector<uint32_t> temp_c;
       //if ( p != 0 && p != 1 )
-        temp_c.emplace_back( current->index * 2 + 1 );
-        double angle = 2 * acos( sqrt( 1.0 / 2.0 ));
-      gates[current][i].emplace_back( std::pair{ angle, temp_c } );
+      auto qubitIdx = num_vars - 1 - current->index;
+      temp_c.emplace_back( qubitIdx * 2 + 1 );
+      double angle = 2 * acos( sqrt( 1.0 / 2.0 ));
+      auto qubitIdx2 = num_vars - 1 - i;
+      gates[current][qubitIdx2].emplace_back( std::pair{ angle, temp_c } );
     }
   }
   for ( auto i = current->index + 1; i < Tdown; i++ )
@@ -441,9 +450,11 @@ void extract_probabilities_and_MCgates_bottom_up( std::unordered_set<DdNode*>& v
     {
       std::vector<uint32_t> temp_c;
       //if ( p != 0 && p != 1 )
-        temp_c.emplace_back( current->index * 2 );
+      auto qubitIdx = num_vars - 1 - current->index;
+      temp_c.emplace_back( qubitIdx * 2 );
       double angle = 2 * acos( sqrt( 1.0 / 2.0 ));
-      gates[current][i].emplace_back( std::pair{ angle, temp_c } );
+      auto qubitIdx2 = num_vars - 1 - i;
+      gates[current][qubitIdx2].emplace_back( std::pair{ angle, temp_c } );
     }
   }
 }
@@ -512,7 +523,7 @@ void extract_gates_representation( DdNode* f_add, uint32_t num_inputs,
 
   std::cout << "#qubits: " << gates[f_add].size() << std::endl;
 
-  for ( auto i = 0; i < num_inputs; i++ )
+  for ( int32_t i = num_inputs-1; i >= 0; i-- )
   {
 
     if ( gates[f_add].size() == 0 )
@@ -546,15 +557,14 @@ void extract_gates_representation( DdNode* f_add, uint32_t num_inputs,
   }
 }
 
-void extract_quantum_gates( DdNode* f_add, uint32_t num_inputs, std::vector<uint32_t> orders,
-                            gates_dd_t & gates )
+void extract_quantum_gates( DdNode* f_add, uint32_t num_inputs, gates_dd_t & gates )
 {
   std::vector<std::map<DdNode*, uint32_t>> node_ones( num_inputs );
   std::unordered_set<DdNode*> visited;
   std::unordered_set<DdNode*> visited1;
   count_ones_bdd_nodes( visited, node_ones, f_add, num_inputs );
   extract_probabilities_and_MCgates_bottom_up( visited1, node_ones, gates, f_add, num_inputs );
-  extract_gates_representation( f_add, num_inputs, gates );
+  //extract_gates_representation( f_add, num_inputs, gates );
 }
 
 } // namespace detail
@@ -604,9 +614,9 @@ void qsp_bdd( Network& network, std::string str, qsp_bdd_statistics& stats, crea
   stopwatch<>::duration_type time_add_traversal{ 0 };
   {
     stopwatch t( time_add_traversal );
-    detail::extract_quantum_gates( f_add, num_inputs, orders, gates );
+    detail::extract_quantum_gates( f_add, num_inputs, gates );
   }
-
+  
   create_qc_for_MCgates(network, gates[f_add], orders);
 
   /* extract statistics */
