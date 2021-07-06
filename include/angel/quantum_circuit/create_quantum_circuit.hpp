@@ -46,6 +46,7 @@ inline void create_qc_for_MCgates( Network& qc, MC_gates_t gates, std::vector<ui
           else
             qlines.push_back( !q[order[idx / 2]] );
         }
+  
         qlines.push_back( q[order[i]] ); /* insert targt qubit */
         if ( angle == M_PI )
           qc.apply_operator( tweedledum::Op::X(), qlines );
