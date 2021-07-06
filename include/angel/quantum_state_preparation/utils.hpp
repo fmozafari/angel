@@ -221,6 +221,7 @@ inline void print_gates( gates_t gates, std::vector<uint32_t> order )
   {
     std::cout << fmt::format( "target idx: {}\n", order[i] );
     auto gs = gates[i];
+    std::cout<<gs.size()<<std::endl;
     for ( auto const& g : gs )
     {
       std::cout << fmt::format( "angle: {} controls: ", ( g.first / M_PI ) * 180 );

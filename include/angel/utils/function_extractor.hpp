@@ -83,12 +83,21 @@ public:
                                cut.foreach_po( [&]( const auto& s )
                                                {
                                                  auto const tt = result[cut.get_node( s )];
-
                                                  auto const it = tts.find( tt );
                                                  if ( it == std::end( tts ) )
                                                  {
                                                    tts.insert( tt );
                                                    fn( tt );
+                                                 }
+                                                 else
+                                                 {
+                                                   kitty::dynamic_truth_table tt_( tt.num_vars() );
+                                                   std::string truth_table = "0";
+                                                   for ( auto i = 1u; i < pow( 2, ( tt.num_vars() ) ); i++ )
+                                                     truth_table += '0';
+                                                   kitty::create_from_binary_string( tt_, truth_table );
+
+                                                   fn( tt_ );
                                                  }
                                                } );
                              } );

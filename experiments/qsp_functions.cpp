@@ -21,11 +21,13 @@ void k_equal_function( Exp&& exp, uint32_t num_vars )
   angel::state_preparation_parameters qsp0_ps;
   angel::state_preparation_statistics qsp0_st;
   
-
+  std::cout<<num_vars<<std::endl;
   kitty::dynamic_truth_table tt( num_vars );
   for ( auto i = 0u; i < num_vars; ++i )
   {
+    std::cout<<num_vars<<std::endl;
     kitty::create_equals( tt, i );
+    kitty::print_binary(tt);
     angel::qsp_deps<decltype( ntk ), decltype( esop ), decltype( random )> ( ntk, esop, random, tt, qsp0_ps, qsp0_st );
   }
 
@@ -135,8 +137,8 @@ void QBA_state( Exp&& exp, uint32_t num_vars )
 
 int main()
 {
-  constexpr int32_t const min_num_variables = 15;
-  constexpr int32_t const max_num_variables = 16;
+  constexpr int32_t const min_num_variables = 4;
+  constexpr int32_t const max_num_variables = 10;
 
   experiments::experiment<std::string, uint64_t, uint64_t,
                           uint32_t, uint32_t, double>
@@ -145,7 +147,7 @@ int main()
 
   for ( auto num_vars = min_num_variables; num_vars < max_num_variables; num_vars += 2 )
   {
-    k_equal_function( exp, num_vars );
+    //k_equal_function( exp, num_vars );
     ghz_state( exp, num_vars );
     w_state( exp, num_vars );
     QBA_state( exp, num_vars );

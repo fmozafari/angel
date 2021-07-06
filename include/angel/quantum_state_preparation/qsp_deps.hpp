@@ -1,21 +1,20 @@
 #pragma once
 #define _USE_MATH_DEFINES
-#include <cmath> 
 #include "utils.hpp"
 #include <angel/dependency_analysis/common.hpp>
+#include <angel/quantum_circuit/create_quantum_circuit.hpp>
 #include <angel/utils/helper_functions.hpp>
 #include <angel/utils/stopwatch.hpp>
-#include <angel/quantum_circuit/create_quantum_circuit.hpp>
-#include <kitty/dynamic_truth_table.hpp>
-#include <kitty/npn.hpp>
-#include <kitty/hash.hpp>
+#include <cmath>
 #include <fmt/format.h>
+#include <kitty/dynamic_truth_table.hpp>
+#include <kitty/hash.hpp>
+#include <kitty/npn.hpp>
 
 #include <iostream>
 #include <map>
 #include <unordered_map>
 #include <vector>
-
 
 namespace angel
 {
@@ -32,15 +31,15 @@ struct qsp_general_stats
   /* cache declaration */
   std::unordered_map<kitty::dynamic_truth_table, qsp_1bench_stats, kitty::hash<kitty::dynamic_truth_table>> cache;
 
-  stopwatch<>::duration_type total_time{0};
-  uint32_t total_bench{0};
-  uint32_t has_no_dependencies{0};
-  uint32_t no_dependencies_computed{0};
-  uint32_t has_dependencies{0};
-  uint32_t funcdep_bench_useful{0};
-  uint32_t funcdep_bench_notuseful{0};
-  uint32_t total_cnots{0};
-  uint32_t total_sqgs{0};
+  stopwatch<>::duration_type total_time{ 0 };
+  uint32_t total_bench{ 0 };
+  uint32_t has_no_dependencies{ 0 };
+  uint32_t no_dependencies_computed{ 0 };
+  uint32_t has_dependencies{ 0 };
+  uint32_t funcdep_bench_useful{ 0 };
+  uint32_t funcdep_bench_notuseful{ 0 };
+  uint32_t total_cnots{ 0 };
+  uint32_t total_sqgs{ 0 };
   std::vector<std::pair<uint32_t, uint32_t>> gates_count = {};
 
   void report( std::ostream& os = std::cout ) const
@@ -91,10 +90,9 @@ struct qsp_general_stats
   }
 };
 
-
 /* with esop based dependencies */
 inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
-                       esop_based_dependencies_t dependencies, std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines )
+                              esop_based_dependencies_t dependencies, std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines )
 {
   /*-----co factors-------*/
   kitty::dynamic_truth_table tt0( var_index );
@@ -114,7 +112,7 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
   {
     if ( gates.find( var_index ) == gates.end() )
     {
-      gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
+      gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{} } );
     }
     is_const = 1;
   }
@@ -143,13 +141,13 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
     {
       for ( auto const& inner : dependencies[var_index] )
       {
-        gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{inner}} );
+        gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{ inner } } );
       }
     }
 
-    else if(!deps_useful)
+    else if ( !deps_useful )
     {
-        gates[var_index].emplace_back( std::pair{angle, controls} );
+      gates[var_index].emplace_back( std::pair{ angle, controls } );
     }
   }
 
@@ -179,13 +177,13 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
   {
     /*---add H gates---*/
     for ( auto i = 0u; i < var_index; i++ )
-      gates[i].emplace_back( std::pair{M_PI / 2, controls_new0} );
+      gates[i].emplace_back( std::pair{ M_PI / 2, controls_new0 } );
     /*--check one cofactor----*/
     if ( c1_allone )
     {
       /*---add H gates---*/
       for ( auto i = 0u; i < var_index; i++ )
-        gates[i].emplace_back( std::pair{M_PI / 2, controls_new1} );
+        gates[i].emplace_back( std::pair{ M_PI / 2, controls_new1 } );
     }
     else if ( c1_allzero )
     {
@@ -203,7 +201,7 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
     {
       /*---add H gates---*/
       for ( auto i = 0u; i < var_index; i++ )
-        gates[i].emplace_back( std::pair{M_PI / 2, controls_new1} );
+        gates[i].emplace_back( std::pair{ M_PI / 2, controls_new1 } );
     }
     else if ( c1_allzero )
     {
@@ -221,7 +219,7 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
       MC_qg_generation( gates, num_vars, tt0, var_index - 1, controls_new0, dependencies, zero_lines, one_lines );
       /*---add H gates---*/
       for ( auto i = 0u; i < var_index; i++ )
-        gates[i].emplace_back( std::pair{M_PI / 2, controls_new1} );
+        gates[i].emplace_back( std::pair{ M_PI / 2, controls_new1 } );
     }
     else if ( c1_allzero )
     {
@@ -237,7 +235,7 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
 
 /* with pattern based dependencies */
 inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
-                       pattern_based_dependencies_t dependencies, std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines )
+                              pattern_based_dependencies_t dependencies, std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines )
 {
   /*-----co factors-------*/
   kitty::dynamic_truth_table tt0( var_index );
@@ -257,7 +255,7 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
   {
     if ( gates.find( var_index ) == gates.end() )
     {
-      gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
+      gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{} } );
     }
     is_const = 1;
   }
@@ -281,12 +279,12 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
         {
           if ( dependencies[var_index].second[0] % 2 == 0 ) /* equal operation */
           {
-            gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second}} );
+            gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{ dependencies[var_index].second } } );
           }
           else /* not operation */
           {
-            gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second}} );
-            gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
+            gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{ dependencies[var_index].second } } );
+            gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{} } );
           }
         }
 
@@ -294,7 +292,7 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
         {
           for ( auto d_in = 0u; d_in < dependencies[var_index].second.size(); d_in++ )
           {
-              gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second[d_in]}} );
+            gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{ dependencies[var_index].second[d_in] } } );
           }
         }
 
@@ -302,26 +300,26 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
         {
           for ( auto d_in = 0u; d_in < dependencies[var_index].second.size(); d_in++ )
           {
-              gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{dependencies[var_index].second[d_in]}} );
+            gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{ dependencies[var_index].second[d_in] } } );
           }
-          gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
+          gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{} } );
         }
 
         else if ( dependencies[var_index].first == dependency_analysis_types::pattern_kind::AND )
         {
-          gates[var_index].emplace_back( std::pair{M_PI, dependencies[var_index].second} ); /// insert and
+          gates[var_index].emplace_back( std::pair{ M_PI, dependencies[var_index].second } ); /// insert and
         }
 
         else if ( dependencies[var_index].first == dependency_analysis_types::pattern_kind::NAND )
         {
-          gates[var_index].emplace_back( std::pair{M_PI, dependencies[var_index].second} ); /// insert and
-          gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} ); /// insert not for and
+          gates[var_index].emplace_back( std::pair{ M_PI, dependencies[var_index].second } ); /// insert and
+          gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{} } );        /// insert not for and
         }
       }
     }
 
     else
-      gates[var_index].emplace_back( std::pair{angle, controls} );
+      gates[var_index].emplace_back( std::pair{ angle, controls } );
   }
 
   /*-----qc of cofactors-------*/
@@ -350,13 +348,13 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
   {
     /*---add H gates---*/
     for ( auto i = 0u; i < var_index; i++ )
-      gates[i].emplace_back( std::pair{M_PI / 2, controls_new0} );
+      gates[i].emplace_back( std::pair{ M_PI / 2, controls_new0 } );
     /*--check one cofactor----*/
     if ( c1_allone )
     {
       /*---add H gates---*/
       for ( auto i = 0u; i < var_index; i++ )
-        gates[i].emplace_back( std::pair{M_PI / 2, controls_new1} );
+        gates[i].emplace_back( std::pair{ M_PI / 2, controls_new1 } );
     }
     else if ( c1_allzero )
     {
@@ -374,7 +372,7 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
     {
       /*---add H gates---*/
       for ( auto i = 0u; i < var_index; i++ )
-        gates[i].emplace_back( std::pair{M_PI / 2, controls_new1} );
+        gates[i].emplace_back( std::pair{ M_PI / 2, controls_new1 } );
     }
     else if ( c1_allzero )
     {
@@ -392,7 +390,7 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
       MC_qg_generation( gates, num_vars, tt0, var_index - 1, controls_new0, dependencies, zero_lines, one_lines );
       /*---add H gates---*/
       for ( auto i = 0u; i < var_index; i++ )
-        gates[i].emplace_back( std::pair{M_PI / 2, controls_new1} );
+        gates[i].emplace_back( std::pair{ M_PI / 2, controls_new1 } );
     }
     else if ( c1_allzero )
     {
@@ -408,7 +406,7 @@ inline void MC_qg_generation( gates_t& gates, uint32_t num_vars, kitty::dynamic_
 
 /* without dependencies */
 inline void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls,
-                       std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines )
+                              std::vector<uint32_t> zero_lines, std::vector<uint32_t> one_lines )
 {
   /*-----co factors-------*/
   kitty::dynamic_truth_table tt0( var_index );
@@ -427,7 +425,7 @@ inline void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uin
   if ( it1 != one_lines.end() ) // insert not gate
   {
     if ( gates.find( var_index ) == gates.end() )
-      gates[var_index].emplace_back( std::pair{M_PI, std::vector<uint32_t>{}} );
+      gates[var_index].emplace_back( std::pair{ M_PI, std::vector<uint32_t>{} } );
     is_const = 1;
   }
   else if ( it0 != zero_lines.end() ) // inzert zero gate
@@ -440,7 +438,7 @@ inline void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uin
     //angle *= (180/3.14159265); //in degree
     /*----add probability gate----*/
 
-    gates[var_index].emplace_back( std::pair{angle, controls} );
+    gates[var_index].emplace_back( std::pair{ angle, controls } );
   }
 
   /*-----qc of cofactors-------*/
@@ -469,13 +467,13 @@ inline void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uin
   {
     /*---add H gates---*/
     for ( auto i = 0u; i < var_index; i++ )
-      gates[i].emplace_back( std::pair{M_PI / 2, controls_new0} );
+      gates[i].emplace_back( std::pair{ M_PI / 2, controls_new0 } );
     /*--check one cofactor----*/
     if ( c1_allone )
     {
       /*---add H gates---*/
       for ( auto i = 0u; i < var_index; i++ )
-        gates[i].emplace_back( std::pair{M_PI / 2, controls_new1} );
+        gates[i].emplace_back( std::pair{ M_PI / 2, controls_new1 } );
     }
     else if ( c1_allzero )
     {
@@ -493,7 +491,7 @@ inline void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uin
     {
       /*---add H gates---*/
       for ( auto i = 0u; i < var_index; i++ )
-        gates[i].emplace_back( std::pair{M_PI / 2, controls_new1} );
+        gates[i].emplace_back( std::pair{ M_PI / 2, controls_new1 } );
     }
     else if ( c1_allzero )
     {
@@ -511,7 +509,7 @@ inline void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uin
       MC_qg_generation( gates, tt0, var_index - 1, controls_new0, zero_lines, one_lines );
       /*---add H gates---*/
       for ( auto i = 0u; i < var_index; i++ )
-        gates[i].emplace_back( std::pair{M_PI / 2, controls_new1} );
+        gates[i].emplace_back( std::pair{ M_PI / 2, controls_new1 } );
     }
     else if ( c1_allzero )
     {
@@ -525,21 +523,20 @@ inline void MC_qg_generation( gates_t& gates, kitty::dynamic_truth_table tt, uin
   }
 }
 
-
 struct state_preparation_parameters
 {
-  bool verbose{false};
-  bool use_upperbound{true};
-}; 
+  bool verbose{ false };
+  bool use_upperbound{ true };
+};
 
 struct state_preparation_statistics
 {
-  uint64_t num_functions{0};
-  uint64_t num_unique_functions{0};
-  uint64_t num_cnots{0};
-  uint64_t num_sqgs{0};
-  stopwatch<>::duration_type time_cache{0};
-  stopwatch<>::duration_type time_total{0};
+  uint64_t num_functions{ 0 };
+  uint64_t num_unique_functions{ 0 };
+  uint64_t num_cnots{ 0 };
+  uint64_t num_sqgs{ 0 };
+  stopwatch<>::duration_type time_cache{ 0 };
+  stopwatch<>::duration_type time_total{ 0 };
 
   void reset()
   {
@@ -547,12 +544,11 @@ struct state_preparation_statistics
   }
   void report( std::ostream& os = std::cout ) const
   {
-    os << fmt::format( "[i] total number of CNOTs = {}\n", num_cnots);
-    os << fmt::format( "[i] total number of single-qubit gates = {}\n", num_sqgs);
-    os << fmt::format( "[i] Time = {}\n", to_seconds(time_total));
+    os << fmt::format( "[i] total number of CNOTs = {}\n", num_cnots );
+    os << fmt::format( "[i] total number of single-qubit gates = {}\n", num_sqgs );
+    os << fmt::format( "[i] Time = {}\n", to_seconds( time_total ) );
   }
-
-}; 
+};
 
 struct GatesSeq
 {
@@ -560,7 +556,6 @@ struct GatesSeq
   std::vector<uint32_t> order;
   std::pair<uint32_t, uint32_t> cnots_sqgs;
 };
-
 
 /**
  * \breif Quantum State Preparation using Functional Dependency
@@ -573,13 +568,9 @@ template<class DependencyAnalysisStrategy, class ReorderingStrategy>
 class qsp_depsClass
 {
 public:
-  explicit qsp_depsClass(GatesSeq& ntk, DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
-                              state_preparation_parameters const& ps, state_preparation_statistics& st )
-    : ntk(ntk)
-    , dependency_strategy( dependency_strategy )
-    , order_strategy( order_strategy )
-    , ps( ps )
-    , st( st )
+  explicit qsp_depsClass( GatesSeq& ntk, DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
+                          state_preparation_parameters const& ps, state_preparation_statistics& st )
+      : ntk( ntk ), dependency_strategy( dependency_strategy ), order_strategy( order_strategy ), ps( ps ), st( st )
   {
   }
 
@@ -591,15 +582,14 @@ public:
     ++st.num_functions;
 
     /* check if there is a GatesSeq in the cache for this truth table */
-    auto const [key_tt, _1, _2] = call_with_stopwatch( st.time_cache, [&]{
-        return num_variables <= 7u ? kitty::exact_p_canonization( tt ) : kitty::sifting_p_canonization( tt );
-      });
+    auto const [key_tt, _1, _2] = call_with_stopwatch( st.time_cache, [&]
+                                                       { return num_variables <= 7u ? kitty::exact_p_canonization( tt ) : kitty::sifting_p_canonization( tt ); } );
     auto const it = cache.find( key_tt );
     if ( it != std::end( cache ) )
     {
       //GatesSeq empty;
       //return empty;
-      
+
       st.num_cnots += it->second.cnots_sqgs.first;
       if ( ps.verbose )
       {
@@ -607,26 +597,27 @@ public:
       }
       return it->second;
     }
-    
+
     /* run state preparation for the current truth table */
-    std::pair<uint32_t, uint32_t> upperbound = {uint64_t( pow( 2u, num_variables ) - 2u ), uint64_t( pow( 2u, num_variables ) - 1u )};
-    std::pair<uint32_t, uint32_t> max = {std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max()};
+    std::pair<uint32_t, uint32_t> upperbound = { uint64_t( pow( 2u, num_variables ) - 2u ), uint64_t( pow( 2u, num_variables ) - 1u ) };
+    std::pair<uint32_t, uint32_t> max = { std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max() };
     std::pair<uint32_t, uint32_t> const ub = ps.use_upperbound ? upperbound : max;
-    GatesSeq best_ntk{{},{},ub};
-    
-    order_strategy.foreach_reordering( tt, [this,&best_ntk]( kitty::dynamic_truth_table const& tt, std::vector<uint32_t> const& perm ){
-        GatesSeq ntk = synthesize_network( tt, perm );
-        
-        if ( ntk.cnots_sqgs.first < best_ntk.cnots_sqgs.first )
-        {
-          best_ntk = ntk;
-        }
-        if ( ntk.cnots_sqgs.first == best_ntk.cnots_sqgs.first && best_ntk.gates.size()==0 )
-        {
-          best_ntk = ntk;
-        }
-        return ntk.cnots_sqgs.first ;
-      });
+    GatesSeq best_ntk{ {}, {}, ub };
+
+    order_strategy.foreach_reordering( tt, [this, &best_ntk]( kitty::dynamic_truth_table const& tt, std::vector<uint32_t> const& perm )
+                                       {
+                                         GatesSeq ntk = synthesize_network( tt, perm );
+
+                                         if ( ntk.cnots_sqgs.first < best_ntk.cnots_sqgs.first )
+                                         {
+                                           best_ntk = ntk;
+                                         }
+                                         if ( ntk.cnots_sqgs.first == best_ntk.cnots_sqgs.first && best_ntk.gates.size() == 0 )
+                                         {
+                                           best_ntk = ntk;
+                                         }
+                                         return ntk.cnots_sqgs.first;
+                                       } );
     /* ensure that re-ordering has been exectued at least once */
     assert( best_ntk.cnots_sqgs.first < std::numeric_limits<uint64_t>::max() );
 
@@ -649,7 +640,7 @@ public:
     /* FIXME: treat const0 as a special case */
     if ( kitty::is_const0( tt ) )
     {
-      return GatesSeq{{}, perm, std::make_pair(0u, 0u)};
+      return GatesSeq{ {}, perm, std::make_pair( 0u, 0u ) };
     }
 
     /* extract dependencies */
@@ -662,7 +653,7 @@ public:
 
   template<typename Dependencies>
   GatesSeq create_gates( kitty::dynamic_truth_table const& tt, Dependencies const& dependencies, std::vector<uint32_t> const& perm )
-  {   
+  {
     uint32_t const num_variables = tt.num_vars();
     uint32_t const var_index = num_variables - 1;
 
@@ -673,7 +664,7 @@ public:
     std::vector<uint32_t> cs;
     if ( !dependencies.empty() )
     {
-      MC_qg_generation( gates, num_variables, tt, var_index, cs, dependencies, zero_lines, one_lines );      
+      MC_qg_generation( gates, num_variables, tt, var_index, cs, dependencies, zero_lines, one_lines );
     }
     else
     {
@@ -692,7 +683,7 @@ public:
     }
     gates_statistics( gates, have_deps, num_variables, st );
 
-    return GatesSeq{gates, perm, std::make_pair(st.total_cnots, st.total_sqgs)};
+    return GatesSeq{ gates, perm, std::make_pair( st.total_cnots, st.total_sqgs ) };
   }
 
 protected:
@@ -703,7 +694,7 @@ protected:
   state_preparation_statistics& st;
 
   std::unordered_map<kitty::dynamic_truth_table, GatesSeq, kitty::hash<kitty::dynamic_truth_table>> cache;
-}; 
+};
 
 /**
  * \breif General quantum state preparation algorithm for any function represantstion, 
@@ -717,14 +708,14 @@ protected:
  * \param st store all desired statistics of quantum state preparation process
 */
 template<class Network, class DependencyAnalysisStrategy, class ReorderingStrategy>
-void qsp_deps(Network& ntk, DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
-              kitty::dynamic_truth_table const& tt, state_preparation_parameters const& ps, state_preparation_statistics& st)
+void qsp_deps( Network& ntk, DependencyAnalysisStrategy& dependency_strategy, ReorderingStrategy& order_strategy,
+               kitty::dynamic_truth_table const& tt, state_preparation_parameters const& ps, state_preparation_statistics& st )
 {
   GatesSeq gates_seq;
-  qsp_depsClass<DependencyAnalysisStrategy, ReorderingStrategy> qsp (gates_seq, dependency_strategy, order_strategy, ps, st);
-  GatesSeq gates_network = qsp(tt);
+  qsp_depsClass<DependencyAnalysisStrategy, ReorderingStrategy> qsp( gates_seq, dependency_strategy, order_strategy, ps, st );
+  GatesSeq gates_network = qsp( tt );
   //print_gates(gates_network.gates, gates_network.order);
-  create_qc_for_MCgates(ntk, gates_network.gates, gates_network.order);
+  create_qc_for_MCgates( ntk, gates_network.gates, gates_network.order );
 }
 
 } // namespace angel
