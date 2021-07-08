@@ -12,7 +12,7 @@ int main()
 {
     tweedledum::Circuit network;
     
-    std::string truth_table{"1100" "0011" "0000" "1111"}; // right side -> LSB
+    std::string truth_table{"0000" "0001" "0000" "0010" "0001" "0000" "0100" "1000"}; // right side -> LSB
     //std::string truth_table{"10000001"};
 
     /* read from file */
@@ -48,7 +48,7 @@ int main()
 
     angel::state_preparation_parameters qsp_ps;
     angel::state_preparation_statistics qsp_st;
-    angel::qsp_deps<decltype(network), decltype( esop ), decltype( no_reorder )>( network, esop, no_reorder, tt, qsp_ps, qsp_st);
+    angel::qsp_deps<decltype(network), decltype( esop ), decltype( random )>( network, esop, random, tt, qsp_ps, qsp_st);
   
     qsp_st.report();
     tweedledum::print(network);

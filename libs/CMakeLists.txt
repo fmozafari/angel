@@ -135,6 +135,12 @@ if (NOT TARGET cudd)
   add_subdirectory(cudd)
 endif()
 
+# Eigen 3.3.8
+if (NOT TARGET eigen)
+  add_library(eigen INTERFACE)
+  target_include_directories(eigen SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/eigen)
+endif()
+
 if (NOT TARGET tweedledum_lib)
   include(ExternalProject)
   ExternalProject_Add(tweedledum 
@@ -147,11 +153,7 @@ if (NOT TARGET tweedledum_lib)
   target_link_libraries(tweedledum_lib INTERFACE ${TWEEDLEDUM_LIB})
 endif()
 
-# Eigen 3.3.8
-if (NOT TARGET eigen)
-  add_library(eigen INTERFACE)
-  target_include_directories(eigen SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/eigen)
-endif()
+
 
 
 
