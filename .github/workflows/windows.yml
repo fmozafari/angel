@@ -31,3 +31,5 @@ jobs:
       run: |
         cd build
         .\test\Debug\run_tests "~[quality]"
+
+        

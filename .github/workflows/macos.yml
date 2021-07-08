@@ -10,24 +10,6 @@ on:
 
 jobs:
   build-gcc8:
-    name: GNU GCC 8
-    runs-on: macOS-latest
-
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: true
-    - name: Build angel
-      run: |
-        mkdir build
-        cd build
-        cmake -DCMAKE_CXX_COMPILER=/usr/local/opt/gcc@8/bin/g++-8 -DANGEL_TEST=ON ..
-        make run_tests
-    - name: Run tests
-      run: |
-        cd build
-        ./test/run_tests "~[quality]"
-  build-gcc9:
     name: GNU GCC 9
     runs-on: macOS-latest
 
@@ -39,13 +21,13 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -DCMAKE_CXX_COMPILER=/usr/local/opt/gcc@9/bin/g++-9 -DANGEL_TEST=ON ..
+        cmake -DCMAKE_CXX_COMPILER=/usr/local/opt/gcc@8/bin/g++-9 -DANGEL_TEST=ON ..
         make run_tests
     - name: Run tests
       run: |
         cd build
         ./test/run_tests "~[quality]"
-  build-gcc10:
+  build-gcc9:
     name: GNU GCC 10
     runs-on: macOS-latest
 
@@ -57,7 +39,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -DCMAKE_CXX_COMPILER=/usr/local/opt/gcc@10/bin/g++-10 -DANGEL_TEST=ON ..
+        cmake -DCMAKE_CXX_COMPILER=/usr/local/opt/gcc@9/bin/g++-10 -DANGEL_TEST=ON ..
         make run_tests
     - name: Run tests
       run: |
