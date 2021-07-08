@@ -152,6 +152,7 @@ if (NOT TARGET tweedledum_lib)
   #find_library(TWEEDLEDUM_LIB NAMES tweedledum)
   find_library(TWEEDLEDUM_LIB NAMES tweedledum PATHS ${CMAKE_BINARY_DIR})
   message("CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}") 
+  message("TWEELDUM_LIB=${TWEEDLEDUM_LIB}")
   target_link_libraries(tweedledum_lib INTERFACE ${TWEEDLEDUM_LIB})
 endif()
 
