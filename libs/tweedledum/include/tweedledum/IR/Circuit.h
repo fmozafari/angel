@@ -116,12 +116,12 @@ public:
     }
 
     // FIXME: maybe remove this, if so need to change the python bindings!
-    /*InstRef apply_operator(Instruction const& optor)
+    InstRef apply_operator(Instruction const& optor)
     {
         Instruction& inst = instructions_.emplace_back(optor);
         connect_instruction(inst);
         return InstRef(instructions_.size() - 1);
-    }*/
+    }
 
     // Composition
     void append(Circuit const& other, std::vector<Qubit> const& qubits,
