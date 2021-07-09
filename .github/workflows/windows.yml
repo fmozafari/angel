@@ -1,35 +1,40 @@
 name: Windows CI
 
 on:
-  push:
-    branches:
-    - master
+  workflow_dispatch:
   pull_request:
-    branches:
-    - master
+    branches: [master]
+    paths:
+      - '**/CMakeLists.txt'
+      - '**.cpp'
+      - '**.h'
+      - 'test/**'
 
 jobs:
-  build:
+  build-windows:
+    name: Build and run test
     runs-on: windows-latest
-    name: Visual Studio
-
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: true
-    - name: Create build directory
-      run: mkdir build
-    - name: Run CMake
-      run: cmake -G "Visual Studio 16 2019" -DANGEL_TEST=ON ..
-      working-directory: ./build
-    - name: Build angel
+    - uses: actions/checkout@v2
+
+    - uses: ilammy/msvc-dev-cmd@v1.5.0
+
+    - name: Configure CMake
+      env:
+          CC: cl.exe
+          CXX: cl.exe
       run: |
-        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" angel.sln /t:run_tests
-      working-directory: ./build
-      shell: cmd
-    - name: Run tests
-      run: |
+        mkdir -p build
         cd build
-        .\test\Debug\run_tests "~[quality]"
+        cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DANGEL_TEST=ON 
+    - name: Build test
+      working-directory: build
+      run: nmake run_tests
+
+    : nmake _tweedledum
+
+    - name: Run test
+      run: |
+        .\build\test\run_tests.exe
 
         
