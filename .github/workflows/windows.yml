@@ -31,8 +31,6 @@ jobs:
       working-directory: build
       run: nmake run_tests
 
-    : nmake _tweedledum
-
     - name: Run test
       run: |
         .\build\test\run_tests.exe
