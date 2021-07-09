@@ -141,19 +141,32 @@ if (NOT TARGET eigen)
   target_include_directories(eigen SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/eigen)
 endif()
 
+# if (NOT TARGET tweedledum_lib)
+#   include(ExternalProject)
+#   ExternalProject_Add(tweedledum 
+#   SOURCE_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum
+#   INSTALL_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/install
+#   STEP_TARGETS build)
+#   add_library(tweedledum_lib INTERFACE)
+#   target_include_directories(tweedledum_lib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/include)
+#   #find_library(TWEEDLEDUM_LIB NAMES tweedledum)
+#   find_library(TWEEDLEDUM_LIB NAMES tweedledum PATHS ${CMAKE_BINARY_DIR}/libs/tweedledum-prefix/src/tweedledum-build/)
+#   message("CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}") 
+#   message("TWEELDUM_LIB=${TWEEDLEDUM_LIB}")
+#   target_link_libraries(tweedledum_lib INTERFACE ${TWEEDLEDUM_LIB})
+# endif()
+
 if (NOT TARGET tweedledum_lib)
   include(ExternalProject)
+  set(TWEEDLEDUM_PYBINDS OFF CACHE BOOL "disable Tweedledum's python bindings")
   ExternalProject_Add(tweedledum 
-  SOURCE_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum
-  INSTALL_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/install
-  STEP_TARGETS build)
+    SOURCE_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum
+    BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/build
+    INSTALL_COMMAND ""
+    STEP_TARGETS build)
   add_library(tweedledum_lib INTERFACE)
   target_include_directories(tweedledum_lib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/include)
-  #find_library(TWEEDLEDUM_LIB NAMES tweedledum)
-  find_library(TWEEDLEDUM_LIB NAMES tweedledum PATHS ${CMAKE_BINARY_DIR}/libs/tweedledum-prefix/src/tweedledum-build/)
-  message("CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}") 
-  message("TWEELDUM_LIB=${TWEEDLEDUM_LIB}")
-  target_link_libraries(tweedledum_lib INTERFACE ${TWEEDLEDUM_LIB})
+  target_link_libraries(tweedledum_lib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/build/libtweedledum.a)
 endif()
 
 
