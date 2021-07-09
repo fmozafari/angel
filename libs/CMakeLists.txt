@@ -164,11 +164,14 @@ if (NOT TARGET tweedledum_lib)
     BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/build
     INSTALL_COMMAND ""
     STEP_TARGETS build)
+
   add_library(tweedledum_lib INTERFACE)
   target_include_directories(tweedledum_lib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/include)
-  target_link_libraries(tweedledum_lib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/build/libtweedledum.a)
+  target_link_directories(tweedledum_lib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/build)
+  message("${CMAKE_CURRENT_SOURCE_DIR}/tweedledum/build")
+  add_dependencies(tweedledum_lib tweedledum)
+  target_link_libraries(tweedledum_lib INTERFACE tweedledum)
 endif()
-
 
 
 
