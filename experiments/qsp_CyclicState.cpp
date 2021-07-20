@@ -55,17 +55,23 @@ void cyclic_state( Exp&& exp, uint32_t num_vars, uint32_t num_ones )
 
 int main()
 {
-  constexpr int32_t const min_num_variables = 9;
-  constexpr int32_t const max_num_variables = 12;
+  constexpr int32_t const min_num_variables = 17;
+  constexpr int32_t const max_num_variables = 20;
 
   experiments::experiment<std::string, uint64_t, uint64_t,
                           uint32_t, uint32_t, double>
       exp( "uqsp", "benchmarks", "total func", "unqique func",
            "esop-RR: cnots", "esop-RR: sqgs", "esop-RR: time" );
 
-  for ( auto n = min_num_variables; n < max_num_variables; n++ )
-    for ( auto k = 1; k < n; k++)
-      cyclic_state( exp, n, k );
+  for ( auto n = min_num_variables; n < max_num_variables; n+=2 )
+    //for ( auto k = 1; k < n; k++)
+    {
+      //cyclic_state( exp, n, 1 );
+      //cyclic_state( exp, n, 2 );
+      cyclic_state( exp, n, 8 );
+      cyclic_state( exp, n, 9 );
+    }
+      
   
   exp.save();
   exp.table();
