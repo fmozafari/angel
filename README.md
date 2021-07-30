@@ -53,4 +53,4 @@ A modern compiler is required to build angel. We are continously testing with Cl
 ## EPFL logic sythesis libraries
 angel is part of the [EPFL logic synthesis](https://lsi.epfl.ch/page-138455-en.html) libraries.  The other libraries and several examples on how to use and integrate the libraries can be found in the [logic synthesis tool showcase](https://github.com/lsils/lstools-showcase).
 
-NOTe that angel does not work on windows currently.
+Note that angel does not work on windows currently.
