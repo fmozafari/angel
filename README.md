@@ -1,6 +1,5 @@
 [![Actions Status](https://github.com/fmozafari/angel/workflows/Linux%20CI/badge.svg)](https://github.com/fmozafari/angel/actions)
 [![Actions Status](https://github.com/fmozafari/angel/workflows/MacOS%20CI/badge.svg)](https://github.com/fmozafari/angel/actions)
-[![Actions Status](https://github.com/fmozafari/angel/workflows/Windows%20CI/badge.svg)](https://github.com/fmozafari/angel/actions)
 [![Coverage Status](https://coveralls.io/repos/github/fmozafari/angel/badge.svg?branch=master)](https://coveralls.io/github/fmozafari/angel?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/libangel/badge/?version=latest)](https://libangel.readthedocs.io/en/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -16,12 +15,13 @@ Read the full documentation [here](https://libangel.readthedocs.io/en/latest/ind
 The following code shows the uniform quantum state preparation for the GHZ(3) state. To prepare the state, variable reordering and dependency analysis methods are utilized. The number of CNOTs and the number of single-qubit gates are reported. 
 
 ```c++
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/netlist.hpp>
-#include <kitty/constructors.hpp>
 #include <angel/dependency_analysis/esop_based_dependency_analysis.hpp>
 #include <angel/quantum_state_preparation/qsp_deps.hpp>
 #include <angel/reordering/no_reordering.hpp>
+#include <tweedledum/IR/Circuit.h>
+#include <tweedledum/IR/Instruction.h>
+#include <tweedledum/Utils/Visualization/string_utf8.h>
+#include <kitty/constructors.hpp>
 
 /* representing uniform quantum state as a truth table */
 kitty::dynamic_truth_table tt( 3 );
@@ -38,13 +38,13 @@ angel::esop_deps_analysis esop( esop_ps, esop_st );
 /* initialize the uniform quantum state preparation method */
 angel::state_preparation_parameters qsp_ps;
 angel::state_preparation_statistics qsp_st;
-tweedledum::netlist<tweedledum::mcmt_gate> network;
-angel::qsp_deps<decltype( network ), decltype( esop ), decltype( no_reorder )> 
-  uqsp( network, esop, no_reorder, qsp_ps, qsp_st );
+tweedledum::Circuit network;
 
 /* run the uniform quantum state preparation */
-uqsp( tt );
+angel::qsp_deps<decltype(network), decltype( esop ), decltype( random )>( network, esop, random, tt, qsp_ps, qsp_st);
 qsp_st.report();
+tweedledum::print(network);
+
 ```
 
 ## Installation requirements
@@ -52,3 +52,5 @@ A modern compiler is required to build angel. We are continously testing with Cl
 
 ## EPFL logic sythesis libraries
 angel is part of the [EPFL logic synthesis](https://lsi.epfl.ch/page-138455-en.html) libraries.  The other libraries and several examples on how to use and integrate the libraries can be found in the [logic synthesis tool showcase](https://github.com/lsils/lstools-showcase).
+
+NOTe that angel does not work on windows currently.
