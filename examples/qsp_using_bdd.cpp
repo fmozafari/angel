@@ -1,4 +1,4 @@
-#include <angel/angel.hpp>
+#include <angel/quantum_state_preparation/qsp_bdd.hpp>
 #include <tweedledum/IR/Circuit.h>
 #include <tweedledum/IR/Instruction.h>
 #include <tweedledum/Utils/Visualization/string_utf8.h>
