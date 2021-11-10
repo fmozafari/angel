@@ -124,6 +124,27 @@ void draw_dump( DdNode* f_add, DdManager* mgr )
   Cudd_DumpDot( mgr, 1, ddnodearray, NULL, NULL, outfile ); /* dump the function to .dot file */
 }
 
+DdNode * create_dd_from_str( Cudd & cudd, std::string str, uint32_t num_inputs, std::vector<uint32_t> orders, create_bdd_param param)
+{
+  kitty::dynamic_truth_table tt( num_inputs );
+  kitty::create_from_binary_string( tt, str );
+  std::vector<uint32_t> mins = kitty::get_minterms( tt );
+  reordering_on_tt_inplace( tt, orders );
+  str = kitty::to_binary( tt );
+
+  /* Create BDD */
+  auto mgr = cudd.getManager();
+  auto f_bdd = create_bdd( cudd, str, param, num_inputs );
+  auto f_add = Cudd_BddToAdd( mgr, f_bdd.getNode() );
+
+  /* 
+    BDD help sample 
+    auto d = mgr.bddVar(); //MSB
+    auto c = mgr.bddVar(); //LSB
+  */
+
+  return f_add;
+}
 
 
 

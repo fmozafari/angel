@@ -65,26 +65,12 @@ void sparse_qsp( Network& network, std::string str, std::vector<double> amplitud
   for ( int32_t i = num_inputs - 1; i >= 0; i-- )
     orders.emplace_back( i );
 
-  kitty::dynamic_truth_table tt( num_inputs );
-  kitty::create_from_binary_string( tt, str );
-  std::vector<uint32_t> mins = kitty::get_minterms( tt );
-  reordering_on_tt_inplace( tt, orders );
-  str = kitty::to_binary( tt );
-
-  /* Create BDD */
+  /* create DD */
   Cudd cudd;
-  auto mgr = cudd.getManager();
-  auto f_bdd = create_bdd( cudd, str, param, num_inputs );
-  auto f_add = Cudd_BddToAdd( mgr, f_bdd.getNode() );
-
-  /* 
-    BDD help sample 
-    auto d = mgr.bddVar(); //MSB
-    auto c = mgr.bddVar(); //LSB
-  */
+  auto f_add = create_dd_from_str(cudd, str, num_inputs, orders, param);
 
   /* draw ADD in a output file */
-  draw_dump( f_add, mgr );
+  draw_dump( f_add, cudd.getManager() );
 
   /* Generate quantum gates by traversing ADD */
   //gates_dd_t gates;

@@ -48,6 +48,9 @@ struct qsp_bdd_statistics
   }
 };
 
+namespace detail
+{
+
 void count_ones_bdd_nodes( std::unordered_set<DdNode*>& visited,
                            std::vector<std::map<DdNode*, uint32_t>>& node_ones,
                            DdNode* f, uint32_t num_vars )
@@ -459,32 +462,18 @@ void extract_quantum_gates( DdNode* f_add, uint32_t num_inputs, gates_dd_t & gat
 template<class Network>
 void qsp_bdd( Network& network, std::string str, qsp_bdd_statistics& stats, create_bdd_param param = {} )
 {
-  uint32_t num_inputs = log2( str.size() );
   /* reordering tt */
+  uint32_t num_inputs = log2( str.size() );
   std::vector<uint32_t> orders;
   for ( int32_t i = num_inputs - 1; i >= 0; i-- )
     orders.emplace_back( i );
 
-  kitty::dynamic_truth_table tt( num_inputs );
-  kitty::create_from_binary_string( tt, str );
-  std::vector<uint32_t> mins = kitty::get_minterms( tt );
-  reordering_on_tt_inplace( tt, orders );
-  str = kitty::to_binary( tt );
-
-  /* Create BDD */
+  /* create DD */
   Cudd cudd;
-  auto mgr = cudd.getManager();
-  auto f_bdd = create_bdd( cudd, str, param, num_inputs );
-  auto f_add = Cudd_BddToAdd( mgr, f_bdd.getNode() );
-
-  /* 
-    BDD help sample 
-    auto d = mgr.bddVar(); //MSB
-    auto c = mgr.bddVar(); //LSB
-  */
+  auto f_add = create_dd_from_str(cudd, str, num_inputs, orders, param);
 
   /* draw ADD in a output file */
-  draw_dump( f_add, mgr );
+  draw_dump( f_add, cudd.getManager() );
 
   /* Generate quantum gates by traversing ADD */
   gates_dd_t gates;
