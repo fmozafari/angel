@@ -8,7 +8,16 @@
 namespace angel
 {
 
+struct target_qubit
+{
+  uint32_t index;
+  enum gType {NOT, Ry};
+  gType gt;
+  double angle;
+};
+
 using MC_gates_t = std::map<uint32_t, std::vector<std::pair<double, std::vector<uint32_t>>>>;
+using gates_sqs_t = std::vector<std::pair<target_qubit, std::vector<uint32_t>>>;
 
 template<class Network>
 inline void create_qc_for_MCgates( Network& qc, MC_gates_t gates, std::vector<uint32_t> order )
@@ -55,6 +64,43 @@ inline void create_qc_for_MCgates( Network& qc, MC_gates_t gates, std::vector<ui
       }
     }
   }
+}
+
+template<class Network>
+inline void create_qc_for_sparse_uqsp( Network& qc, gates_sqs_t gates, uint32_t q_count)
+{
+  std::vector<tweedledum::Qubit> q;
+  std::vector<tweedledum::Cbit> c;
+
+  /* create qubits and cbits */
+  for ( auto i = 0u; i < q_count; i++ )
+  {
+    q.push_back( qc.create_qubit() );
+    c.push_back( qc.create_cbit() );
+  }
+
+  qc.apply_operator( tweedledum::Op::X(), {q[q_count-1]} );
+  gates.pop_back(); /* last computation for ancilla qubit doesn't need
+  */
+  for(auto [target, controls]: gates)
+  {
+    std::vector<tweedledum::Qubit> qlines;
+    for ( auto j = 0u; j < controls.size(); j++ ) /* insert control qubits */
+    {
+      auto idx = controls[j];
+      if ( idx % 2 == 0u )
+        qlines.push_back( q[idx / 2] );
+      else
+        qlines.push_back( !q[idx / 2] );
+    }
+    qlines.push_back( q[target.index] ); /* insert targt qubit */
+
+    if(target.gt == target_qubit::NOT)
+      qc.apply_operator( tweedledum::Op::X(), qlines );
+    else
+      qc.apply_operator( tweedledum::Op::Ry( target.angle ), qlines );
+  }
+
 }
 
 } // namespace angel

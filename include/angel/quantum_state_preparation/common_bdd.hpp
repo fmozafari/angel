@@ -146,6 +146,59 @@ DdNode * create_dd_from_str( Cudd & cudd, std::string str, uint32_t num_inputs, 
   return f_add;
 }
 
+void compute_0_probabilities_for_bdd_nodes( std::unordered_set<DdNode*>& visited,
+                           std::map<DdNode*, double>& node_0_p,
+                           DdNode* f, uint32_t num_vars )
+{
+  auto current = f;
+  if ( visited.count( current ) )
+    return;
+  if ( Cudd_IsConstant( current ) )
+    return;
+
+  compute_0_probabilities_for_bdd_nodes( visited, node_0_p, cuddE( current ), num_vars );
+  compute_0_probabilities_for_bdd_nodes( visited, node_0_p, cuddT( current ), num_vars );
+
+  visited.insert( current );
+  double Eones = 0.0;
+  double Tones = 0.0;
+
+  if ( Cudd_IsConstant( cuddT( current ) ) )
+  {
+    if ( Cudd_V( cuddT( current ) ) )
+    {
+      auto temp_pow = num_vars - current->index - 1;
+      Tones = pow( 2, temp_pow ) * 1;
+    }
+  }
+  else
+  {
+    auto temp_pow = cuddT( current )->index - 1 - current->index;
+    auto Tvalue = 0;
+    Tvalue = node_0_p[cuddT( current )];   //node_0_p[cuddT( current )->index].find( cuddT( current ) )->second;
+    Tones = pow( 2, temp_pow ) * Tvalue;
+  }
+
+  if ( Cudd_IsConstant( cuddE( current ) ) )
+  {
+    if ( Cudd_V( cuddE( current ) ) )
+    {
+      auto temp_pow = num_vars - current->index - 1;
+      Eones = pow( 2, temp_pow ) * 1;
+    }
+  }
+  else
+  {
+    auto temp_pow = cuddE( current )->index - 1 - current->index;
+    //auto max_ones = pow( 2, num_vars - orders[cuddE( current )->index] );
+    auto Evalue = 0;
+    Evalue = node_0_p[cuddE( current )]; //node_0_p[cuddE( current )->index].find( cuddE( current ) )->second;
+    Eones = pow( 2, temp_pow ) * Evalue;
+  }
+
+  node_0_p[current] = double(Eones/(Tones + Eones)); //[current->index].insert( { current, double(Eones/(Tones + Eones)) } );
+}
+
 
 
 } //namespace angel end
