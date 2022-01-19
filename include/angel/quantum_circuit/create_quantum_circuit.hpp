@@ -67,7 +67,7 @@ inline void create_qc_for_MCgates( Network& qc, MC_gates_t gates, std::vector<ui
 }
 
 template<class Network>
-inline void create_qc_for_sparse_uqsp( Network& qc, gates_sqs_t gates, uint32_t q_count)
+inline void create_qc_for_sparse_uqsp( Network& qc, gates_sqs_t gates, uint32_t q_count, uint64_t & cnot_count)
 {
   std::vector<tweedledum::Qubit> q;
   std::vector<tweedledum::Cbit> c;
@@ -99,6 +99,28 @@ inline void create_qc_for_sparse_uqsp( Network& qc, gates_sqs_t gates, uint32_t 
       qc.apply_operator( tweedledum::Op::X(), qlines );
     else
       qc.apply_operator( tweedledum::Op::Ry( target.angle ), qlines );
+
+    if(controls.size()==1 && (target.gt == target_qubit::NOT))
+      cnot_count += 1;
+    else if(controls.size()==0)
+      cnot_count += 0;
+    else if(controls.size()==1)
+      cnot_count += 2;
+    else if(controls.size()==2)
+      cnot_count += 6;
+    else if(controls.size()==3)
+      cnot_count += (8*6+2);
+    else if(controls.size()==4)
+      cnot_count += 10*6;
+    else
+    {
+      auto c_part1 = floor(controls.size()/2);
+      auto c_part2 = controls.size() - c_part1;
+      auto count1 = 2 * (2*(c_part1-1)+2*(c_part1-2));
+      auto count2 = 2 * (2*(c_part2-1)+2*(c_part2-2));
+      cnot_count += (count1+count2);
+    }
+    
   }
 
 }

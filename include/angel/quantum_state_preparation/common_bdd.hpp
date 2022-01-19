@@ -1,4 +1,20 @@
-
+#pragma once
+#include "utils.hpp"
+#include <angel/quantum_circuit/create_quantum_circuit.hpp>
+#include <angel/utils/helper_functions.hpp>
+#include <angel/dependency_analysis/esop_based_dependency_analysis.hpp>
+#include <angel/utils/stopwatch.hpp>
+#include <cmath>
+#include <cplusplus/cuddObj.hh>
+#include <cudd/cudd.h>
+#include <cudd/cuddInt.h>
+#include <fstream>
+#include <iostream>
+#include <kitty/kitty.hpp>
+#include <map>
+#include <unordered_map>
+#include <unordered_set>
+#include <sstream>
 
 namespace angel
 {
@@ -114,6 +130,53 @@ BDD create_bdd( Cudd& cudd, std::string str, create_bdd_param bdd_param, uint32_
   return bdd;
 }
 
+
+DdNode* create_add( Cudd& cudd, std::map<uint32_t, float> amplitudes, uint32_t num_inputs)
+{
+  auto gbm = cudd.getManager();
+  DdNode** addNodes = new DdNode*[num_inputs];
+  for ( int i = num_inputs - 1; i >= 0; i-- )
+  {
+    addNodes[i] = Cudd_addNewVar(gbm);  // index 0: LSB
+  }
+
+  DdNode* f_add;
+  bool sig=1;
+  for(auto [idx, amp]: amplitudes)
+  {
+    DdNode* minterm;
+    auto temp = idx & 1;
+    if(temp)
+      minterm = Cudd_addApply (gbm, Cudd_addTimes, addNodes[0] , Cudd_addConst (gbm, (CUDD_VALUE_TYPE)1)); 
+    else
+      minterm = Cudd_addApply (gbm, Cudd_addTimes, Cudd_addCmpl(gbm, addNodes[0]) , Cudd_addConst (gbm, (CUDD_VALUE_TYPE)1));
+
+    uint32_t mint = idx;
+    for(auto i=1u; i<num_inputs; i++)
+    {
+      mint >>=1;
+      if(mint & 1)
+        minterm = Cudd_addApply (gbm, Cudd_addTimes, addNodes[i] , minterm); 
+      else
+        minterm = Cudd_addApply (gbm, Cudd_addTimes, Cudd_addCmpl(gbm, addNodes[i]) , minterm);
+    }
+
+      if ( sig )
+      {
+        f_add = Cudd_addApply (gbm, Cudd_addTimes, minterm, Cudd_addConst (gbm, (CUDD_VALUE_TYPE)amp));
+        sig = 0;
+      }
+      else
+      {
+        auto temp = Cudd_addApply (gbm, Cudd_addTimes, minterm, Cudd_addConst (gbm, (CUDD_VALUE_TYPE)amp));
+        f_add = Cudd_addApply (gbm, Cudd_addPlus, f_add, temp);
+      }
+
+  }
+
+  return f_add;
+}
+
 void draw_dump( DdNode* f_add, DdManager* mgr )
 {
   /* command to run: dot -Tpng graph.dot > output.png */
@@ -130,6 +193,7 @@ DdNode * create_dd_from_str( Cudd & cudd, std::string str, uint32_t num_inputs, 
   kitty::create_from_binary_string( tt, str );
   std::vector<uint32_t> mins = kitty::get_minterms( tt );
   reordering_on_tt_inplace( tt, orders );
+  
   str = kitty::to_binary( tt );
 
   /* Create BDD */
@@ -146,7 +210,7 @@ DdNode * create_dd_from_str( Cudd & cudd, std::string str, uint32_t num_inputs, 
   return f_add;
 }
 
-void compute_0_probabilities_for_bdd_nodes( std::unordered_set<DdNode*>& visited,
+void compute_0_probabilities_for_dd_nodes( std::unordered_set<DdNode*>& visited,
                            std::map<DdNode*, double>& node_0_p,
                            DdNode* f, uint32_t num_vars )
 {
@@ -156,8 +220,8 @@ void compute_0_probabilities_for_bdd_nodes( std::unordered_set<DdNode*>& visited
   if ( Cudd_IsConstant( current ) )
     return;
 
-  compute_0_probabilities_for_bdd_nodes( visited, node_0_p, cuddE( current ), num_vars );
-  compute_0_probabilities_for_bdd_nodes( visited, node_0_p, cuddT( current ), num_vars );
+  compute_0_probabilities_for_dd_nodes( visited, node_0_p, cuddE( current ), num_vars );
+  compute_0_probabilities_for_dd_nodes( visited, node_0_p, cuddT( current ), num_vars );
 
   visited.insert( current );
   double Eones = 0.0;
@@ -165,38 +229,82 @@ void compute_0_probabilities_for_bdd_nodes( std::unordered_set<DdNode*>& visited
 
   if ( Cudd_IsConstant( cuddT( current ) ) )
   {
-    if ( Cudd_V( cuddT( current ) ) )
+    auto const_value = Cudd_V( cuddT( current ) );
+    if ( const_value != 0 )
     {
       auto temp_pow = num_vars - current->index - 1;
-      Tones = pow( 2, temp_pow ) * 1;
+      Tones = pow( 2, temp_pow ) * const_value;
     }
   }
   else
   {
     auto temp_pow = cuddT( current )->index - 1 - current->index;
     auto Tvalue = 0;
-    Tvalue = node_0_p[cuddT( current )];   //node_0_p[cuddT( current )->index].find( cuddT( current ) )->second;
+    Tvalue = node_0_p[cuddT( current )];   
     Tones = pow( 2, temp_pow ) * Tvalue;
   }
 
   if ( Cudd_IsConstant( cuddE( current ) ) )
   {
-    if ( Cudd_V( cuddE( current ) ) )
+    auto const_value = Cudd_V( cuddE( current ) );
+    if ( const_value != 0 )
     {
       auto temp_pow = num_vars - current->index - 1;
-      Eones = pow( 2, temp_pow ) * 1;
+      Eones = pow( 2, temp_pow ) * const_value;
     }
   }
   else
   {
     auto temp_pow = cuddE( current )->index - 1 - current->index;
-    //auto max_ones = pow( 2, num_vars - orders[cuddE( current )->index] );
     auto Evalue = 0;
-    Evalue = node_0_p[cuddE( current )]; //node_0_p[cuddE( current )->index].find( cuddE( current ) )->second;
+    Evalue = node_0_p[cuddE( current )]; 
     Eones = pow( 2, temp_pow ) * Evalue;
   }
 
-  node_0_p[current] = double(Eones/(Tones + Eones)); //[current->index].insert( { current, double(Eones/(Tones + Eones)) } );
+  node_0_p[current] = double(Eones/(Tones + Eones)); 
+}
+
+kitty::dynamic_truth_table remove_vars_from_tt(kitty::dynamic_truth_table tt, const std::vector<uint32_t> & vars_to_erase)
+{
+  kitty::dynamic_truth_table tt_current = tt;
+  auto num_vars = tt.num_vars();
+  for(const auto & var: vars_to_erase)
+  {
+    auto tt_temp = kitty::cofactor0( tt_current, var ) | kitty::cofactor1( tt_current, var );
+    tt_current = tt_temp;
+  }
+  kitty::min_base_inplace(tt_current);
+
+  auto tt_new = kitty::shrink_to( tt_current, num_vars-vars_to_erase.size() );
+
+  return tt_new;
+}
+
+
+std::string extract_dependencies_compute_tt (std::string tt_str, esop_deps_analysis deps_strategy)
+{
+  int32_t const num_vars = std::log2( tt_str.size() );
+  kitty::dynamic_truth_table tt(num_vars);
+  kitty::create_from_binary_string(tt, tt_str);
+
+  /* extract dependencies */
+  esop_deps_analysis::result_type deps = deps_strategy.run( tt ); 
+  std::cout<<"deps: \n";
+  deps.print();
+
+  std::vector<uint32_t> vars_to_erase;
+
+  for(auto [var_idx, others]: deps.dependencies)
+  {
+    vars_to_erase.emplace_back(var_idx);
+  }
+
+  auto smaller_tt = remove_vars_from_tt(tt, vars_to_erase);
+
+  auto ones = kitty::count_ones(smaller_tt);
+  auto vars = smaller_tt.num_vars();
+  
+  return kitty::to_binary(smaller_tt);
 }
 
 
