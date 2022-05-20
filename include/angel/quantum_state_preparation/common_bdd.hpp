@@ -119,6 +119,47 @@ BDD create_bdd_from_tt_str( Cudd& cudd, std::string tt_str, uint32_t num_inputs 
   return f_bdd;
 }
 
+BDD create_bdd_from_minterms( Cudd& cudd, std::map<unsigned long long, float> amplitudes, uint32_t num_inputs )
+{
+  auto bddNodes = new BDD[num_inputs];
+  for ( int i = num_inputs - 1; i >= 0; i-- )
+  {
+    bddNodes[i] = cudd.bddVar(); // index 0: LSB
+  }
+
+  BDD f_bdd;
+  int sig = 1;
+
+  /* 
+    zero index in tt_str consist the biggest minterm of tt 
+  */
+
+  for(auto [idx, amp]: amplitudes)
+  {
+    auto mint = idx;
+    BDD temp;
+    temp = ( ( mint & 1 ) == 1 ) ? bddNodes[0] : !bddNodes[0];
+    mint >>= 1;
+    for ( auto j = 1u; j < num_inputs; j++ )
+    {
+      temp &= ( ( mint & 1 ) == 1 ) ? bddNodes[j] : !bddNodes[j];
+      mint >>= 1;
+    }
+
+    if ( sig )
+    {
+      f_bdd = temp;
+      sig = 0;
+    }
+    else
+    {
+      f_bdd |= temp;
+    }
+  }
+
+  return f_bdd;
+}
+
 BDD create_bdd( Cudd& cudd, std::string str, create_bdd_param bdd_param, uint32_t& num_inputs )
 {
   BDD bdd;
@@ -130,8 +171,66 @@ BDD create_bdd( Cudd& cudd, std::string str, create_bdd_param bdd_param, uint32_
   return bdd;
 }
 
+DdNode* create_add( Cudd& cudd, std::map<unsigned long long, float> amplitudes, uint32_t num_inputs)
+{
+  auto gbm = cudd.getManager();
+  DdNode** addNodes = new DdNode*[num_inputs];
+  for ( int i = num_inputs - 1; i >= 0; i-- )
+  {
+    addNodes[i] = Cudd_addNewVar(gbm);  // index 0: LSB
+  }
 
-DdNode* create_add( Cudd& cudd, std::map<uint32_t, float> amplitudes, uint32_t num_inputs)
+  std::cout<<num_inputs<<std::endl;
+
+  DdNode* f_add, *temp_add;
+  bool sig_firstm=true;
+  for(auto [idx, amp]: amplitudes)
+  {
+    std::cout<<std::endl<<"idx:  "<<idx<<"   amp: "<<amp<<std::endl;
+    DdNode* minterm, *temp_node;
+    minterm = Cudd_addConst (gbm, amp);
+    Cudd_Ref(minterm);
+    
+    for(auto i=0; i<num_inputs; i++)
+    {
+      auto mint_bit = (idx >> i) & 1;
+      if(mint_bit){
+        std::cout<<"p"<<i<<"  ";
+        temp_node = Cudd_addApply (gbm, Cudd_addTimes, addNodes[i] , minterm); 
+        Cudd_Ref(temp_node);
+        Cudd_RecursiveDeref(gbm,minterm);
+        minterm = temp_node;  
+      }   
+      else{
+        std::cout<<"n"<<i<<"  ";
+        temp_node = Cudd_addApply (gbm, Cudd_addTimes, Cudd_addCmpl(gbm, addNodes[i]) , minterm);
+        Cudd_Ref(temp_node);
+        Cudd_RecursiveDeref(gbm,minterm);
+        minterm = temp_node;
+      }    
+    }
+
+    if(sig_firstm){
+      temp_add = minterm;
+      Cudd_RecursiveDeref(gbm, minterm);
+      Cudd_Ref(temp_add);
+      f_add = temp_node;
+      sig_firstm = false; 
+    }
+    else{
+       temp_add = Cudd_addApply (gbm, Cudd_addOr, f_add, minterm);
+       Cudd_Ref(temp_add);
+       Cudd_RecursiveDeref(gbm, minterm);
+       Cudd_RecursiveDeref(gbm, f_add);
+       f_add = temp_add;
+    }
+
+  }
+
+  return f_add;
+}
+
+DdNode* create_add_prev( Cudd& cudd, std::map<unsigned long long, float> amplitudes, uint32_t num_inputs)
 {
   auto gbm = cudd.getManager();
   DdNode** addNodes = new DdNode*[num_inputs];
@@ -146,34 +245,57 @@ DdNode* create_add( Cudd& cudd, std::map<uint32_t, float> amplitudes, uint32_t n
   {
     DdNode* minterm;
     auto temp = idx & 1;
-    if(temp)
+    if(temp){
       minterm = Cudd_addApply (gbm, Cudd_addTimes, addNodes[0] , Cudd_addConst (gbm, (CUDD_VALUE_TYPE)1)); 
-    else
+      Cudd_Ref(minterm);
+    }    
+    else{
       minterm = Cudd_addApply (gbm, Cudd_addTimes, Cudd_addCmpl(gbm, addNodes[0]) , Cudd_addConst (gbm, (CUDD_VALUE_TYPE)1));
+      Cudd_Ref(minterm);
+    }
+      
 
     uint32_t mint = idx;
     for(auto i=1u; i<num_inputs; i++)
     {
       mint >>=1;
-      if(mint & 1)
+      if(mint & 1){
+        Cudd_RecursiveDeref(gbm,minterm);
         minterm = Cudd_addApply (gbm, Cudd_addTimes, addNodes[i] , minterm); 
-      else
+        Cudd_Ref(minterm);
+      }   
+      else{
+        Cudd_RecursiveDeref(gbm,minterm);
         minterm = Cudd_addApply (gbm, Cudd_addTimes, Cudd_addCmpl(gbm, addNodes[i]) , minterm);
+        Cudd_Ref(minterm);
+      }
+        
     }
 
-      if ( sig )
-      {
-        f_add = Cudd_addApply (gbm, Cudd_addTimes, minterm, Cudd_addConst (gbm, (CUDD_VALUE_TYPE)amp));
-        sig = 0;
-      }
-      else
-      {
-        auto temp = Cudd_addApply (gbm, Cudd_addTimes, minterm, Cudd_addConst (gbm, (CUDD_VALUE_TYPE)amp));
-        f_add = Cudd_addApply (gbm, Cudd_addPlus, f_add, temp);
-      }
+    //Cudd_Ref(minterm);
 
+    if ( sig )
+    {
+      f_add = Cudd_addApply (gbm, Cudd_addTimes, minterm, Cudd_addConst (gbm, (CUDD_VALUE_TYPE)amp));
+      Cudd_Ref(f_add);
+      Cudd_RecursiveDeref(gbm,minterm);
+      sig = 0;
+    }
+    else
+    {
+      auto temp = Cudd_addApply (gbm, Cudd_addTimes, minterm, Cudd_addConst (gbm, (CUDD_VALUE_TYPE)amp));
+      Cudd_Ref(temp);
+      Cudd_RecursiveDeref(gbm,f_add);
+      f_add = Cudd_addApply (gbm, Cudd_addPlus, f_add, temp);
+      Cudd_Ref(f_add);
+      Cudd_RecursiveDeref(gbm, temp);
+
+    }
+
+    //Cudd_RecursiveDeref(gbm, minterm);
   }
 
+  Cudd_RecursiveDeref(gbm,f_add);
   return f_add;
 }
 
