@@ -186,7 +186,7 @@ DdNode* create_add( Cudd& cudd, std::map<unsigned long long, float> amplitudes, 
   bool sig_firstm=true;
   for(auto [idx, amp]: amplitudes)
   {
-    std::cout<<std::endl<<"idx:  "<<idx<<"   amp: "<<amp<<std::endl;
+    //std::cout<<std::endl<<"idx:  "<<idx<<"   amp: "<<amp<<std::endl;
     DdNode* minterm, *temp_node;
     minterm = Cudd_addConst (gbm, amp);
     Cudd_Ref(minterm);
@@ -195,14 +195,12 @@ DdNode* create_add( Cudd& cudd, std::map<unsigned long long, float> amplitudes, 
     {
       auto mint_bit = (idx >> i) & 1;
       if(mint_bit){
-        std::cout<<"p"<<i<<"  ";
         temp_node = Cudd_addApply (gbm, Cudd_addTimes, addNodes[i] , minterm); 
         Cudd_Ref(temp_node);
         Cudd_RecursiveDeref(gbm,minterm);
         minterm = temp_node;  
       }   
       else{
-        std::cout<<"n"<<i<<"  ";
         temp_node = Cudd_addApply (gbm, Cudd_addTimes, Cudd_addCmpl(gbm, addNodes[i]) , minterm);
         Cudd_Ref(temp_node);
         Cudd_RecursiveDeref(gbm,minterm);
@@ -218,7 +216,7 @@ DdNode* create_add( Cudd& cudd, std::map<unsigned long long, float> amplitudes, 
       sig_firstm = false; 
     }
     else{
-       temp_add = Cudd_addApply (gbm, Cudd_addOr, f_add, minterm);
+       temp_add = Cudd_addApply (gbm, Cudd_addPlus, f_add, minterm);
        Cudd_Ref(temp_add);
        Cudd_RecursiveDeref(gbm, minterm);
        Cudd_RecursiveDeref(gbm, f_add);
@@ -227,75 +225,6 @@ DdNode* create_add( Cudd& cudd, std::map<unsigned long long, float> amplitudes, 
 
   }
 
-  return f_add;
-}
-
-DdNode* create_add_prev( Cudd& cudd, std::map<unsigned long long, float> amplitudes, uint32_t num_inputs)
-{
-  auto gbm = cudd.getManager();
-  DdNode** addNodes = new DdNode*[num_inputs];
-  for ( int i = num_inputs - 1; i >= 0; i-- )
-  {
-    addNodes[i] = Cudd_addNewVar(gbm);  // index 0: LSB
-  }
-
-  DdNode* f_add;
-  bool sig=1;
-  for(auto [idx, amp]: amplitudes)
-  {
-    DdNode* minterm;
-    auto temp = idx & 1;
-    if(temp){
-      minterm = Cudd_addApply (gbm, Cudd_addTimes, addNodes[0] , Cudd_addConst (gbm, (CUDD_VALUE_TYPE)1)); 
-      Cudd_Ref(minterm);
-    }    
-    else{
-      minterm = Cudd_addApply (gbm, Cudd_addTimes, Cudd_addCmpl(gbm, addNodes[0]) , Cudd_addConst (gbm, (CUDD_VALUE_TYPE)1));
-      Cudd_Ref(minterm);
-    }
-      
-
-    uint32_t mint = idx;
-    for(auto i=1u; i<num_inputs; i++)
-    {
-      mint >>=1;
-      if(mint & 1){
-        Cudd_RecursiveDeref(gbm,minterm);
-        minterm = Cudd_addApply (gbm, Cudd_addTimes, addNodes[i] , minterm); 
-        Cudd_Ref(minterm);
-      }   
-      else{
-        Cudd_RecursiveDeref(gbm,minterm);
-        minterm = Cudd_addApply (gbm, Cudd_addTimes, Cudd_addCmpl(gbm, addNodes[i]) , minterm);
-        Cudd_Ref(minterm);
-      }
-        
-    }
-
-    //Cudd_Ref(minterm);
-
-    if ( sig )
-    {
-      f_add = Cudd_addApply (gbm, Cudd_addTimes, minterm, Cudd_addConst (gbm, (CUDD_VALUE_TYPE)amp));
-      Cudd_Ref(f_add);
-      Cudd_RecursiveDeref(gbm,minterm);
-      sig = 0;
-    }
-    else
-    {
-      auto temp = Cudd_addApply (gbm, Cudd_addTimes, minterm, Cudd_addConst (gbm, (CUDD_VALUE_TYPE)amp));
-      Cudd_Ref(temp);
-      Cudd_RecursiveDeref(gbm,f_add);
-      f_add = Cudd_addApply (gbm, Cudd_addPlus, f_add, temp);
-      Cudd_Ref(f_add);
-      Cudd_RecursiveDeref(gbm, temp);
-
-    }
-
-    //Cudd_RecursiveDeref(gbm, minterm);
-  }
-
-  Cudd_RecursiveDeref(gbm,f_add);
   return f_add;
 }
 
