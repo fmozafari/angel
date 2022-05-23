@@ -4,6 +4,7 @@
 #include <angel/dependency_analysis/no_deps.hpp>
 #include <angel/quantum_state_preparation/qsp_deps.hpp>
 #include <angel/quantum_state_preparation/qsp_bdd.hpp>
+#include <angel/quantum_state_preparation/sparse_qsp.hpp>
 #include <angel/reordering/exhaustive_reordering.hpp>
 #include <angel/reordering/greedy_reordering.hpp>
 #include <angel/reordering/no_reordering.hpp>
